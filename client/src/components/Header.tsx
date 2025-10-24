@@ -1,0 +1,252 @@
+import { useState } from "react";
+import { Search, Heart, User, ShoppingCart, Menu, X, Mic, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+
+interface HeaderProps {
+  cartCount: number;
+  wishlistCount: number;
+  onCartClick: () => void;
+  language: string;
+  onLanguageChange: (lang: string) => void;
+}
+
+export function Header({ cartCount, wishlistCount, onCartClick, language, onLanguageChange }: HeaderProps) {
+  const [showMegaMenu, setShowMegaMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const categories = [
+    { name: "Sarees", icon: "dress" },
+    { name: "Kurtas & Suits", icon: "shirt" },
+    { name: "Western Wear", icon: "jacket" },
+    { name: "Lehengas", icon: "sparkles" },
+    { name: "Footwear", icon: "footprints" },
+    { name: "Accessories", icon: "gem" },
+    { name: "Beauty & Makeup", icon: "palette" },
+    { name: "Home & Living", icon: "home" },
+  ];
+
+  return (
+    <>
+      <header className="sticky top-0 z-50 bg-background border-b">
+        {/* Main Header */}
+        <div className="max-w-screen-2xl mx-auto">
+          <div className="flex items-center gap-4 px-4 md:px-6 h-16 md:h-20">
+            {/* Mobile Menu Button */}
+            <Button
+              size="icon"
+              variant="ghost"
+              className="md:hidden"
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              data-testid="button-mobile-menu"
+            >
+              {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <h1 className="text-xl md:text-2xl font-bold text-primary">
+                Prime <span className="text-foreground">Pickz</span>
+              </h1>
+            </div>
+
+            {/* Search Bar - Desktop */}
+            <div className="hidden md:flex flex-1 max-w-2xl">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search for sarees, kurtas, accessories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-12 h-11"
+                  data-testid="input-search"
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2"
+                  data-testid="button-voice-search"
+                >
+                  <Mic className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              {/* Language Selector */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onLanguageChange(language === "en" ? "hi" : "en")}
+                className="hidden sm:flex items-center gap-1"
+                data-testid="button-language"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="text-sm font-medium">{language === "en" ? "English" : "हिंदी"}</span>
+              </Button>
+
+              {/* Wishlist */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                data-testid="button-wishlist"
+              >
+                <Heart className="w-5 h-5" />
+                {wishlistCount > 0 && (
+                  <Badge
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    variant="destructive"
+                  >
+                    {wishlistCount}
+                  </Badge>
+                )}
+              </Button>
+
+              {/* Account */}
+              <Button variant="ghost" size="icon" data-testid="button-account">
+                <User className="w-5 h-5" />
+              </Button>
+
+              {/* Cart */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                onClick={onCartClick}
+                data-testid="button-cart"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <Badge
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {cartCount}
+                  </Badge>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Search Bar - Mobile */}
+          <div className="md:hidden px-4 pb-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-10 h-10 text-sm"
+                data-testid="input-search-mobile"
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                data-testid="button-voice-search-mobile"
+              >
+                <Mic className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Categories - Desktop */}
+          <div className="hidden md:block border-t">
+            <div className="px-4 md:px-6">
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onMouseEnter={() => setShowMegaMenu(true)}
+                  onMouseLeave={() => setShowMegaMenu(false)}
+                  className="whitespace-nowrap"
+                  data-testid="button-categories"
+                >
+                  All Categories
+                </Button>
+                {categories.map((category) => (
+                  <Button
+                    key={category.name}
+                    variant="ghost"
+                    size="sm"
+                    className="whitespace-nowrap"
+                    data-testid={`button-category-${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    {category.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mega Menu */}
+        {showMegaMenu && (
+          <div
+            className="absolute top-full left-0 right-0 bg-background border-b shadow-lg"
+            onMouseEnter={() => setShowMegaMenu(true)}
+            onMouseLeave={() => setShowMegaMenu(false)}
+          >
+            <div className="max-w-screen-2xl mx-auto px-6 py-8">
+              <div className="grid grid-cols-6 gap-6">
+                {categories.map((category) => (
+                  <div
+                    key={category.name}
+                    className="flex flex-col items-center gap-3 p-4 rounded-lg hover-elevate cursor-pointer"
+                    data-testid={`megamenu-${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <div className="w-20 h-20 flex items-center justify-center bg-primary/10 rounded-lg">
+                      <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-primary rounded-full" />
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-center">{category.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {showMobileMenu && (
+        <div className="fixed inset-0 z-40 bg-background md:hidden">
+          <div className="flex flex-col h-full overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-bold">Menu</h2>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setShowMobileMenu(false)}
+                data-testid="button-close-mobile-menu"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="flex-1 p-4">
+              <div className="space-y-1">
+                {categories.map((category) => (
+                  <Button
+                    key={category.name}
+                    variant="ghost"
+                    className="w-full justify-start text-base h-12"
+                    onClick={() => setShowMobileMenu(false)}
+                    data-testid={`mobile-menu-${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    {category.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
