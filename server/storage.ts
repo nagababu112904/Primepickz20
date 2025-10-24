@@ -16,9 +16,15 @@ import type {
   PurchaseNotification,
   CartItemWithProduct,
   DealWithProduct,
+  User,
+  UpsertUser,
 } from "@shared/schema";
 
 export interface IStorage {
+  // Users
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
   // Products
   getAllProducts(): Promise<Product[]>;
   getProduct(id: string): Promise<Product | undefined>;
@@ -50,6 +56,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  private users: Map<string, User>;
   private products: Map<string, Product>;
   private categories: Map<string, Category>;
   private deals: Map<string, Deal>;
@@ -58,6 +65,7 @@ export class MemStorage implements IStorage {
   private notifications: PurchaseNotification[];
 
   constructor() {
+    this.users = new Map();
     this.products = new Map();
     this.categories = new Map();
     this.deals = new Map();
@@ -65,6 +73,25 @@ export class MemStorage implements IStorage {
     this.cartItems = new Map();
     this.notifications = [];
     this.seedData();
+  }
+
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const id = userData.id || randomUUID();
+    const user: User = {
+      id,
+      email: userData.email || null,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
+      createdAt: userData.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(id, user);
+    return user;
   }
 
   private seedData() {
@@ -663,6 +690,27 @@ export class MemStorage implements IStorage {
 
 // Database Storage Implementation
 export class DBStorage implements IStorage {
+  // Users
+  async getUser(id: string): Promise<User | undefined> {
+    const results = await db.select().from(schema.users).where(eq(schema.users.id, id));
+    return results[0];
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const results = await db
+      .insert(schema.users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: schema.users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return results[0];
+  }
+
   // Products
   async getAllProducts(): Promise<Product[]> {
     return await db.select().from(schema.products);

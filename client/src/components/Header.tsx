@@ -1,8 +1,18 @@
 import { useState } from "react";
-import { Search, Heart, User, ShoppingCart, Menu, X, Mic, Globe } from "lucide-react";
+import { Search, Heart, User, ShoppingCart, Menu, X, Mic, Globe, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
 
 interface HeaderProps {
   cartCount: number;
@@ -13,6 +23,7 @@ interface HeaderProps {
 }
 
 export function Header({ cartCount, wishlistCount, onCartClick, language, onLanguageChange }: HeaderProps) {
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [showMegaMenu, setShowMegaMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,9 +119,52 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
               </Button>
 
               {/* Account */}
-              <Button variant="ghost" size="icon" data-testid="button-account">
-                <User className="w-5 h-5" />
-              </Button>
+              {isLoading ? (
+                <Button variant="ghost" size="icon" disabled data-testid="button-account-loading">
+                  <User className="w-5 h-5" />
+                </Button>
+              ) : isAuthenticated && user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" data-testid="button-account">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.profileImageUrl || undefined} alt={user.firstName || "User"} />
+                        <AvatarFallback>
+                          {user.firstName?.[0] || user.email?.[0] || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col">
+                        <span className="font-semibold">
+                          {user.firstName && user.lastName 
+                            ? `${user.firstName} ${user.lastName}` 
+                            : user.firstName || "User"}
+                        </span>
+                        {user.email && <span className="text-xs text-muted-foreground font-normal">{user.email}</span>}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <a href="/api/logout" className="cursor-pointer" data-testid="link-logout">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Logout</span>
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => window.location.href = '/api/login'}
+                  data-testid="button-login"
+                >
+                  Login
+                </Button>
+              )}
 
               {/* Cart */}
               <Button
