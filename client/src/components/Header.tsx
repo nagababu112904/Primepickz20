@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 interface HeaderProps {
   cartCount: number;
@@ -24,9 +26,12 @@ interface HeaderProps {
 
 export function Header({ cartCount, wishlistCount, onCartClick, language, onLanguageChange }: HeaderProps) {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [showMegaMenu, setShowMegaMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isListening, setIsListening] = useState(false);
 
   const categories = [
     { name: "Sarees", icon: "dress" },
@@ -38,6 +43,65 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
     { name: "Beauty & Makeup", icon: "palette" },
     { name: "Home & Living", icon: "home" },
   ];
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (searchQuery.trim()) {
+      setLocation(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleVoiceSearch = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast({
+        title: "Voice search not supported",
+        description: "Your browser doesn't support voice search",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = language === "hi" ? "hi-IN" : "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      toast({
+        title: "Listening...",
+        description: "Speak now",
+      });
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchQuery(transcript);
+      setLocation(`/search?q=${encodeURIComponent(transcript)}`);
+      setIsListening(false);
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      toast({
+        title: "Voice search failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
+  const handleWishlistClick = () => {
+    setLocation("/wishlist");
+  };
 
   return (
     <>
@@ -65,25 +129,28 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
 
             {/* Search Bar - Desktop */}
             <div className="hidden md:flex flex-1 max-w-2xl">
-              <div className="relative w-full">
+              <form onSubmit={handleSearch} className="relative w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search for sarees, kurtas, accessories..."
+                  placeholder="Search for products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-10 pr-12 h-11"
                   data-testid="input-search"
                 />
                 <Button
+                  type="button"
                   size="icon"
                   variant="ghost"
+                  onClick={handleVoiceSearch}
                   className="absolute right-1 top-1/2 -translate-y-1/2"
                   data-testid="button-voice-search"
                 >
-                  <Mic className="w-4 h-4" />
+                  <Mic className={`w-4 h-4 ${isListening ? 'text-destructive animate-pulse' : ''}`} />
                 </Button>
-              </div>
+              </form>
             </div>
 
             {/* Action Buttons */}
@@ -105,6 +172,7 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
                 variant="ghost"
                 size="icon"
                 className="relative"
+                onClick={handleWishlistClick}
                 data-testid="button-wishlist"
               >
                 <Heart className="w-5 h-5" />
@@ -188,25 +256,28 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
 
           {/* Search Bar - Mobile */}
           <div className="md:hidden px-4 pb-3">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-9 pr-10 h-10 text-sm"
                 data-testid="input-search-mobile"
               />
               <Button
+                type="button"
                 size="icon"
                 variant="ghost"
+                onClick={handleVoiceSearch}
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                 data-testid="button-voice-search-mobile"
               >
-                <Mic className="w-4 h-4" />
+                <Mic className={`w-4 h-4 ${isListening ? 'text-destructive animate-pulse' : ''}`} />
               </Button>
-            </div>
+            </form>
           </div>
 
           {/* Categories - Desktop */}

@@ -42,6 +42,7 @@ export const products = pgTable("products", {
   tags: text("tags").array(),
   badge: text("badge"),
   freeShipping: boolean("free_shipping").default(false),
+  variants: text("variants").array(),
 });
 
 // Categories
