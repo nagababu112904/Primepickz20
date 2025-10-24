@@ -76,12 +76,10 @@ Prime Pickz is a premium e-commerce landing page for an Indian fashion and lifes
   - Checkout button
 - **Quick View**: Modal for product details without page navigation
 - **Wishlist**: Toggle favorite products
+- **Promotional Banners**: 3 full-width banners with vibrant gradients and stock images throughout homepage
 
 ### Engagement & Support
-- **Newsletter Popup**: Email subscription with ₹100 OFF incentive
-- **WhatsApp Opt-in**: Order updates and deals
 - **Live Chat Widget**: Floating chat button with message interface
-- **Purchase Notifications**: Real-time purchase popups showing customer activity
 
 ### Footer
 - Company information and contact details
@@ -104,11 +102,12 @@ Prime Pickz is a premium e-commerce landing page for an Indian fashion and lifes
 
 ## Design System
 
-### Colors (Indian-Fusion Palette)
-- **Primary**: Warm orange (#EA580C) - vibrant, trustworthy
-- **Background**: Clean white/dark mode support
-- **Accent**: Subtle grays for hierarchy
-- **Destructive**: Red for urgency/discounts
+### Colors (Bold Festival Palette)
+- **Primary**: Vibrant Purple (HSL 280 85% 60%) - electric, energetic
+- **Accent**: Bold Pink (HSL 340 90% 65%) - festive, eye-catching
+- **Background**: Pure white for maximum color pop
+- **Destructive**: Bright Red (HSL 0 90% 55%) for urgency/discounts
+- **Gradients**: Pink-to-purple, purple-to-pink dual gradients throughout
 
 ### Typography
 - **Primary Font**: Poppins, Inter (friendly, modern)
@@ -184,12 +183,14 @@ shared/
 ### Phase 1: Schema & Frontend ✅
 - Complete data schema defined
 - All React components built
-- Design system configured
+- Bold, vibrant design system with festival energy
 - SEO meta tags added
 - Mobile-responsive layouts
 - Accessibility features
+- 3 promotional banners with stock images
+- Removed newsletter and purchase notification popups
 
-### Phase 2: Backend (Next)
+### Phase 2: Backend ✅
 - API endpoints for products, categories, deals
 - Cart operations
 - In-memory data storage with realistic Indian fashion products
@@ -225,6 +226,6 @@ The application runs on a single port with Vite serving the frontend and Express
 
 ---
 
-**Version**: 1.0  
+**Version**: 1.1  
 **Last Updated**: October 24, 2025  
-**Status**: Phase 1 Complete - Frontend Ready
+**Status**: Bold Design Update - Festival Energy Applied
