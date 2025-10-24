@@ -31,63 +31,71 @@ export function ProductCard({
       data-testid={`product-card-${product.id}`}
     >
       {/* Image Container */}
-      <div className="relative aspect-square bg-muted overflow-hidden">
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-muted animate-pulse" />
-        )}
-        <Link href={`/product/${product.id}`}>
+      <Link href={`/product/${product.id}`}>
+        <div className="relative aspect-square bg-muted overflow-hidden cursor-pointer">
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-muted animate-pulse" />
+          )}
           <div
-            className="w-full h-full bg-gradient-to-br from-primary/20 via-accent/20 to-muted flex items-center justify-center cursor-pointer"
+            className="w-full h-full bg-gradient-to-br from-primary/20 via-accent/20 to-muted flex items-center justify-center"
             onLoad={() => setImageLoaded(true)}
           >
             <Package className="w-16 h-16 text-primary/40" />
           </div>
-        </Link>
 
-        {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {product.badge && (
-            <Badge className="text-xs font-semibold px-2 py-1">
-              {product.badge}
-            </Badge>
-          )}
-          {hasDiscount && (
-            <Badge variant="destructive" className="text-xs font-semibold px-2 py-1">
-              {discountPercentage}% OFF
-            </Badge>
-          )}
-          {product.freeShipping && (
-            <Badge variant="secondary" className="text-xs font-semibold px-2 py-1">
-              Free Shipping
-            </Badge>
-          )}
+          {/* Badges */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
+            {product.badge && (
+              <Badge className="text-xs font-semibold px-2 py-1">
+                {product.badge}
+              </Badge>
+            )}
+            {hasDiscount && (
+              <Badge variant="destructive" className="text-xs font-semibold px-2 py-1">
+                {discountPercentage}% OFF
+              </Badge>
+            )}
+            {product.freeShipping && (
+              <Badge variant="secondary" className="text-xs font-semibold px-2 py-1">
+                Free Shipping
+              </Badge>
+            )}
+          </div>
+
+          {/* Wishlist Button */}
+          <Button
+            size="icon"
+            variant="secondary"
+            className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleWishlist(product.id);
+            }}
+            data-testid={`button-wishlist-${product.id}`}
+          >
+            <Heart
+              className={`w-4 h-4 ${isWishlisted ? "fill-destructive text-destructive" : ""}`}
+            />
+          </Button>
+
+          {/* Quick View Button */}
+          <Button
+            size="sm"
+            variant="secondary"
+            className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity gap-1"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onQuickView(product.id);
+            }}
+            data-testid={`button-quickview-${product.id}`}
+          >
+            <Eye className="w-4 h-4" />
+            Quick View
+          </Button>
         </div>
-
-        {/* Wishlist Button */}
-        <Button
-          size="icon"
-          variant="secondary"
-          className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => onToggleWishlist(product.id)}
-          data-testid={`button-wishlist-${product.id}`}
-        >
-          <Heart
-            className={`w-4 h-4 ${isWishlisted ? "fill-destructive text-destructive" : ""}`}
-          />
-        </Button>
-
-        {/* Quick View Button */}
-        <Button
-          size="sm"
-          variant="secondary"
-          className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity gap-1"
-          onClick={() => onQuickView(product.id)}
-          data-testid={`button-quickview-${product.id}`}
-        >
-          <Eye className="w-4 h-4" />
-          Quick View
-        </Button>
-      </div>
+      </Link>
 
       {/* Content */}
       <div className="p-3 md:p-4">
