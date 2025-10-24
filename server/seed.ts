@@ -42,7 +42,7 @@ async function seed() {
     {
       name: "Food & Spices",
       slug: "food-spices",
-      imageUrl: "https://images.unsplash.com/photo-1596040033229-a0b73e7d8eab?w=800",
+      imageUrl: "https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=800",
       description: "Authentic spices and gourmet foods",
     },
     {
