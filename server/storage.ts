@@ -1,4 +1,7 @@
 import { randomUUID } from "crypto";
+import { eq, and } from "drizzle-orm";
+import { db } from "./db";
+import * as schema from "@shared/schema";
 import type {
   Product,
   InsertProduct,
@@ -658,4 +661,136 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+export class DBStorage implements IStorage {
+  // Products
+  async getAllProducts(): Promise<Product[]> {
+    return await db.select().from(schema.products);
+  }
+
+  async getProduct(id: string): Promise<Product | undefined> {
+    const results = await db.select().from(schema.products).where(eq(schema.products.id, id));
+    return results[0];
+  }
+
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const results = await db.insert(schema.products).values(product).returning();
+    return results[0];
+  }
+
+  // Categories
+  async getAllCategories(): Promise<Category[]> {
+    return await db.select().from(schema.categories);
+  }
+
+  async getCategory(id: string): Promise<Category | undefined> {
+    const results = await db.select().from(schema.categories).where(eq(schema.categories.id, id));
+    return results[0];
+  }
+
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const results = await db.insert(schema.categories).values(category).returning();
+    return results[0];
+  }
+
+  // Deals
+  async getAllDeals(): Promise<DealWithProduct[]> {
+    const dealsResult = await db.select().from(schema.deals).where(eq(schema.deals.isActive, true));
+    
+    const dealsWithProducts: DealWithProduct[] = [];
+    for (const deal of dealsResult) {
+      const product = await this.getProduct(deal.productId);
+      if (product) {
+        dealsWithProducts.push({
+          ...deal,
+          product,
+        });
+      }
+    }
+    
+    return dealsWithProducts;
+  }
+
+  async getDeal(id: string): Promise<Deal | undefined> {
+    const results = await db.select().from(schema.deals).where(eq(schema.deals.id, id));
+    return results[0];
+  }
+
+  async createDeal(deal: InsertDeal): Promise<Deal> {
+    const results = await db.insert(schema.deals).values(deal).returning();
+    return results[0];
+  }
+
+  // Reviews
+  async getAllReviews(): Promise<Review[]> {
+    return await db.select().from(schema.reviews);
+  }
+
+  async getReviewsByProduct(productId: string): Promise<Review[]> {
+    return await db.select().from(schema.reviews).where(eq(schema.reviews.productId, productId));
+  }
+
+  async createReview(review: InsertReview): Promise<Review> {
+    const results = await db.insert(schema.reviews).values(review).returning();
+    return results[0];
+  }
+
+  // Cart
+  async getCartItems(sessionId: string): Promise<CartItemWithProduct[]> {
+    const items = await db.select().from(schema.cartItems).where(eq(schema.cartItems.sessionId, sessionId));
+    
+    const itemsWithProducts: CartItemWithProduct[] = [];
+    for (const item of items) {
+      const product = await this.getProduct(item.productId);
+      if (product) {
+        itemsWithProducts.push({
+          ...item,
+          product,
+        });
+      }
+    }
+    
+    return itemsWithProducts;
+  }
+
+  async addToCart(item: InsertCartItem): Promise<CartItem> {
+    // Check if item already exists in cart
+    const existing = await db.select().from(schema.cartItems)
+      .where(and(
+        eq(schema.cartItems.productId, item.productId),
+        eq(schema.cartItems.sessionId, item.sessionId)
+      ));
+
+    if (existing.length > 0) {
+      // Update quantity
+      const updated = await db.update(schema.cartItems)
+        .set({ quantity: existing[0].quantity + item.quantity })
+        .where(eq(schema.cartItems.id, existing[0].id))
+        .returning();
+      return updated[0];
+    }
+
+    const results = await db.insert(schema.cartItems).values(item).returning();
+    return results[0];
+  }
+
+  async updateCartItemQuantity(id: string, quantity: number): Promise<CartItem | undefined> {
+    const results = await db.update(schema.cartItems)
+      .set({ quantity })
+      .where(eq(schema.cartItems.id, id))
+      .returning();
+    return results[0];
+  }
+
+  async removeFromCart(id: string): Promise<boolean> {
+    const results = await db.delete(schema.cartItems).where(eq(schema.cartItems.id, id)).returning();
+    return results.length > 0;
+  }
+
+  // Purchase Notifications
+  async getAllNotifications(): Promise<PurchaseNotification[]> {
+    return await db.select().from(schema.purchaseNotifications);
+  }
+}
+
+export const storage = new DBStorage();
