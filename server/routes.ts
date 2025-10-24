@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCartItemSchema } from "@shared/schema";
+import { insertCartItemSchema, insertWishlistItemSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -149,6 +149,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(notifications);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+
+  // Wishlist (protected routes)
+  app.get("/api/wishlist", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const wishlistItems = await storage.getWishlistItems(userId);
+      res.json(wishlistItems);
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+      res.status(500).json({ error: "Failed to fetch wishlist items" });
+    }
+  });
+
+  app.post("/api/wishlist", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertWishlistItemSchema.parse({
+        ...req.body,
+        userId,
+      });
+
+      const wishlistItem = await storage.addToWishlist(validatedData);
+      res.json(wishlistItem);
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "Failed to add to wishlist" });
+      }
+    }
+  });
+
+  app.delete("/api/wishlist/:productId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { productId } = req.params;
+      
+      const deleted = await storage.removeFromWishlist(userId, productId);
+      if (!deleted) {
+        return res.status(404).json({ error: "Wishlist item not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
+      res.status(500).json({ error: "Failed to remove from wishlist" });
+    }
+  });
+
+  app.get("/api/wishlist/check/:productId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { productId } = req.params;
+      
+      const isInWishlist = await storage.isInWishlist(userId, productId);
+      res.json({ isInWishlist });
+    } catch (error) {
+      console.error("Error checking wishlist:", error);
+      res.status(500).json({ error: "Failed to check wishlist" });
     }
   });
 

@@ -18,6 +18,9 @@ import type {
   DealWithProduct,
   User,
   UpsertUser,
+  WishlistItem,
+  InsertWishlistItem,
+  WishlistItemWithProduct,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -53,6 +56,12 @@ export interface IStorage {
   
   // Purchase Notifications
   getAllNotifications(): Promise<PurchaseNotification[]>;
+  
+  // Wishlist
+  getWishlistItems(userId: string): Promise<WishlistItemWithProduct[]>;
+  addToWishlist(item: InsertWishlistItem): Promise<WishlistItem>;
+  removeFromWishlist(userId: string, productId: string): Promise<boolean>;
+  isInWishlist(userId: string, productId: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -62,6 +71,7 @@ export class MemStorage implements IStorage {
   private deals: Map<string, Deal>;
   private reviews: Map<string, Review>;
   private cartItems: Map<string, CartItem>;
+  private wishlistItems: Map<string, WishlistItem>;
   private notifications: PurchaseNotification[];
 
   constructor() {
@@ -71,6 +81,7 @@ export class MemStorage implements IStorage {
     this.deals = new Map();
     this.reviews = new Map();
     this.cartItems = new Map();
+    this.wishlistItems = new Map();
     this.notifications = [];
     this.seedData();
   }
@@ -686,6 +697,52 @@ export class MemStorage implements IStorage {
   async getAllNotifications(): Promise<PurchaseNotification[]> {
     return this.notifications;
   }
+
+  // Wishlist
+  async getWishlistItems(userId: string): Promise<WishlistItemWithProduct[]> {
+    const items = Array.from(this.wishlistItems.values()).filter(item => item.userId === userId);
+    const itemsWithProducts: WishlistItemWithProduct[] = [];
+    
+    for (const item of items) {
+      const product = await this.getProduct(item.productId);
+      if (product) {
+        itemsWithProducts.push({
+          ...item,
+          product,
+        });
+      }
+    }
+    
+    return itemsWithProducts;
+  }
+
+  async addToWishlist(item: InsertWishlistItem): Promise<WishlistItem> {
+    const id = randomUUID();
+    const wishlistItem: WishlistItem = {
+      id,
+      ...item,
+      createdAt: new Date(),
+    };
+    this.wishlistItems.set(id, wishlistItem);
+    return wishlistItem;
+  }
+
+  async removeFromWishlist(userId: string, productId: string): Promise<boolean> {
+    const item = Array.from(this.wishlistItems.entries()).find(
+      ([_, item]) => item.userId === userId && item.productId === productId
+    );
+    if (item) {
+      this.wishlistItems.delete(item[0]);
+      return true;
+    }
+    return false;
+  }
+
+  async isInWishlist(userId: string, productId: string): Promise<boolean> {
+    return Array.from(this.wishlistItems.values()).some(
+      item => item.userId === userId && item.productId === productId
+    );
+  }
 }
 
 // Database Storage Implementation
@@ -838,6 +895,58 @@ export class DBStorage implements IStorage {
   // Purchase Notifications
   async getAllNotifications(): Promise<PurchaseNotification[]> {
     return await db.select().from(schema.purchaseNotifications);
+  }
+
+  // Wishlist
+  async getWishlistItems(userId: string): Promise<WishlistItemWithProduct[]> {
+    const items = await db.select().from(schema.wishlistItems).where(eq(schema.wishlistItems.userId, userId));
+    
+    const itemsWithProducts: WishlistItemWithProduct[] = [];
+    for (const item of items) {
+      const product = await this.getProduct(item.productId);
+      if (product) {
+        itemsWithProducts.push({
+          ...item,
+          product,
+        });
+      }
+    }
+    
+    return itemsWithProducts;
+  }
+
+  async addToWishlist(item: InsertWishlistItem): Promise<WishlistItem> {
+    const existing = await db.select().from(schema.wishlistItems)
+      .where(and(
+        eq(schema.wishlistItems.userId, item.userId),
+        eq(schema.wishlistItems.productId, item.productId)
+      ));
+
+    if (existing.length > 0) {
+      return existing[0];
+    }
+
+    const results = await db.insert(schema.wishlistItems).values(item).returning();
+    return results[0];
+  }
+
+  async removeFromWishlist(userId: string, productId: string): Promise<boolean> {
+    const results = await db.delete(schema.wishlistItems)
+      .where(and(
+        eq(schema.wishlistItems.userId, userId),
+        eq(schema.wishlistItems.productId, productId)
+      ))
+      .returning();
+    return results.length > 0;
+  }
+
+  async isInWishlist(userId: string, productId: string): Promise<boolean> {
+    const results = await db.select().from(schema.wishlistItems)
+      .where(and(
+        eq(schema.wishlistItems.userId, userId),
+        eq(schema.wishlistItems.productId, productId)
+      ));
+    return results.length > 0;
   }
 }
 

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb, index, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -93,12 +93,23 @@ export const purchaseNotifications = pgTable("purchase_notifications", {
   timestamp: text("timestamp").notNull(),
 });
 
+// Wishlist Items
+export const wishlistItems = pgTable("wishlist_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  productId: varchar("product_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  unique("unique_user_product_wishlist").on(table.userId, table.productId),
+]);
+
 // Schemas for type safety
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 export const insertDealSchema = createInsertSchema(deals).omit({ id: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true });
 export const insertCartItemSchema = createInsertSchema(cartItems).omit({ id: true });
+export const insertWishlistItemSchema = createInsertSchema(wishlistItems).omit({ id: true, createdAt: true });
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -113,6 +124,8 @@ export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 export type PurchaseNotification = typeof purchaseNotifications.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type WishlistItem = typeof wishlistItems.$inferSelect;
+export type InsertWishlistItem = z.infer<typeof insertWishlistItemSchema>;
 
 // Additional types for frontend
 export interface CartItemWithProduct extends CartItem {
@@ -120,5 +133,9 @@ export interface CartItemWithProduct extends CartItem {
 }
 
 export interface DealWithProduct extends Deal {
+  product: Product;
+}
+
+export interface WishlistItemWithProduct extends WishlistItem {
   product: Product;
 }
