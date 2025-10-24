@@ -15,10 +15,16 @@ export default function ProductDetail() {
   const productId = params?.id || "";
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<string>("");
+  const [language, setLanguage] = useState("en");
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: allProducts } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+  });
+
+  const { data: cartItems = [] } = useQuery({
+    queryKey: ["/api/cart"],
   });
 
   const product = allProducts?.find(p => p.id === productId);
@@ -60,7 +66,13 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <>
-        <Header />
+        <Header
+          cartCount={cartItems?.length || 0}
+          wishlistCount={0}
+          onCartClick={() => setIsCartOpen(true)}
+          language={language}
+          onLanguageChange={setLanguage}
+        />
         <div className="min-h-screen flex items-center justify-center">
           <p className="text-muted-foreground">Product not found</p>
         </div>
@@ -74,7 +86,13 @@ export default function ProductDetail() {
 
   return (
     <>
-      <Header />
+      <Header
+        cartCount={cartItems?.length || 0}
+        wishlistCount={0}
+        onCartClick={() => setIsCartOpen(true)}
+        language={language}
+        onLanguageChange={setLanguage}
+      />
       <div className="min-h-screen bg-background">
         <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-8">
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
