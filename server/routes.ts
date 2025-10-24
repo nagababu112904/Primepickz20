@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertCartItemSchema, insertWishlistItemSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { seed } from "./seed";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
@@ -209,6 +210,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error checking wishlist:", error);
       res.status(500).json({ error: "Failed to check wishlist" });
+    }
+  });
+
+  // ADMIN: One-time database seed endpoint (remove after use)
+  app.post("/api/admin/seed-database", async (_req, res) => {
+    try {
+      console.log("🌱 Starting database seed from admin endpoint...");
+      await seed();
+      res.json({ success: true, message: "Database seeded successfully!" });
+    } catch (error) {
+      console.error("Error seeding database:", error);
+      res.status(500).json({ error: "Failed to seed database" });
     }
   });
 
