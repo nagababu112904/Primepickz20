@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Heart, Star, Eye, ShoppingCart, Package } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@shared/schema";
@@ -34,12 +35,14 @@ export function ProductCard({
         {!imageLoaded && (
           <div className="absolute inset-0 bg-muted animate-pulse" />
         )}
-        <div
-          className="w-full h-full bg-gradient-to-br from-primary/20 via-accent/20 to-muted flex items-center justify-center"
-          onLoad={() => setImageLoaded(true)}
-        >
-          <Package className="w-16 h-16 text-primary/40" />
-        </div>
+        <Link href={`/product/${product.id}`}>
+          <div
+            className="w-full h-full bg-gradient-to-br from-primary/20 via-accent/20 to-muted flex items-center justify-center cursor-pointer"
+            onLoad={() => setImageLoaded(true)}
+          >
+            <Package className="w-16 h-16 text-primary/40" />
+          </div>
+        </Link>
 
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -89,9 +92,11 @@ export function ProductCard({
       {/* Content */}
       <div className="p-3 md:p-4">
         {/* Product Name */}
-        <h3 className="font-semibold text-base md:text-lg mb-1 line-clamp-2 min-h-[3rem]">
-          {product.name}
-        </h3>
+        <Link href={`/product/${product.id}`}>
+          <h3 className="font-semibold text-base md:text-lg mb-1 line-clamp-2 min-h-[3rem] cursor-pointer hover:text-primary transition-colors">
+            {product.name}
+          </h3>
+        </Link>
 
         {/* Rating */}
         {product.rating && Number(product.rating) > 0 && (
@@ -117,11 +122,11 @@ export function ProductCard({
         {/* Price */}
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-lg md:text-xl font-bold text-foreground">
-            ₹{Number(product.price).toLocaleString()}
+            ${Number(product.price).toLocaleString()}
           </span>
           {hasDiscount && product.originalPrice && (
             <span className="text-sm text-muted-foreground line-through">
-              ₹{Number(product.originalPrice).toLocaleString()}
+              ${Number(product.originalPrice).toLocaleString()}
             </span>
           )}
         </div>

@@ -7,12 +7,14 @@ import Home from "@/pages/Home";
 import CategoryPage from "@/pages/CategoryPage";
 import SearchResults from "@/pages/SearchResults";
 import Wishlist from "@/pages/Wishlist";
+import ProductDetail from "@/pages/ProductDetail";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/product/:id" component={ProductDetail} />
       <Route path="/category/:slug" component={CategoryPage} />
       <Route path="/search" component={SearchResults} />
       <Route path="/wishlist" component={Wishlist} />
