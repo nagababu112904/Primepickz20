@@ -113,9 +113,9 @@ export default function CategoryPage() {
             <p className="text-muted-foreground text-lg">No products available in this category yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
             {sortedProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover-elevate" data-testid={`card-product-${product.id}`}>
+              <Card key={product.id} className="overflow-hidden hover-elevate flex flex-col" data-testid={`card-product-${product.id}`}>
                 <CardContent className="p-0">
                   <div className="aspect-square bg-muted relative">
                     <img
@@ -134,11 +134,11 @@ export default function CategoryPage() {
                       </Badge>
                     )}
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold line-clamp-2 mb-2 text-sm md:text-base">
+                  <div className="p-3 md:p-4 flex flex-col h-full">
+                    <h3 className="font-semibold line-clamp-2 mb-2 text-sm md:text-base min-h-[2.5rem] md:min-h-[3rem]">
                       {product.name}
                     </h3>
-                    <div className="flex items-baseline gap-2 mb-2">
+                    <div className="flex items-baseline gap-2 mb-2 flex-wrap">
                       <span className="text-lg font-bold">${product.price}</span>
                       {product.originalPrice && (
                         <span className="text-sm text-muted-foreground line-through">
@@ -149,13 +149,13 @@ export default function CategoryPage() {
                     
                     {/* Variants */}
                     {product.variants && product.variants.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-xs text-muted-foreground mb-1">Available in:</p>
+                      <div className="mb-2">
+                        <p className="text-xs text-muted-foreground mb-1">Available:</p>
                         <Select
                           value={selectedVariant[product.id] || product.variants[0]}
                           onValueChange={(value) => setSelectedVariant({ ...selectedVariant, [product.id]: value })}
                         >
-                          <SelectTrigger className="h-8 text-xs" data-testid={`select-variant-${product.id}`}>
+                          <SelectTrigger className="h-8 text-xs w-full" data-testid={`select-variant-${product.id}`}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -169,7 +169,7 @@ export default function CategoryPage() {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-1 text-xs">
+                    <div className="flex items-center gap-1 text-xs mt-auto">
                       <span className="text-yellow-500">★</span>
                       <span className="font-medium">{product.rating}</span>
                       <span className="text-muted-foreground">({product.reviewCount})</span>

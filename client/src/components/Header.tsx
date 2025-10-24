@@ -128,28 +128,41 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
             </div>
 
             {/* Search Bar - Desktop */}
-            <div className="hidden md:flex flex-1 max-w-2xl">
-              <form onSubmit={handleSearch} className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search for products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-10 pr-12 h-11"
-                  data-testid="input-search"
-                />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleVoiceSearch}
-                  className="absolute right-1 top-1/2 -translate-y-1/2"
-                  data-testid="button-voice-search"
-                >
-                  <Mic className={`w-4 h-4 ${isListening ? 'text-destructive animate-pulse' : ''}`} />
-                </Button>
+            <div className="hidden md:flex flex-1 max-w-2xl items-center">
+              <form onSubmit={handleSearch} className="relative w-full flex items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+                  <Input
+                    type="search"
+                    placeholder="Search for products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="pl-10 pr-20 h-10"
+                    data-testid="input-search"
+                  />
+                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={handleVoiceSearch}
+                      className="h-8 w-8"
+                      data-testid="button-voice-search"
+                    >
+                      <Mic className={`w-4 h-4 ${isListening ? 'text-destructive animate-pulse' : ''}`} />
+                    </Button>
+                    <Button
+                      type="submit"
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      data-testid="button-search-submit"
+                    >
+                      <Search className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </form>
             </div>
 
@@ -256,27 +269,38 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
 
           {/* Search Bar - Mobile */}
           <div className="md:hidden px-4 pb-3">
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <form onSubmit={handleSearch} className="relative flex items-center">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <Input
                 type="search"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="pl-9 pr-10 h-10 text-sm"
+                className="pl-9 pr-20 h-10 text-sm"
                 data-testid="input-search-mobile"
               />
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                onClick={handleVoiceSearch}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                data-testid="button-voice-search-mobile"
-              >
-                <Mic className={`w-4 h-4 ${isListening ? 'text-destructive animate-pulse' : ''}`} />
-              </Button>
+              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleVoiceSearch}
+                  className="h-8 w-8"
+                  data-testid="button-voice-search-mobile"
+                >
+                  <Mic className={`w-4 h-4 ${isListening ? 'text-destructive animate-pulse' : ''}`} />
+                </Button>
+                <Button
+                  type="submit"
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  data-testid="button-search-submit-mobile"
+                >
+                  <Search className="w-4 h-4" />
+                </Button>
+              </div>
             </form>
           </div>
 
