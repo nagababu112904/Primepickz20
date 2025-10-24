@@ -164,16 +164,27 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
               {/* Language Selector */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onLanguageChange(language === "en" ? "hi" : "en")}
-                className="hidden sm:flex items-center gap-1"
-                data-testid="button-language"
-              >
-                <Globe className="w-4 h-4" />
-                <span className="text-sm font-medium">{language === "en" ? "English" : "हिंदी"}</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden sm:flex items-center gap-1"
+                    data-testid="button-language"
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span className="text-sm font-medium">{language === "en" ? "English" : "हिंदी"}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onLanguageChange("en")} data-testid="menu-language-en">
+                    English
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onLanguageChange("hi")} data-testid="menu-language-hi">
+                    हिंदी (Hindi)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Wishlist */}
               <Button
@@ -319,6 +330,7 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
                     variant="ghost"
                     size="sm"
                     className="whitespace-nowrap"
+                    onClick={() => setLocation(`/category/${category.slug}`)}
                     data-testid={`button-category-${category.name.toLowerCase().replace(/\s+/g, '-')}`}
                   >
                     {category.name}
@@ -342,6 +354,10 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
                   <div
                     key={category.name}
                     className="flex flex-col items-center gap-3 p-4 rounded-lg hover-elevate cursor-pointer"
+                    onClick={() => {
+                      setLocation(`/category/${category.slug}`);
+                      setShowMegaMenu(false);
+                    }}
                     data-testid={`megamenu-${category.name.toLowerCase().replace(/\s+/g, '-')}`}
                   >
                     <div className="w-20 h-20 flex items-center justify-center bg-primary/10 rounded-lg">
@@ -380,7 +396,10 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
                     key={category.name}
                     variant="ghost"
                     className="w-full justify-start text-base h-12"
-                    onClick={() => setShowMobileMenu(false)}
+                    onClick={() => {
+                      setLocation(`/category/${category.slug}`);
+                      setShowMobileMenu(false);
+                    }}
                     data-testid={`mobile-menu-${category.name.toLowerCase().replace(/\s+/g, '-')}`}
                   >
                     {category.name}
