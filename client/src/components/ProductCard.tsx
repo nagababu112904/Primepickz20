@@ -34,14 +34,20 @@ export function ProductCard({
       <Link href={`/product/${product.id}`}>
         <div className="relative aspect-square bg-muted overflow-hidden cursor-pointer">
           {!imageLoaded && (
-            <div className="absolute inset-0 bg-muted animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/20 to-muted flex items-center justify-center">
+              <Package className="w-16 h-16 text-primary/40" />
+            </div>
           )}
-          <div
-            className="w-full h-full bg-gradient-to-br from-primary/20 via-accent/20 to-muted flex items-center justify-center"
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform group-hover:scale-105"
             onLoad={() => setImageLoaded(true)}
-          >
-            <Package className="w-16 h-16 text-primary/40" />
-          </div>
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              setImageLoaded(true);
+            }}
+          />
 
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">

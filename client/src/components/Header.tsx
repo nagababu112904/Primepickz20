@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Heart, User, ShoppingCart, Menu, X, Mic, Globe, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import type { Category } from "@shared/schema";
+import type { Category, Product } from "@shared/schema";
 
 interface HeaderProps {
   cartCount: number;
@@ -34,10 +34,32 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
+
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
+
+  const searchSuggestions = searchQuery.trim().length > 1
+    ? products.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -123,7 +145,7 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
             </div>
 
             {/* Search Bar - Desktop */}
-            <div className="hidden md:flex flex-1 max-w-2xl items-center">
+            <div className="hidden md:flex flex-1 max-w-2xl items-center" ref={searchRef}>
               <form onSubmit={handleSearch} className="relative w-full flex items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
@@ -131,7 +153,11 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
                     type="search"
                     placeholder="Search for products..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     className="pl-10 pr-20 h-10"
                     data-testid="input-search"
@@ -157,6 +183,36 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
                       <Search className="w-4 h-4" />
                     </Button>
                   </div>
+
+                  {/* Search Suggestions Dropdown */}
+                  {showSuggestions && searchSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-card border rounded-md shadow-lg max-h-96 overflow-y-auto z-50">
+                      {searchSuggestions.map((product) => (
+                        <button
+                          key={product.id}
+                          type="button"
+                          onClick={() => {
+                            setLocation(`/product/${product.id}`);
+                            setShowSuggestions(false);
+                            setSearchQuery("");
+                          }}
+                          className="w-full flex items-center gap-3 p-3 hover-elevate text-left border-b last:border-b-0"
+                          data-testid={`suggestion-${product.id}`}
+                        >
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{product.category}</p>
+                          </div>
+                          <p className="font-semibold text-sm">${Number(product.price).toFixed(2)}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </form>
             </div>
