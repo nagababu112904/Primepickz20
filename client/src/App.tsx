@@ -8,6 +8,15 @@ import CategoryPage from "@/pages/CategoryPage";
 import SearchResults from "@/pages/SearchResults";
 import Wishlist from "@/pages/Wishlist";
 import ProductDetail from "@/pages/ProductDetail";
+import About from "@/pages/About";
+import Contact from "@/pages/Contact";
+import FAQ from "@/pages/FAQ";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
+import Returns from "@/pages/Returns";
+import Shipping from "@/pages/Shipping";
+import SizeGuide from "@/pages/SizeGuide";
+import TrackOrder from "@/pages/TrackOrder";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,6 +27,15 @@ function Router() {
       <Route path="/category/:slug" component={CategoryPage} />
       <Route path="/search" component={SearchResults} />
       <Route path="/wishlist" component={Wishlist} />
+      <Route path="/about" component={About} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/faq" component={FAQ} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/returns" component={Returns} />
+      <Route path="/shipping" component={Shipping} />
+      <Route path="/size-guide" component={SizeGuide} />
+      <Route path="/track-order" component={TrackOrder} />
       <Route component={NotFound} />
     </Switch>
   );
