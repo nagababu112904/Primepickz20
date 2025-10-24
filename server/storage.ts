@@ -21,6 +21,13 @@ import type {
   WishlistItem,
   InsertWishlistItem,
   WishlistItemWithProduct,
+  Address,
+  InsertAddress,
+  Order,
+  InsertOrder,
+  OrderItem,
+  InsertOrderItem,
+  OrderWithItems,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -62,6 +69,20 @@ export interface IStorage {
   addToWishlist(item: InsertWishlistItem): Promise<WishlistItem>;
   removeFromWishlist(userId: string, productId: string): Promise<boolean>;
   isInWishlist(userId: string, productId: string): Promise<boolean>;
+  
+  // Addresses
+  getUserAddresses(userId: string): Promise<Address[]>;
+  getAddress(id: string): Promise<Address | undefined>;
+  createAddress(address: InsertAddress): Promise<Address>;
+  updateAddress(userId: string, id: string, address: Partial<InsertAddress>): Promise<Address | undefined>;
+  deleteAddress(userId: string, id: string): Promise<boolean>;
+  setDefaultAddress(userId: string, addressId: string): Promise<void>;
+  
+  // Orders
+  createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems>;
+  getUserOrders(userId: string): Promise<OrderWithItems[]>;
+  getOrder(id: string): Promise<OrderWithItems | undefined>;
+  updateOrderStatus(id: string, status: string, paymentStatus?: string): Promise<Order | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -947,6 +968,140 @@ export class DBStorage implements IStorage {
         eq(schema.wishlistItems.productId, productId)
       ));
     return results.length > 0;
+  }
+
+  // Addresses
+  async getUserAddresses(userId: string): Promise<Address[]> {
+    return await db.select().from(schema.addresses).where(eq(schema.addresses.userId, userId));
+  }
+
+  async getAddress(id: string): Promise<Address | undefined> {
+    const results = await db.select().from(schema.addresses).where(eq(schema.addresses.id, id));
+    return results[0];
+  }
+
+  async createAddress(address: InsertAddress): Promise<Address> {
+    const results = await db.insert(schema.addresses).values(address).returning();
+    return results[0];
+  }
+
+  async updateAddress(userId: string, id: string, address: Partial<InsertAddress>): Promise<Address | undefined> {
+    const existing = await this.getAddress(id);
+    if (!existing || existing.userId !== userId) {
+      throw new Error("Address not found or unauthorized");
+    }
+
+    const { userId: _, ...updateData } = address;
+    const results = await db.update(schema.addresses)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(and(
+        eq(schema.addresses.id, id),
+        eq(schema.addresses.userId, userId)
+      ))
+      .returning();
+    return results[0];
+  }
+
+  async deleteAddress(userId: string, id: string): Promise<boolean> {
+    const existing = await this.getAddress(id);
+    if (!existing || existing.userId !== userId) {
+      throw new Error("Address not found or unauthorized");
+    }
+
+    const results = await db.delete(schema.addresses)
+      .where(and(
+        eq(schema.addresses.id, id),
+        eq(schema.addresses.userId, userId)
+      ))
+      .returning();
+    return results.length > 0;
+  }
+
+  async setDefaultAddress(userId: string, addressId: string): Promise<void> {
+    const targetAddress = await this.getAddress(addressId);
+    if (!targetAddress || targetAddress.userId !== userId) {
+      throw new Error("Address not found or unauthorized");
+    }
+
+    await db.update(schema.addresses)
+      .set({ isDefault: false })
+      .where(eq(schema.addresses.userId, userId));
+    
+    await db.update(schema.addresses)
+      .set({ isDefault: true, updatedAt: new Date() })
+      .where(eq(schema.addresses.id, addressId));
+  }
+
+  // Orders
+  async createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems> {
+    const address = await this.getAddress(order.shippingAddressId);
+    if (!address) {
+      throw new Error("Shipping address not found");
+    }
+    
+    if (address.userId !== order.userId) {
+      throw new Error("Shipping address does not belong to user");
+    }
+
+    const orderResult = await db.insert(schema.orders).values(order).returning();
+    const createdOrder = orderResult[0];
+
+    const itemsWithOrderId = items.map(item => ({
+      ...item,
+      orderId: createdOrder.id,
+    }));
+
+    const orderItemsResult = await db.insert(schema.orderItems).values(itemsWithOrderId).returning();
+
+    return {
+      ...createdOrder,
+      items: orderItemsResult,
+      shippingAddress: address,
+    };
+  }
+
+  async getUserOrders(userId: string): Promise<OrderWithItems[]> {
+    const userOrders = await db.select().from(schema.orders).where(eq(schema.orders.userId, userId));
+    
+    const ordersWithItems: OrderWithItems[] = [];
+    for (const order of userOrders) {
+      const items = await db.select().from(schema.orderItems).where(eq(schema.orderItems.orderId, order.id));
+      const address = await this.getAddress(order.shippingAddressId);
+      
+      ordersWithItems.push({
+        ...order,
+        items,
+        shippingAddress: address!,
+      });
+    }
+    
+    return ordersWithItems;
+  }
+
+  async getOrder(id: string): Promise<OrderWithItems | undefined> {
+    const results = await db.select().from(schema.orders).where(eq(schema.orders.id, id));
+    if (results.length === 0) return undefined;
+    
+    const order = results[0];
+    const items = await db.select().from(schema.orderItems).where(eq(schema.orderItems.orderId, order.id));
+    const address = await this.getAddress(order.shippingAddressId);
+    
+    return {
+      ...order,
+      items,
+      shippingAddress: address!,
+    };
+  }
+
+  async updateOrderStatus(id: string, status: string, paymentStatus?: string): Promise<Order | undefined> {
+    const updateData: any = { status, updatedAt: new Date() };
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    
+    const results = await db.update(schema.orders)
+      .set(updateData)
+      .where(eq(schema.orders.id, id))
+      .returning();
+    return results[0];
   }
 }
 
