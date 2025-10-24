@@ -41,13 +41,24 @@ export default function Wishlist() {
   });
 
   const addToCartMutation = useMutation({
-    mutationFn: (data: { productId: string; quantity: number }) =>
-      apiRequest("/api/cart", "POST", data),
+    mutationFn: (productId: string) =>
+      apiRequest("POST", "/api/cart", { 
+        productId, 
+        quantity: 1,
+        sessionId: "default-session" 
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       toast({
         title: "Added to cart",
         description: "Item has been added to your cart",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add product to cart. Please try again.",
+        variant: "destructive",
       });
     },
   });
@@ -154,7 +165,7 @@ export default function Wishlist() {
                   <Button
                     className="w-full"
                     size="sm"
-                    onClick={() => addToCartMutation.mutate({ productId: product.id, quantity: 1 })}
+                    onClick={() => addToCartMutation.mutate(product.id)}
                     disabled={addToCartMutation.isPending}
                     data-testid={`button-add-cart-${product.id}`}
                   >

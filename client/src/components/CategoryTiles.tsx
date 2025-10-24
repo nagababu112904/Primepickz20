@@ -27,13 +27,21 @@ export function CategoryTiles({ categories }: CategoryTilesProps) {
                 className="group relative aspect-[4/3] rounded-lg overflow-hidden hover-elevate transition-all cursor-pointer"
                 data-testid={`category-tile-${category.slug}`}
               >
-                {/* Background with gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/20 to-muted flex items-center justify-center">
-                  <Sparkles className="w-24 h-24 md:w-32 md:h-32 text-primary/40" />
-                </div>
+                {/* Background Image */}
+                {category.imageUrl ? (
+                  <img
+                    src={category.imageUrl}
+                    alt={category.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/20 to-muted flex items-center justify-center">
+                    <Sparkles className="w-24 h-24 md:w-32 md:h-32 text-primary/40" />
+                  </div>
+                )}
 
                 {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
                 {/* Content */}
                 <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-end">

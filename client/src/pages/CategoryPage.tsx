@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
 import { ArrowLeft, Filter, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import type { Product, Category } from "@shared/schema";
 import { useState } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -20,6 +22,8 @@ export default function CategoryPage() {
   const slug = params?.slug || "";
   const [selectedVariant, setSelectedVariant] = useState<Record<string, string>>({});
   const [sortBy, setSortBy] = useState("featured");
+  const { toast } = useToast();
+  const sessionId = "default-session";
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -47,6 +51,30 @@ export default function CategoryPage() {
       default:
         return 0;
     }
+  });
+
+  const addToCartMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      return await apiRequest("POST", "/api/cart", {
+        productId,
+        quantity: 1,
+        sessionId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      toast({
+        title: "Added to cart",
+        description: "Product has been added to your cart",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add product to cart. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   if (!category) {
@@ -177,8 +205,14 @@ export default function CategoryPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="p-4 pt-0 gap-2">
-                  <Button className="flex-1" size="sm" data-testid={`button-add-cart-${product.id}`}>
-                    Add to Cart
+                  <Button 
+                    className="flex-1" 
+                    size="sm" 
+                    onClick={() => addToCartMutation.mutate(product.id)}
+                    disabled={addToCartMutation.isPending}
+                    data-testid={`button-add-cart-${product.id}`}
+                  >
+                    {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
                   </Button>
                   <Button variant="outline" size="sm" data-testid={`button-wishlist-${product.id}`}>
                     ♡
