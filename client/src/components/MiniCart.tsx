@@ -66,7 +66,7 @@ export function MiniCart({
         {remainingForFreeShipping > 0 && (
           <div className="p-4 bg-muted/50 border-b">
             <p className="text-sm text-muted-foreground mb-2">
-              Add <span className="font-semibold text-foreground">₹{remainingForFreeShipping}</span> more for FREE shipping!
+              Add <span className="font-semibold text-foreground">${remainingForFreeShipping}</span> more for FREE shipping!
             </p>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
@@ -109,7 +109,7 @@ export function MiniCart({
                       {item.product.name}
                     </h3>
                     <p className="text-sm font-bold text-foreground mb-2">
-                      ₹{Number(item.product.price).toLocaleString()}
+                      ${Number(item.product.price).toLocaleString()}
                     </p>
 
                     {/* Quantity Controls */}
@@ -157,7 +157,7 @@ export function MiniCart({
           <div className="border-t p-4 space-y-4">
             <div className="flex items-center justify-between text-lg font-bold">
               <span>Subtotal:</span>
-              <span data-testid="cart-subtotal">₹{subtotal.toLocaleString()}</span>
+              <span data-testid="cart-subtotal">${subtotal.toLocaleString()}</span>
             </div>
 
             <Button

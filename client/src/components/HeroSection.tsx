@@ -20,7 +20,7 @@ export function HeroSection() {
   }, []);
 
   const trustBadges = [
-    { icon: Truck, text: "Free Delivery on ₹999+" },
+    { icon: Truck, text: "Free Delivery on $999+" },
     { icon: RotateCcw, text: "7 Days Easy Returns" },
     { icon: Shield, text: "100% Secure Payments" },
     { icon: Headphones, text: "24/7 Support" },

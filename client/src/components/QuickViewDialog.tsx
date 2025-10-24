@@ -104,12 +104,12 @@ export function QuickViewDialog({
                 {/* Price */}
                 <div className="flex items-baseline gap-3 mb-6">
                   <span className="text-3xl font-bold text-foreground">
-                    ₹{Number(product.price).toLocaleString()}
+                    ${Number(product.price).toLocaleString()}
                   </span>
                   {hasDiscount && product.originalPrice && (
                     <>
                       <span className="text-xl text-muted-foreground line-through">
-                        ₹{Number(product.originalPrice).toLocaleString()}
+                        ${Number(product.originalPrice).toLocaleString()}
                       </span>
                       <Badge variant="destructive" className="text-sm">
                         Save {discountPercentage}%

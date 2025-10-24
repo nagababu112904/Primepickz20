@@ -57,7 +57,7 @@ export function NewsletterPopup({ onClose }: NewsletterPopupProps) {
             <div className="flex items-center justify-center w-16 h-16 bg-primary rounded-full mx-auto mb-4">
               <Gift className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Get ₹100 OFF!</h2>
+            <h2 className="text-2xl font-bold mb-2">Get $100 OFF!</h2>
             <p className="text-muted-foreground">
               Subscribe to our newsletter and get exclusive deals
             </p>
@@ -106,7 +106,7 @@ export function NewsletterPopup({ onClose }: NewsletterPopupProps) {
               className="w-full h-12 text-base font-semibold"
               data-testid="button-subscribe"
             >
-              Claim Your ₹100 OFF
+              Claim Your $100 OFF
             </Button>
 
             <p className="text-xs text-center text-muted-foreground">

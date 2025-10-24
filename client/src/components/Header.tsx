@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Heart, User, ShoppingCart, Menu, X, Mic, Globe, LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import type { Category } from "@shared/schema";
 
 interface HeaderProps {
   cartCount: number;
@@ -33,16 +35,9 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
   const [searchQuery, setSearchQuery] = useState("");
   const [isListening, setIsListening] = useState(false);
 
-  const categories = [
-    { name: "Sarees", icon: "dress" },
-    { name: "Kurtas & Suits", icon: "shirt" },
-    { name: "Western Wear", icon: "jacket" },
-    { name: "Lehengas", icon: "sparkles" },
-    { name: "Footwear", icon: "footprints" },
-    { name: "Accessories", icon: "gem" },
-    { name: "Beauty & Makeup", icon: "palette" },
-    { name: "Home & Living", icon: "home" },
-  ];
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+  });
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
