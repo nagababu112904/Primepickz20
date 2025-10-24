@@ -1,0 +1,33 @@
+You are an expert web builder specializing in high-converting, mobile-optimized e-commerce landing pages for Indian lifestyle brands.
+Your task is to design a visually compelling, feature-rich landing page for "Prime Pickz" as per the PRD below.
+Do not use placeholder/lorem ipsum copy; use realistic, human copy where possible.
+Follow modern UI/UX, accessibility, and conversion best practices.
+
+Prime Pickz PRD (Landing Page)
+Header: Sticky, with logo, search (autocomplete & voice), wishlist, account, cart. Category mega-menu, multilingual selector (Eng/Hindi), flash sale bar.
+
+Hero Section: Bold offer/banner, animated CTA, trust badges (“Free Delivery on ₹999+”, “7 Nights Easy Returns”, “Secure Payments”), dynamic live stats/order bar.
+
+Discovery/Recommendations: Carousels — Trending, Personalized (“Recommended for You”), New Arrivals. Large clickable category tiles with “Shop Now”. Smart product filters and sorting.
+
+Deals/Promotions: Timed flash deals, “Deal of the Day”, coupon code banner, low inventory/urgency indicators.
+
+Product Cards: High-res, quick-view, wishlist, ratings, real-time “X just sold”, price/discount/free shipping.
+
+Social Proof: Rotating reviews/testimonials, star ratings, media/trust badges, purchase notifications.
+
+E-commerce Core: Mini-cart, guest checkout, full Indian payments (UPI, wallet, COD, EMI). Free shipping progress bar.
+
+Engagement/Support: Popup for newsletter/bonus, WhatsApp alerts, live chat, FAQ/help popover.
+
+Footer: Easy navigation, support, payments, app download, social, trust certifications.
+
+Mobile: Thumb-friendly, sticky bottom bar, optimized hero and navigation, voice/image search, carousels/swipe.
+
+Visual: Modern, Indian-fusion palette, bold fonts, sharp photography, whitespace, high-contrast CTAs.
+
+Performance/SEO: Fast, lazy-load, CDN-ready, full SEO and structured data.
+
+Deliverable:
+A ready-to-deploy, mobile-optimized landing page layout for Prime Pickz — with all above features and realistic copy, banners, and UI blocks. Do not omit best practices or substitute any "dummy" or lorem ipsum content. 
+
