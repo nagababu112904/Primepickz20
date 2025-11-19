@@ -1,5 +1,5 @@
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
-import { SiGooglepay, SiPaytm, SiPhonepe, SiVisa, SiMastercard } from "react-icons/si";
+import { SiVisa, SiMastercard } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -79,7 +79,7 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="w-4 h-4" />
-                <span>Mumbai, Maharashtra, India</span>
+                <span>New Haven, CT, United States</span>
               </div>
             </div>
           </div>
@@ -174,12 +174,8 @@ export function Footer() {
               <div className="flex flex-wrap items-center gap-4">
                 <SiVisa className="w-12 h-8 text-blue-600" />
                 <SiMastercard className="w-12 h-8 text-red-600" />
-                <div className="px-3 py-1 bg-muted rounded text-xs font-semibold">RuPay</div>
-                <SiGooglepay className="w-12 h-8" />
-                <SiPhonepe className="w-12 h-8 text-purple-600" />
-                <SiPaytm className="w-12 h-8 text-blue-500" />
-                <div className="px-3 py-1 bg-muted rounded text-xs font-semibold">COD</div>
-                <div className="px-3 py-1 bg-muted rounded text-xs font-semibold">EMI</div>
+                <div className="px-3 py-1 bg-muted rounded text-xs font-semibold">Amex</div>
+                <div className="px-3 py-1 bg-muted rounded text-xs font-semibold">Discover</div>
               </div>
             </div>
 
