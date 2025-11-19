@@ -41,7 +41,7 @@ export function ProductCard({
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+            className="w-full h-full object-contain transition-transform group-hover:scale-105"
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
               e.currentTarget.style.display = 'none';
@@ -107,7 +107,7 @@ export function ProductCard({
       <div className="p-3 md:p-4">
         {/* Product Name */}
         <Link href={`/product/${product.id}`}>
-          <h3 className="font-semibold text-base md:text-lg mb-1 line-clamp-2 min-h-[3rem] cursor-pointer hover:text-primary transition-colors">
+          <h3 className="font-semibold text-sm md:text-base mb-2 line-clamp-2 h-10 cursor-pointer hover:text-primary transition-colors leading-tight">
             {product.name}
           </h3>
         </Link>

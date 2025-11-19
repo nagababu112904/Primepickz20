@@ -13,11 +13,7 @@ import { LiveChatWidget } from "@/components/LiveChatWidget";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { QuickViewDialog } from "@/components/QuickViewDialog";
-import { PromoBanner } from "@/components/PromoBanner";
 import type { Product, Category, DealWithProduct, Review, CartItemWithProduct, PurchaseNotification as PurchaseNotificationType } from "@shared/schema";
-import promoImage1 from "@assets/stock_images/indian_woman_wearing_3b87b137.jpg";
-import promoImage2 from "@assets/stock_images/fashion_sale_shoppin_35f2fd34.jpg";
-import promoImage3 from "@assets/stock_images/indian_woman_wearing_61bb8465.jpg";
 
 export default function Home() {
   const [language, setLanguage] = useState("en");
@@ -204,17 +200,6 @@ export default function Home() {
         {/* Category Tiles */}
         {categories.length > 0 && <CategoryTiles categories={categories} />}
 
-        {/* Promo Banner 1 */}
-        <div className="px-4 md:px-6 py-8 md:py-12 max-w-screen-2xl mx-auto">
-          <PromoBanner
-            title="Fashion Frenzy Sale!"
-            subtitle="Up to 70% OFF on Premium Styles"
-            imageUrl={promoImage1}
-            gradient="pink"
-            ctaLink="/category/fashion"
-          />
-        </div>
-
         {/* Flash Deals */}
         {deals.length > 0 && (
           <FlashDeals
@@ -239,17 +224,6 @@ export default function Home() {
           />
         )}
 
-        {/* Promo Banner 2 */}
-        <div className="px-4 md:px-6 py-8 md:py-12 max-w-screen-2xl mx-auto">
-          <PromoBanner
-            title="Mega Shopping Fest!"
-            subtitle="Grab Your Favorites Before They're Gone"
-            imageUrl={promoImage2}
-            gradient="purple"
-            ctaLink="/"
-          />
-        </div>
-
         {/* New Arrivals Carousel */}
         {newArrivals.length > 0 && (
           <ProductCarousel
@@ -262,17 +236,6 @@ export default function Home() {
             wishlistedProducts={wishlistedProducts}
           />
         )}
-
-        {/* Promo Banner 3 */}
-        <div className="px-4 md:px-6 py-8 md:py-12 max-w-screen-2xl mx-auto">
-          <PromoBanner
-            title="Timeless Elegance"
-            subtitle="Discover Classic American Style"
-            imageUrl={promoImage3}
-            gradient="dual"
-            ctaLink="/category/fashion"
-          />
-        </div>
 
         {/* Social Proof / Reviews */}
         {reviews.length > 0 && <SocialProof reviews={reviews} />}
