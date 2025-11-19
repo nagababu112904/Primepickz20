@@ -24,6 +24,9 @@ export function ProductCard({
 
   const discountPercentage = product.discount || 0;
   const hasDiscount = discountPercentage > 0;
+  
+  // Blur images for IP-sensitive categories
+  const shouldBlurImage = ["Electronics", "Furniture", "Healthcare & Supplements"].includes(product.category);
 
   return (
     <div
@@ -41,7 +44,7 @@ export function ProductCard({
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-contain transition-transform group-hover:scale-105"
+            className={`w-full h-full object-contain transition-transform group-hover:scale-105 ${shouldBlurImage ? 'blur-sm' : ''}`}
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
               e.currentTarget.style.display = 'none';

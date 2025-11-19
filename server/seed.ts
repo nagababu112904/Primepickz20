@@ -307,7 +307,7 @@ async function seed() {
 
     // ELECTRONICS PRODUCTS (15 items)
     {
-      name: "Wireless Noise-Canceling Headphones",
+      name: "Premium Audio Headphones - Wireless",
       description: "40-hour battery, active noise cancellation, premium sound quality, foldable design",
       price: "149.99",
       originalPrice: "249.99",
@@ -324,7 +324,7 @@ async function seed() {
       variants: ["Black", "Silver", "Rose Gold", "Navy"],
     },
     {
-      name: "Smart Fitness Watch - GPS Enabled",
+      name: "Digital Fitness Tracker - GPS",
       description: "Heart rate monitor, sleep tracking, waterproof, 10-day battery, 100+ workout modes",
       price: "89.99",
       originalPrice: "149.99",
@@ -340,7 +340,7 @@ async function seed() {
       variants: ["Black", "White", "Blue", "Pink"],
     },
     {
-      name: "Portable Bluetooth Speaker - Waterproof",
+      name: "Compact Wireless Speaker - Water Resistant",
       description: "360° sound, 20-hour battery, IPX7 waterproof, perfect for outdoor adventures",
       price: "49.99",
       originalPrice: "79.99",
@@ -355,7 +355,7 @@ async function seed() {
       variants: ["Black", "Blue", "Red", "Green"],
     },
     {
-      name: "USB-C Multi-Port Hub - 7-in-1",
+      name: "Universal Multi-Port Hub - 7-in-1",
       description: "4K HDMI, USB 3.0 ports, SD card reader, 100W power delivery, aluminum design",
       price: "39.99",
       originalPrice: "69.99",
@@ -369,7 +369,7 @@ async function seed() {
       variants: ["Space Grey", "Silver"],
     },
     {
-      name: "4K Webcam - Auto Focus",
+      name: "HD Web Camera - Auto Focus",
       description: "1080p/60fps, built-in mic, adjustable brightness, plug-and-play, perfect for streaming",
       price: "79.99",
       originalPrice: "129.99",
@@ -385,7 +385,7 @@ async function seed() {
       variants: ["Standard", "With Ring Light"],
     },
     {
-      name: "Wireless Charging Pad - 15W Fast Charge",
+      name: "Fast Wireless Charger - 15W",
       description: "Qi-certified, works with iPhone and Android, LED indicator, sleek design",
       price: "24.99",
       originalPrice: "39.99",
@@ -399,7 +399,7 @@ async function seed() {
       variants: ["Black", "White"],
     },
     {
-      name: "Gaming Keyboard - RGB Mechanical",
+      name: "Mechanical Keyboard - RGB Backlit",
       description: "Cherry MX switches, customizable RGB, programmable keys, aluminum frame",
       price: "109.99",
       originalPrice: "179.99",
@@ -416,7 +416,7 @@ async function seed() {
       variants: ["Blue Switch", "Red Switch", "Brown Switch"],
     },
     {
-      name: "Portable SSD - 1TB External Drive",
+      name: "External Storage Drive - 1TB",
       description: "USB 3.1 Gen 2, up to 1050MB/s, shock-resistant, compact aluminum design",
       price: "99.99",
       originalPrice: "159.99",
@@ -430,7 +430,7 @@ async function seed() {
       variants: ["500GB", "1TB", "2TB"],
     },
     {
-      name: "Smart LED Light Bulbs - 4 Pack",
+      name: "WiFi LED Bulbs - 4 Pack",
       description: "WiFi enabled, 16 million colors, voice control compatible, energy efficient",
       price: "34.99",
       originalPrice: "59.99",
@@ -445,7 +445,7 @@ async function seed() {
       variants: ["2-Pack", "4-Pack", "8-Pack"],
     },
     {
-      name: "Wireless Gaming Mouse - Ergonomic",
+      name: "Ergonomic Wireless Mouse",
       description: "16000 DPI, 6 programmable buttons, 70-hour battery, RGB lighting",
       price: "59.99",
       originalPrice: "99.99",
@@ -461,7 +461,7 @@ async function seed() {
       variants: ["Black", "White"],
     },
     {
-      name: "Phone Tripod Stand - Adjustable",
+      name: "Adjustable Camera Stand",
       description: "360° rotation, extends to 67 inches, Bluetooth remote, perfect for content creation",
       price: "29.99",
       originalPrice: "49.99",
@@ -475,7 +475,7 @@ async function seed() {
       variants: ["Standard", "With LED Ring Light"],
     },
     {
-      name: "Noise Machine - White Noise Generator",
+      name: "Sound Machine - Sleep Aid",
       description: "20 soothing sounds, timer function, portable, helps with sleep and focus",
       price: "34.99",
       originalPrice: "54.99",
@@ -490,7 +490,7 @@ async function seed() {
       variants: ["White", "Black", "Grey"],
     },
     {
-      name: "Action Camera - 4K Waterproof",
+      name: "Sport Camera - HD Waterproof",
       description: "4K/60fps video, 20MP photos, waterproof to 33ft, wide-angle lens, WiFi",
       price: "119.99",
       originalPrice: "199.99",
@@ -507,7 +507,7 @@ async function seed() {
       variants: ["Camera Only", "With Accessory Kit"],
     },
     {
-      name: "Laptop Cooling Pad - 6 Fan",
+      name: "Notebook Cooler - 6 Fan",
       description: "Adjustable height, ultra-quiet fans, LED lights, fits 12-17 inch laptops",
       price: "34.99",
       originalPrice: "54.99",
@@ -521,7 +521,7 @@ async function seed() {
       variants: ["4-Fan", "6-Fan"],
     },
     {
-      name: "Digital Photo Frame - WiFi Enabled",
+      name: "Digital Picture Frame - WiFi",
       description: "10.1 inch HD display, touchscreen, remote access, auto-rotate, 16GB storage",
       price: "79.99",
       originalPrice: "129.99",
@@ -771,7 +771,7 @@ async function seed() {
 
     // FURNITURE PRODUCTS (12 items)
     {
-      name: "Modern Sectional Sofa - L-Shaped",
+      name: "Contemporary L-Shaped Sofa",
       description: "Linen fabric, reversible chaise, solid wood frame, seats 5, contemporary design",
       price: "799.99",
       originalPrice: "1299.99",
@@ -788,7 +788,7 @@ async function seed() {
       variants: ["Light Grey", "Dark Grey", "Beige", "Navy"],
     },
     {
-      name: "Adjustable Standing Desk - Electric",
+      name: "Electric Height Desk",
       description: "Motorized height adjustment, memory presets, cable management, 55 x 28 inches",
       price: "299.99",
       originalPrice: "499.99",
@@ -805,7 +805,7 @@ async function seed() {
       variants: ["48 inch", "55 inch", "63 inch"],
     },
     {
-      name: "Ergonomic Office Chair - Mesh Back",
+      name: "Mesh Office Chair - Ergonomic",
       description: "Lumbar support, adjustable armrests, breathable mesh, 360° swivel, weight capacity 300lbs",
       price: "179.99",
       originalPrice: "299.99",
@@ -821,7 +821,7 @@ async function seed() {
       variants: ["Black", "Grey", "Blue"],
     },
     {
-      name: "6-Drawer Dresser - Mid-Century Modern",
+      name: "Modern Dresser - 6 Drawer",
       description: "Solid wood construction, smooth glide drawers, tapered legs, multiple finishes",
       price: "349.99",
       originalPrice: "599.99",
@@ -837,7 +837,7 @@ async function seed() {
       variants: ["Walnut", "Oak", "White", "Grey"],
     },
     {
-      name: "Dining Table Set - 5 Piece",
+      name: "5-Piece Dining Set",
       description: "Solid wood table + 4 chairs, seats 4-6, scratch-resistant finish, modern farmhouse style",
       price: "449.99",
       originalPrice: "749.99",
@@ -854,7 +854,7 @@ async function seed() {
       variants: ["5-Piece", "7-Piece"],
     },
     {
-      name: "Bookshelf - 5-Tier Open Shelving",
+      name: "5-Tier Storage Shelf",
       description: "Industrial style, metal frame, wood shelves, holds 200+ books, easy assembly",
       price: "129.99",
       originalPrice: "219.99",
@@ -868,7 +868,7 @@ async function seed() {
       variants: ["3-Tier", "5-Tier", "7-Tier"],
     },
     {
-      name: "Platform Bed Frame - Queen Size",
+      name: "Queen Platform Bed",
       description: "Strong wood slats, no box spring needed, under-bed storage, headboard included",
       price: "249.99",
       originalPrice: "419.99",
@@ -884,7 +884,7 @@ async function seed() {
       variants: ["Twin", "Full", "Queen", "King"],
     },
     {
-      name: "Accent Chair - Velvet Upholstered",
+      name: "Velvet Accent Chair",
       description: "Soft velvet fabric, gold metal legs, comfortable padding, modern glam style",
       price: "189.99",
       originalPrice: "319.99",
@@ -900,7 +900,7 @@ async function seed() {
       variants: ["Emerald Green", "Navy Blue", "Blush Pink", "Grey"],
     },
     {
-      name: "Coffee Table - Glass Top",
+      name: "Glass Top Coffee Table",
       description: "Tempered glass, gold metal frame, geometric design, 48 x 24 inches",
       price: "159.99",
       originalPrice: "269.99",
@@ -914,7 +914,7 @@ async function seed() {
       variants: ["Gold", "Black", "Silver"],
     },
     {
-      name: "TV Stand - 65 inch Entertainment Center",
+      name: "Entertainment Center - 65 inch",
       description: "Cable management, adjustable shelves, holds up to 150lbs, barn door design",
       price: "199.99",
       originalPrice: "339.99",
@@ -930,7 +930,7 @@ async function seed() {
       variants: ["Rustic Oak", "Grey Wash", "Espresso"],
     },
     {
-      name: "Bar Stool Set - Counter Height",
+      name: "Counter Height Stool Set",
       description: "Set of 2, swivel seat, footrest, faux leather, supports 250lbs each",
       price: "119.99",
       originalPrice: "199.99",
@@ -944,7 +944,7 @@ async function seed() {
       variants: ["Black", "Brown", "White", "Grey"],
     },
     {
-      name: "Nightstand - 2-Drawer Bedside Table",
+      name: "2-Drawer Bedside Table",
       description: "Solid wood, smooth glide drawers, open shelf, charging station built-in",
       price: "99.99",
       originalPrice: "169.99",
@@ -1535,7 +1535,7 @@ async function seed() {
 
     // HEALTHCARE & SUPPLEMENTS PRODUCTS (15 items)
     {
-      name: "Multivitamin for Men - Daily Formula",
+      name: "Men's Daily Multivitamin",
       description: "Complete nutrition, energy support, immune boost, 90 tablets, non-GMO",
       price: "24.99",
       originalPrice: "39.99",
@@ -1552,7 +1552,7 @@ async function seed() {
       variants: ["60 Tablets", "90 Tablets", "180 Tablets"],
     },
     {
-      name: "Women's Multivitamin - Complete Care",
+      name: "Women's Complete Multivitamin",
       description: "Biotin, iron, calcium, D3, supports hair, skin, nails, 90 tablets",
       price: "24.99",
       originalPrice: "39.99",
@@ -1568,7 +1568,7 @@ async function seed() {
       variants: ["60 Tablets", "90 Tablets", "180 Tablets"],
     },
     {
-      name: "Omega-3 Fish Oil - Triple Strength",
+      name: "Triple Strength Fish Oil",
       description: "2400mg per serving, EPA + DHA, supports heart and brain health, 120 softgels",
       price: "34.99",
       originalPrice: "54.99",
@@ -1585,7 +1585,7 @@ async function seed() {
       variants: ["60 Softgels", "120 Softgels", "240 Softgels"],
     },
     {
-      name: "Vitamin D3 - High Potency 5000 IU",
+      name: "Vitamin D3 5000 IU",
       description: "Immune support, bone health, mood enhancement, 360 softgels, easy to swallow",
       price: "19.99",
       originalPrice: "32.99",
@@ -1600,7 +1600,7 @@ async function seed() {
       variants: ["180 Softgels", "360 Softgels"],
     },
     {
-      name: "Probiotic 50 Billion CFU - Digestive Health",
+      name: "Digestive Probiotic 50B CFU",
       description: "15 strains, shelf-stable, supports gut health and immunity, 60 capsules",
       price: "29.99",
       originalPrice: "49.99",
@@ -1616,7 +1616,7 @@ async function seed() {
       variants: ["30 Capsules", "60 Capsules", "120 Capsules"],
     },
     {
-      name: "Collagen Peptides Powder - Unflavored",
+      name: "Unflavored Collagen Powder",
       description: "Grass-fed, hydrolyzed, supports skin, hair, nails, joints, 20g per serving",
       price: "34.99",
       originalPrice: "54.99",
@@ -1633,7 +1633,7 @@ async function seed() {
       variants: ["16 oz", "32 oz", "64 oz"],
     },
     {
-      name: "Magnesium Glycinate - 400mg",
+      name: "Magnesium Supplement 400mg",
       description: "High absorption, supports sleep, muscle recovery, stress relief, 240 capsules",
       price: "22.99",
       originalPrice: "36.99",
@@ -1648,7 +1648,7 @@ async function seed() {
       variants: ["120 Capsules", "240 Capsules"],
     },
     {
-      name: "Apple Cider Vinegar Gummies - Organic",
+      name: "Organic Apple Cider Gummies",
       description: "With the mother, supports weight management, digestion, 60 gummies",
       price: "19.99",
       originalPrice: "29.99",
@@ -1663,7 +1663,7 @@ async function seed() {
       variants: ["60 Gummies", "120 Gummies"],
     },
     {
-      name: "Turmeric Curcumin with BioPerine",
+      name: "Turmeric Curcumin Capsules",
       description: "1500mg, 95% curcuminoids, anti-inflammatory, joint support, 180 capsules",
       price: "24.99",
       originalPrice: "39.99",
@@ -1679,7 +1679,7 @@ async function seed() {
       variants: ["90 Capsules", "180 Capsules"],
     },
     {
-      name: "B-Complex Vitamins - Energy & Focus",
+      name: "B-Complex Energy Vitamins",
       description: "All 8 B vitamins, supports metabolism, brain function, 120 tablets",
       price: "16.99",
       originalPrice: "26.99",
@@ -1694,7 +1694,7 @@ async function seed() {
       variants: ["60 Tablets", "120 Tablets"],
     },
     {
-      name: "Ashwagandha - Stress Relief",
+      name: "Ashwagandha Stress Support",
       description: "1300mg, KSM-66 extract, reduces cortisol, promotes calm, 90 capsules",
       price: "22.99",
       originalPrice: "36.99",
@@ -1710,7 +1710,7 @@ async function seed() {
       variants: ["60 Capsules", "90 Capsules", "180 Capsules"],
     },
     {
-      name: "Elderberry Gummies - Immune Support",
+      name: "Elderberry Immune Gummies",
       description: "Vitamin C & zinc, great taste, supports immune system, 60 gummies",
       price: "17.99",
       originalPrice: "27.99",
@@ -1725,7 +1725,7 @@ async function seed() {
       variants: ["60 Gummies", "120 Gummies"],
     },
     {
-      name: "Biotin 10,000 mcg - Hair Growth",
+      name: "Biotin 10,000mcg Capsules",
       description: "Supports healthy hair, skin, nails, energy metabolism, 120 softgels",
       price: "14.99",
       originalPrice: "24.99",
@@ -1741,7 +1741,7 @@ async function seed() {
       variants: ["60 Softgels", "120 Softgels", "240 Softgels"],
     },
     {
-      name: "Melatonin 10mg - Sleep Aid",
+      name: "Melatonin 10mg Sleep Support",
       description: "Fast-acting, non-habit forming, supports restful sleep, 120 tablets",
       price: "12.99",
       originalPrice: "19.99",
@@ -1756,7 +1756,7 @@ async function seed() {
       variants: ["3mg", "5mg", "10mg"],
     },
     {
-      name: "Zinc 50mg - Immune Booster",
+      name: "Zinc 50mg Immune Support",
       description: "Supports immune function, skin health, antioxidant, 250 tablets",
       price: "13.99",
       originalPrice: "21.99",
