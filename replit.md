@@ -187,19 +187,26 @@ shared/
 - SEO meta tags added
 - Mobile-responsive layouts
 - Accessibility features
-- 3 promotional banners with stock images
-- Removed newsletter and purchase notification popups
+- **Removed all promotional banners**
+- Fixed product card image and name alignment
+- Product images use object-contain for proper display
 
 ### Phase 2: Backend ✅
 - API endpoints for products, categories, deals
 - Cart operations
-- In-memory data storage with realistic Indian fashion products
+- In-memory data storage with 117+ USA-focused products
 
-### Phase 3: Integration (Future)
-- Connect frontend to backend
-- Real-time features
-- Error handling and loading states
-- End-to-end testing
+### Phase 3: USA Market Conversion ✅
+- Expanded to 117 products across 8 categories
+- USA-focused product names and descriptions
+- Removed Indian-themed content
+- Removed flash sale banner and best sellers section
+- **Stripe Integration**: User dismissed integration - can be added manually later if needed
+
+### Phase 4: Checkout & Payments (Future)
+- USA address format (State, ZIP, phone)
+- Stripe payment processing (user to add API keys as secrets when ready)
+- Order confirmation flow
 
 ## Running the Project
 ```bash
@@ -226,6 +233,11 @@ The application runs on a single port with Vite serving the frontend and Express
 
 ---
 
-**Version**: 1.1  
-**Last Updated**: October 24, 2025  
-**Status**: Bold Design Update - Festival Energy Applied
+**Version**: 1.2  
+**Last Updated**: November 19, 2025  
+**Status**: USA Market Version - 117 Products, Clean UI, Banners Removed
+
+## Notes
+- **Stripe Payment**: User dismissed Replit integration. To add payments later, manually add Stripe API keys as secrets.
+- All promotional banners removed from homepage for cleaner UI
+- Product cards optimized with object-contain images and consistent name heights
