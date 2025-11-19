@@ -6,7 +6,6 @@ import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { ProductCarousel } from "@/components/ProductCarousel";
 import { CategoryTiles } from "@/components/CategoryTiles";
-import { FlashDeals } from "@/components/FlashDeals";
 import { SocialProof } from "@/components/SocialProof";
 import { MiniCart } from "@/components/MiniCart";
 import { LiveChatWidget } from "@/components/LiveChatWidget";
@@ -33,9 +32,6 @@ export default function Home() {
     queryKey: ["/api/categories"],
   });
 
-  const { data: deals = [] } = useQuery<DealWithProduct[]>({
-    queryKey: ["/api/deals"],
-  });
 
   const { data: reviews = [] } = useQuery<Review[]>({
     queryKey: ["/api/reviews"],
@@ -161,11 +157,7 @@ export default function Home() {
   };
 
   const handleCheckout = () => {
-    toast({
-      title: "Checkout",
-      description: "Proceeding to secure checkout...",
-    });
-    setIsCartOpen(false);
+    window.location.href = "/checkout";
   };
 
   return (
@@ -199,17 +191,6 @@ export default function Home() {
 
         {/* Category Tiles */}
         {categories.length > 0 && <CategoryTiles categories={categories} />}
-
-        {/* Flash Deals */}
-        {deals.length > 0 && (
-          <FlashDeals
-            deals={deals}
-            onAddToCart={handleAddToCart}
-            onToggleWishlist={handleToggleWishlist}
-            onQuickView={handleQuickView}
-            wishlistedProducts={wishlistedProducts}
-          />
-        )}
 
         {/* Recommended Products Carousel */}
         {recommendedProducts.length > 0 && (
