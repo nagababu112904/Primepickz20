@@ -52,25 +52,6 @@ export function ProductCard({
             }}
           />
 
-          {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {product.badge && (
-              <Badge className="text-xs font-semibold px-2 py-1">
-                {product.badge}
-              </Badge>
-            )}
-            {hasDiscount && (
-              <Badge variant="destructive" className="text-xs font-semibold px-2 py-1">
-                {discountPercentage}% OFF
-              </Badge>
-            )}
-            {product.freeShipping && (
-              <Badge variant="secondary" className="text-xs font-semibold px-2 py-1">
-                Free Shipping
-              </Badge>
-            )}
-          </div>
-
           {/* Wishlist Button */}
           <Button
             size="icon"
