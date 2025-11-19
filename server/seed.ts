@@ -346,7 +346,7 @@ async function seed() {
       originalPrice: "79.99",
       discount: 38,
       category: "Electronics",
-      imageUrl: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600",
+      imageUrl: "https://images.unsplash.com/photo-1589003077984-894e133dabab?w=600",
       rating: "4.6",
       reviewCount: 1567,
       inStock: true,
