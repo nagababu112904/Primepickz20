@@ -81,7 +81,7 @@ export default function Terms() {
           <section>
             <h2 className="text-2xl font-bold mb-4">9. Governing Law</h2>
             <p className="text-muted-foreground">
-              These terms shall be governed by and construed in accordance with the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in Mumbai, India.
+              These terms shall be governed by and construed in accordance with the laws of Connecticut, United States. Any disputes shall be subject to the exclusive jurisdiction of courts in Connecticut.
             </p>
           </section>
 

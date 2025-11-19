@@ -26,8 +26,8 @@ export default function About() {
 
         <div className="prose max-w-none mb-12">
           <p className="text-lg text-muted-foreground mb-6">
-            Prime Pickz is India's premier destination for fashion and lifestyle
-            products. We bring you the latest trends in ethnic and contemporary
+            Prime Pickz is your premier destination for fashion and lifestyle
+            products. We bring you the latest trends in contemporary
             wear, curated with passion and delivered with care.
           </p>
         </div>
@@ -49,9 +49,9 @@ export default function About() {
 
           <Card className="p-6 text-center">
             <Globe className="w-12 h-12 mx-auto mb-4 text-primary" />
-            <h3 className="font-semibold text-lg mb-2">500+ Cities</h3>
+            <h3 className="font-semibold text-lg mb-2">Nationwide</h3>
             <p className="text-sm text-muted-foreground">
-              Delivery across India
+              Delivery across USA
             </p>
           </Card>
 
@@ -69,9 +69,9 @@ export default function About() {
             <h2 className="text-2xl font-bold mb-4">Our Story</h2>
             <p className="text-muted-foreground">
               Founded in 2020, Prime Pickz started with a simple mission: to
-              make high-quality fashion accessible to everyone in India. From
-              traditional ethnic wear to modern western fashion, we've grown to
-              become one of India's most trusted online shopping destinations.
+              make high-quality fashion accessible to everyone. From
+              contemporary wear to modern fashion essentials, we've grown to
+              become one of the most trusted online shopping destinations.
             </p>
           </section>
 
@@ -91,9 +91,9 @@ export default function About() {
             <p className="text-muted-foreground">
               <strong>Email:</strong> support@primepickz.com
               <br />
-              <strong>Phone:</strong> 1800-123-4567 (Toll Free)
+              <strong>Phone:</strong> 475-239-6334
               <br />
-              <strong>Address:</strong> Prime Pickz HQ, United states.
+              <strong>Address:</strong> 9121 Avalon Gates, Trumbull, CT 06611, United States
             </p>
           </section>
         </div>

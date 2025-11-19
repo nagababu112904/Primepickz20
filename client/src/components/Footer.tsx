@@ -45,7 +45,7 @@ export function Footer() {
               Prime <span className="text-foreground">Pickz</span>
             </h2>
             <p className="text-muted-foreground mb-6 max-w-md">
-              India's premier destination for fashion and lifestyle. Discover the latest trends in ethnic and contemporary wear.
+              Your premier destination for fashion and lifestyle. Discover the latest trends in contemporary wear.
             </p>
 
             {/* Newsletter Subscription */}
@@ -71,7 +71,7 @@ export function Footer() {
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Phone className="w-4 h-4" />
-                <span>1800-123-4567 (Toll Free)</span>
+                <span>475-239-6334</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="w-4 h-4" />
@@ -79,7 +79,7 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="w-4 h-4" />
-                <span>New Haven, CT, United States</span>
+                <span>9121 Avalon Gates, Trumbull, CT 06611</span>
               </div>
             </div>
           </div>

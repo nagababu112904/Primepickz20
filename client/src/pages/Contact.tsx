@@ -89,7 +89,7 @@ export default function Contact() {
                 <Phone className="w-6 h-6 text-primary mt-1" />
                 <div>
                   <h3 className="font-semibold mb-1">Phone</h3>
-                  <p className="text-muted-foreground">1800-123-4567 (Toll Free)</p>
+                  <p className="text-muted-foreground">475-239-6334</p>
                   <p className="text-sm text-muted-foreground">Mon-Sat: 9 AM - 6 PM</p>
                 </div>
               </div>
@@ -113,9 +113,9 @@ export default function Contact() {
                   <h3 className="font-semibold mb-1">Address</h3>
                   <p className="text-muted-foreground">
                     Prime Pickz Headquarters<br />
-                    123 Fashion Street<br />
-                    Mumbai, Maharashtra 400001<br />
-                    India
+                    9121 Avalon Gates<br />
+                    Trumbull, CT 06611<br />
+                    United States
                   </p>
                 </div>
               </div>

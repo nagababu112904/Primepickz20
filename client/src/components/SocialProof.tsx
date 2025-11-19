@@ -117,17 +117,6 @@ export function SocialProof({ reviews }: SocialProofProps) {
           ))}
         </div>
 
-        {/* Media Mentions */}
-        <div className="mt-12 pt-12 border-t">
-          <p className="text-center text-sm text-muted-foreground mb-6">AS FEATURED IN</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-50">
-            {["Economic Times", "Vogue India", "Femina", "Grazia", "Elle"].map((brand) => (
-              <div key={brand} className="text-lg font-bold text-foreground">
-                {brand}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );

@@ -37,8 +37,8 @@ export default function Shipping() {
           
           <Card className="p-4 text-center">
             <MapPin className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-semibold mb-1">500+ Cities</h3>
-            <p className="text-xs text-muted-foreground">All India delivery</p>
+            <h3 className="font-semibold mb-1">Nationwide</h3>
+            <p className="text-xs text-muted-foreground">US delivery</p>
           </Card>
           
           <Card className="p-4 text-center">
@@ -95,7 +95,7 @@ export default function Shipping() {
           <section>
             <h2 className="text-2xl font-bold mb-4">Shipping Partners</h2>
             <p className="text-muted-foreground">
-              We work with trusted courier partners including Blue Dart, Delhivery, and India Post to ensure safe and timely delivery of your orders.
+              We work with trusted courier partners including FedEx, UPS, and USPS to ensure safe and timely delivery of your orders.
             </p>
           </section>
 
@@ -114,7 +114,7 @@ export default function Shipping() {
           <section>
             <h2 className="text-2xl font-bold mb-4">International Shipping</h2>
             <p className="text-muted-foreground">
-              Currently, we only ship within India. International shipping will be available soon. Sign up for our newsletter to be notified when we expand globally.
+              Currently, we only ship within the United States. International shipping will be available soon. Sign up for our newsletter to be notified when we expand globally.
             </p>
           </section>
 
@@ -123,7 +123,7 @@ export default function Shipping() {
             <p className="text-muted-foreground">
               For shipping-related queries:<br />
               Email: shipping@primepickz.com<br />
-              Phone: 1800-123-4567<br />
+              Phone: 475-239-6334<br />
               Available: Mon-Sat, 9 AM - 6 PM
             </p>
           </section>
