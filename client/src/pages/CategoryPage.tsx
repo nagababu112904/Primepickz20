@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
-import type { Product, Category } from "@shared/schema";
+import type { Product, Category, CartItemWithProduct } from "@shared/schema";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -16,12 +16,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Header } from "@/components/Header";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { MiniCart } from "@/components/MiniCart";
+import { Footer } from "@/components/Footer";
 
 export default function CategoryPage() {
   const [, params] = useRoute("/category/:slug");
   const slug = params?.slug || "";
   const [selectedVariant, setSelectedVariant] = useState<Record<string, string>>({});
   const [sortBy, setSortBy] = useState("featured");
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const { toast } = useToast();
   const sessionId = "default-session";
 
@@ -31,6 +36,15 @@ export default function CategoryPage() {
 
   const { data: allProducts } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+  });
+
+  const { data: cartItems = [] } = useQuery<CartItemWithProduct[]>({
+    queryKey: ["/api/cart"],
+    queryFn: async () => {
+      const response = await fetch(`/api/cart?sessionId=${sessionId}`);
+      if (!response.ok) throw new Error("Failed to fetch cart");
+      return response.json();
+    },
   });
 
   const category = categories?.find(cat => cat.slug === slug);
@@ -77,6 +91,24 @@ export default function CategoryPage() {
     },
   });
 
+  const updateQuantityMutation = useMutation({
+    mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
+      return await apiRequest("PATCH", `/api/cart/${itemId}`, { quantity });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+    },
+  });
+
+  const removeItemMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      return await apiRequest("DELETE", `/api/cart/${itemId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+    },
+  });
+
   if (!category) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -95,7 +127,14 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header
+        cartCount={cartItems.length}
+        wishlistCount={0}
+        onCartClick={() => setIsCartOpen(true)}
+        language="en"
+        onLanguageChange={() => {}}
+      />
       {/* Category Header */}
       <div className="bg-card border-b">
         <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-8">
@@ -223,6 +262,20 @@ export default function CategoryPage() {
           </div>
         )}
       </div>
+      <Footer />
+      <MobileBottomNav
+        cartCount={cartItems.length}
+        activeTab="categories"
+        onCartClick={() => setIsCartOpen(true)}
+      />
+      <MiniCart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onUpdateQuantity={(itemId, quantity) => updateQuantityMutation.mutate({ itemId, quantity })}
+        onRemoveItem={(itemId) => removeItemMutation.mutate(itemId)}
+        onCheckout={() => window.location.href = "/checkout"}
+      />
     </div>
   );
 }

@@ -7,7 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Product } from "@shared/schema";
+import type { Product, CartItemWithProduct } from "@shared/schema";
+import { useState } from "react";
+import { Header } from "@/components/Header";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { MiniCart } from "@/components/MiniCart";
+import { Footer } from "@/components/Footer";
 
 interface WishlistItem {
   id: string;
@@ -18,6 +23,8 @@ interface WishlistItem {
 export default function Wishlist() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const sessionId = "default-session";
 
   const { data: wishlistItems = [] } = useQuery<WishlistItem[]>({
     queryKey: ["/api/wishlist"],
@@ -26,6 +33,15 @@ export default function Wishlist() {
 
   const { data: allProducts = [] } = useQuery<Product[]>({
     queryKey: ["/api/products"],
+  });
+
+  const { data: cartItems = [] } = useQuery<CartItemWithProduct[]>({
+    queryKey: ["/api/cart"],
+    queryFn: async () => {
+      const response = await fetch(`/api/cart?sessionId=${sessionId}`);
+      if (!response.ok) throw new Error("Failed to fetch cart");
+      return response.json();
+    },
   });
 
   const removeFromWishlistMutation = useMutation({
@@ -63,6 +79,24 @@ export default function Wishlist() {
     },
   });
 
+  const updateQuantityMutation = useMutation({
+    mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
+      return await apiRequest("PATCH", `/api/cart/${itemId}`, { quantity });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+    },
+  });
+
+  const removeItemMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      return await apiRequest("DELETE", `/api/cart/${itemId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+    },
+  });
+
   const wishlistedProducts = allProducts.filter((product) =>
     wishlistItems.some((item) => item.productId === product.id)
   );
@@ -84,7 +118,14 @@ export default function Wishlist() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header
+        cartCount={cartItems.length}
+        wishlistCount={wishlistedProducts.length}
+        onCartClick={() => setIsCartOpen(true)}
+        language="en"
+        onLanguageChange={() => {}}
+      />
       {/* Header */}
       <div className="bg-card border-b">
         <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-6 md:py-8">
@@ -177,6 +218,20 @@ export default function Wishlist() {
           </div>
         )}
       </div>
+      <Footer />
+      <MobileBottomNav
+        cartCount={cartItems.length}
+        activeTab="account"
+        onCartClick={() => setIsCartOpen(true)}
+      />
+      <MiniCart
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onUpdateQuantity={(itemId, quantity) => updateQuantityMutation.mutate({ itemId, quantity })}
+        onRemoveItem={(itemId) => removeItemMutation.mutate(itemId)}
+        onCheckout={() => window.location.href = "/checkout"}
+      />
     </div>
   );
 }
