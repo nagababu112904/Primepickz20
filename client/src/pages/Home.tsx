@@ -3,7 +3,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
-import { FlashSaleBanner } from "@/components/FlashSaleBanner";
 import { HeroSection } from "@/components/HeroSection";
 import { ProductCarousel } from "@/components/ProductCarousel";
 import { CategoryTiles } from "@/components/CategoryTiles";
@@ -123,7 +122,6 @@ export default function Home() {
   const trendingProducts = products.filter(p => p.tags?.includes("trending")).slice(0, 10);
   const recommendedProducts = products.filter(p => p.tags?.includes("recommended")).slice(0, 10);
   const newArrivals = products.filter(p => p.badge === "New").slice(0, 10);
-  const bestSellers = products.filter(p => p.tags?.includes("bestseller")).slice(0, 10);
 
   // Handlers
   const handleAddToCart = (productId: string) => {
@@ -176,9 +174,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Flash Sale Banner */}
-      <FlashSaleBanner />
-
       {/* Header */}
       <Header
         cartCount={cartItems.length}
@@ -261,19 +256,6 @@ export default function Home() {
             title="New Arrivals"
             subtitle="Fresh styles just landed"
             products={newArrivals}
-            onAddToCart={handleAddToCart}
-            onToggleWishlist={handleToggleWishlist}
-            onQuickView={handleQuickView}
-            wishlistedProducts={wishlistedProducts}
-          />
-        )}
-
-        {/* Best Sellers Carousel */}
-        {bestSellers.length > 0 && (
-          <ProductCarousel
-            title="Best Sellers"
-            subtitle="Customer favorites"
-            products={bestSellers}
             onAddToCart={handleAddToCart}
             onToggleWishlist={handleToggleWishlist}
             onQuickView={handleQuickView}
