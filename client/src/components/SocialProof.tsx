@@ -20,7 +20,7 @@ export function SocialProof({ reviews }: SocialProofProps) {
         {/* Header */}
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">
-            Loved by Customers Across India
+            What Our Customers Say
           </h2>
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <div className="flex items-center gap-1">
