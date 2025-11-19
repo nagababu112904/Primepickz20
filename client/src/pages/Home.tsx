@@ -207,8 +207,8 @@ export default function Home() {
         {/* Promo Banner 1 */}
         <div className="px-4 md:px-6 py-8 md:py-12 max-w-screen-2xl mx-auto">
           <PromoBanner
-            title="Festival Fashion Sale!"
-            subtitle="Up to 70% OFF on Ethnic Wear"
+            title="Fashion Frenzy Sale!"
+            subtitle="Up to 70% OFF on Premium Styles"
             imageUrl={promoImage1}
             gradient="pink"
             ctaLink="/category/fashion"
@@ -266,8 +266,8 @@ export default function Home() {
         {/* Promo Banner 3 */}
         <div className="px-4 md:px-6 py-8 md:py-12 max-w-screen-2xl mx-auto">
           <PromoBanner
-            title="Traditional Elegance"
-            subtitle="Discover Timeless Indian Fashion"
+            title="Timeless Elegance"
+            subtitle="Discover Classic American Style"
             imageUrl={promoImage3}
             gradient="dual"
             ctaLink="/category/fashion"
