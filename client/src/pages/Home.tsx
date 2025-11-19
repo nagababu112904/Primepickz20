@@ -226,7 +226,11 @@ export default function Home() {
       <Footer />
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav cartCount={cartItems.length} activeTab="home" />
+      <MobileBottomNav 
+        cartCount={cartItems.length} 
+        activeTab="home"
+        onCartClick={() => setIsCartOpen(true)}
+      />
 
       {/* Mini Cart Sidebar */}
       <MiniCart

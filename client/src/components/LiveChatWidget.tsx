@@ -75,7 +75,7 @@ export function LiveChatWidget() {
       {/* Chat Window */}
       {isOpen && (
         <div
-          className="fixed bottom-24 right-4 w-80 sm:w-96 bg-card border border-card-border rounded-lg shadow-2xl z-50 flex flex-col"
+          className="fixed bottom-20 md:bottom-24 right-4 w-80 sm:w-96 bg-card border border-card-border rounded-lg shadow-2xl z-40 flex flex-col"
           data-testid="chat-window"
         >
           {/* Header */}
@@ -148,7 +148,7 @@ export function LiveChatWidget() {
       {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-4 right-4 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg hover:scale-110 transition-transform flex items-center justify-center z-50"
+        className="fixed bottom-20 md:bottom-4 right-4 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg hover:scale-110 transition-transform flex items-center justify-center z-40"
         data-testid="button-toggle-chat"
       >
         {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
