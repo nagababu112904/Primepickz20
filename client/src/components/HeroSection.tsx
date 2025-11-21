@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Truck, RotateCcw, Shield, Headphones, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 
 export function HeroSection() {
+  const [, setLocation] = useLocation();
   const [liveStats, setLiveStats] = useState({
     orders: 2847,
     shoppers: 156,
@@ -54,6 +56,7 @@ export function HeroSection() {
               <Button 
                 size="lg" 
                 className="h-12 px-8 text-base font-semibold"
+                onClick={() => setLocation("/category/fashion")}
                 data-testid="button-shop-now"
               >
                 Shop Now
@@ -62,6 +65,7 @@ export function HeroSection() {
                 size="lg" 
                 variant="outline" 
                 className="h-12 px-8 text-base font-semibold"
+                onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
                 data-testid="button-explore-deals"
               >
                 Explore Deals

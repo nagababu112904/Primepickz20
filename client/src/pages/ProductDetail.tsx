@@ -32,7 +32,7 @@ export default function ProductDetail() {
     },
   });
 
-  const { data: reviews = [] } = useQuery({
+  const { data: reviews = [] } = useQuery<Review[]>({
     queryKey: [`/api/reviews/product/${productId}`],
     enabled: !!productId,
   });
@@ -308,9 +308,9 @@ export default function ProductDetail() {
               <div>
                 <h2 className="text-2xl font-bold mb-6">Customer Reviews ({product.reviewCount || 0})</h2>
                 
-                {reviews && reviews.length > 0 ? (
+                {reviews?.length > 0 ? (
                   <div className="space-y-6">
-                    {reviews.map((review: Review) => (
+                    {(reviews as Review[]).map((review) => (
                       <div key={review.id} className="border-b pb-6 last:border-0">
                         <div className="flex items-start justify-between mb-2">
                           <div>

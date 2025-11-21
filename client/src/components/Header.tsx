@@ -137,12 +137,16 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
               {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
 
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              <h1 className="text-xl md:text-2xl font-bold text-primary">
+            {/* Logo - Clickable Home Button */}
+            <button
+              onClick={() => setLocation("/")}
+              className="flex-shrink-0 hover:opacity-80 transition-opacity"
+              data-testid="button-logo-home"
+            >
+              <h1 className="text-xl md:text-2xl font-bold text-primary cursor-pointer">
                 Prime <span className="text-foreground">Pickz</span>
               </h1>
-            </div>
+            </button>
 
             {/* Search Bar - Desktop */}
             <div className="hidden md:flex flex-1 max-w-2xl items-center" ref={searchRef}>
