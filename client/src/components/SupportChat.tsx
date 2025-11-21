@@ -76,7 +76,7 @@ export function SupportChat() {
       {/* Chat Button - Floating with Pulse */}
       <Button
         size="icon"
-        className="fixed bottom-6 right-6 rounded-full w-16 h-16 shadow-2xl hover-elevate z-40 bg-[#B8860B] text-[#1f1f1f] border-0 transition-all duration-300 font-semibold"
+        className="fixed bottom-6 right-6 rounded-full w-16 h-16 shadow-2xl hover-elevate z-40 bg-[#1A3A52] text-white border-0 transition-all duration-300 font-semibold"
         onClick={() => setIsOpen(!isOpen)}
         data-testid="button-support-chat"
       >
@@ -96,17 +96,17 @@ export function SupportChat() {
           className="fixed bottom-28 right-6 w-96 max-h-[32rem] rounded-2xl shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col z-40 animate-in fade-in slide-in-from-bottom-4 duration-300"
           data-testid="chat-window"
         >
-          {/* Header - Luxury Gold & Dark */}
-          <div className="bg-gradient-to-r from-[#1f1f1f] to-[#2a2a2a] text-[#B8860B] p-5 rounded-t-2xl border-b-2 border-[#B8860B]/30">
+          {/* Header - Navy Blue & Gold */}
+          <div className="bg-gradient-to-r from-[#1A3A52] to-[#2A4A62] text-white p-5 rounded-t-2xl border-b-2 border-[#C9A961]/20">
             <div className="flex items-center gap-2 mb-1">
               <HeartHandshake className="w-5 h-5" />
               <h2 className="font-serif font-bold text-lg tracking-tight">Prime Pickz Support</h2>
             </div>
-            <p className="text-xs text-[#B8860B]/80 font-medium">Dedicated concierge service • 24/7</p>
+            <p className="text-xs text-white/80 font-medium">Dedicated concierge service • 24/7</p>
           </div>
 
-          {/* Messages - Luxury Dark Background */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#1a1a1a] dark:bg-[#1a1a1a]">
+          {/* Messages - Light Background */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-slate-900">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -116,8 +116,8 @@ export function SupportChat() {
                 <div
                   className={`max-w-xs px-4 py-3 rounded-2xl text-sm leading-relaxed font-medium transition-all duration-200 ${
                     msg.type === "user"
-                      ? "bg-[#B8860B] text-[#1f1f1f] rounded-br-none shadow-lg font-semibold"
-                      : "bg-[#252525] text-[#E8E8E8] rounded-bl-none border border-[#B8860B]/20"
+                      ? "bg-[#1A3A52] text-white rounded-br-none shadow-lg font-semibold"
+                      : "bg-[#F5F5F5] text-[#1A3A52] rounded-bl-none border border-[#C9A961]/20"
                   }`}
                 >
                   <p>{msg.text}</p>
@@ -126,11 +126,11 @@ export function SupportChat() {
             ))}
             {isLoading && (
               <div className="flex justify-start animate-in fade-in duration-300">
-                <div className="bg-[#252525] px-4 py-3 rounded-2xl rounded-bl-none border border-[#B8860B]/20">
+                <div className="bg-[#F5F5F5] px-4 py-3 rounded-2xl rounded-bl-none border border-[#C9A961]/20">
                   <div className="flex gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-bounce"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-bounce" style={{ animationDelay: "0.15s" }}></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-bounce" style={{ animationDelay: "0.3s" }}></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#1A3A52] animate-bounce"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#1A3A52] animate-bounce" style={{ animationDelay: "0.15s" }}></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#1A3A52] animate-bounce" style={{ animationDelay: "0.3s" }}></div>
                   </div>
                 </div>
               </div>
@@ -138,8 +138,8 @@ export function SupportChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area - Luxury Dark */}
-          <div className="border-t border-[#B8860B]/20 bg-[#1a1a1a] p-4 rounded-b-2xl">
+          {/* Input Area - Light */}
+          <div className="border-t border-[#C9A961]/20 bg-white p-4 rounded-b-2xl dark:bg-slate-900 dark:border-slate-700">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -147,7 +147,7 @@ export function SupportChat() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder="Ask me anything..."
-                className="flex-1 px-4 py-3 border-2 border-[#B8860B]/30 rounded-xl text-sm focus:outline-none focus:border-[#B8860B] focus:ring-2 focus:ring-[#B8860B]/20 bg-[#252525] text-white placeholder-[#888] font-medium transition-all duration-200"
+                className="flex-1 px-4 py-3 border-2 border-[#C9A961]/30 rounded-xl text-sm focus:outline-none focus:border-[#1A3A52] focus:ring-2 focus:ring-[#1A3A52]/20 bg-white text-[#1A3A52] placeholder-[#999] font-medium transition-all duration-200 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400"
                 disabled={isLoading}
                 data-testid="input-chat-message"
               />
@@ -155,7 +155,7 @@ export function SupportChat() {
                 size="icon"
                 onClick={handleSendMessage}
                 disabled={isLoading || !input.trim()}
-                className="bg-[#B8860B] text-[#1f1f1f] border-0 rounded-xl hover-elevate disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold"
+                className="bg-[#1A3A52] text-white border-0 rounded-xl hover-elevate disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold"
                 data-testid="button-send-message"
               >
                 <Send className="w-5 h-5" />
