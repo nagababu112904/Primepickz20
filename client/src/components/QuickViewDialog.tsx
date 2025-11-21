@@ -51,10 +51,14 @@ export function QuickViewDialog({
 
           <div className="grid md:grid-cols-2 gap-8 p-6 md:p-8">
             {/* Product Image */}
-            <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-              <div className="w-full h-full bg-gradient-to-br from-primary/20 via-accent/20 to-muted flex items-center justify-center">
-                <Package className="w-32 h-32 text-primary/40" />
-              </div>
+            <div className="relative aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className={`w-full h-full object-contain ${
+                  ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
+                }`}
+              />
 
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2">

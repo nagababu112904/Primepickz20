@@ -186,7 +186,7 @@ export default function Home() {
                   {/* Large Featured Product */}
                   {products.length > 0 && (
                     <div className="col-span-2 row-span-2" data-testid="featured-large-product">
-                      <div className="bg-pink-50 rounded-md overflow-hidden h-full hover-elevate cursor-pointer">
+                      <div className="bg-pink-50 rounded-md overflow-hidden h-full hover-elevate cursor-pointer" onClick={() => handleQuickView(products[0].id)}>
                         <div className="aspect-square bg-muted overflow-hidden flex items-center justify-center">
                           <img
                             src={products[0].imageUrl}
@@ -207,7 +207,7 @@ export default function Home() {
                   {/* Top right featured product */}
                   {products.length > 1 && (
                     <div className="col-span-1" data-testid="featured-top-right">
-                      <div className="bg-blue-50 rounded-md overflow-hidden h-full hover-elevate cursor-pointer">
+                      <div className="bg-blue-50 rounded-md overflow-hidden h-full hover-elevate cursor-pointer" onClick={() => handleQuickView(products[1].id)}>
                         <div className="aspect-square bg-muted overflow-hidden flex items-center justify-center">
                           <img
                             src={products[1].imageUrl}
@@ -228,7 +228,7 @@ export default function Home() {
                   {/* Bottom right featured products */}
                   {products.slice(2, 4).map((product) => (
                     <div key={product.id} className="col-span-1" data-testid={`product-card-${product.id}`}>
-                      <div className="bg-white border border-card-border rounded-md overflow-hidden h-full hover-elevate cursor-pointer">
+                      <div className="bg-white border border-card-border rounded-md overflow-hidden h-full hover-elevate cursor-pointer" onClick={() => handleQuickView(product.id)}>
                         <div className="aspect-square bg-muted overflow-hidden flex items-center justify-center">
                           <img
                             src={product.imageUrl}
@@ -249,7 +249,7 @@ export default function Home() {
                   {/* Bottom row products */}
                   {products.slice(4, 10).map((product) => (
                     <div key={product.id} className="col-span-1" data-testid={`product-card-${product.id}`}>
-                      <div className="bg-white border border-card-border rounded-md overflow-hidden h-full hover-elevate cursor-pointer">
+                      <div className="bg-white border border-card-border rounded-md overflow-hidden h-full hover-elevate cursor-pointer" onClick={() => handleQuickView(product.id)}>
                         <div className="aspect-square bg-muted overflow-hidden flex items-center justify-center">
                           <img
                             src={product.imageUrl}
@@ -275,7 +275,7 @@ export default function Home() {
                   <h2 className="text-lg font-bold text-foreground mb-4">Today's Picks</h2>
                   <div className="space-y-3">
                     {products.slice(0, 6).map((product, idx) => (
-                      <div key={product.id} className="flex gap-3 hover-elevate p-2 rounded-md transition-all cursor-pointer" data-testid={`sidebar-pick-${idx}`}>
+                      <div key={product.id} className="flex gap-3 hover-elevate p-2 rounded-md transition-all cursor-pointer" onClick={() => handleQuickView(product.id)} data-testid={`sidebar-pick-${idx}`}>
                         <div className="w-14 h-14 bg-muted rounded-md flex-shrink-0 overflow-hidden flex items-center justify-center">
                           <img
                             src={product.imageUrl}
