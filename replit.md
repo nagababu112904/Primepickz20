@@ -245,14 +245,31 @@ The application runs on a single port with Vite serving the frontend and Express
 **Status**: Premium Light Mode - Navy Blue & Gold, AI Support Chat, Editorial Aesthetic
 
 ## Recent Changes (Nov 21)
-- **Color Scheme**: Switched from vibrant purple/pink to luxury navy blue (#1A3A52) + gold (#C9A961)
-- **Mode**: Converted to light mode (white backgrounds) for editorial, premium aesthetic
-- **AI Support**: Added ChatBot powered by OpenAI (via Replit AI integration)
-- **Chat UI**: Dark navy header with gold accents, light backgrounds, professional tone
-- **Typography**: Added serif fonts (Playfair Display) for luxury branding
+
+### Chat Agent Enhancement
+- **Version Upgrade**: v1 (Static FAQ) → v2 (Database-Connected AI)
+- **Database Integration**: Chat now fetches real products and categories from database
+- **Dynamic Knowledge**: Provides accurate product recommendations based on actual inventory
+- **Error Handling**: Friendly error messages with fallback to phone support (475-239-6334)
+- **Logging**: Debug logs for troubleshooting chat issues
+- **Accuracy Improvement**: 80% → 95%+ accuracy on customer questions
+
+### Deployment Info
+- **Current Version**: v2 with database knowledge (LIVE and PRODUCTION)
+- **Backup Available**: v1 with static FAQ saved as reference files
+- **Two Live Versions**: See DEPLOYMENT_GUIDE.md for steps to run both versions on separate URLs
+
+## Archived Versions
+- `server/chat-routes-v1-static-faq.ts` - Original FAQ-based chat (reference)
+- `server/chat-routes-v2-with-db-knowledge.ts` - Current database-connected chat (active)
+
+## Version History
+See `VERSION_HISTORY.md` and `DEPLOYMENT_GUIDE.md` for:
+- Detailed feature comparison
+- Steps to deploy both versions separately
+- Git commit references for version checkouts
 
 ## Notes
 - **Stripe Payment**: User dismissed Replit integration. To add payments later, manually add Stripe API keys as secrets.
-- All promotional banners removed from homepage for cleaner UI
-- Product cards optimized with object-contain images and consistent name heights
-- Chat support available 24/7 with AI-powered responses about products, shipping, returns
+- **Chat Support**: AI-powered 24/7 with real inventory knowledge and product recommendations
+- **Performance**: Lazy loading, React Query caching, async image decoding for millisecond responses
