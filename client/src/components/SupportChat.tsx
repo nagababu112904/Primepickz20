@@ -76,7 +76,7 @@ export function SupportChat() {
       {/* Chat Button - Floating with Pulse */}
       <Button
         size="icon"
-        className="fixed bottom-6 right-6 rounded-full w-16 h-16 shadow-2xl hover-elevate z-40 bg-gradient-to-br from-[hsl(280_85%_60%)] to-[hsl(340_90%_65%)] text-white border-0 transition-all duration-300"
+        className="fixed bottom-6 right-6 rounded-full w-16 h-16 shadow-2xl hover-elevate z-40 bg-[#B8860B] text-[#1f1f1f] border-0 transition-all duration-300 font-semibold"
         onClick={() => setIsOpen(!isOpen)}
         data-testid="button-support-chat"
       >
@@ -96,17 +96,17 @@ export function SupportChat() {
           className="fixed bottom-28 right-6 w-96 max-h-[32rem] rounded-2xl shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col z-40 animate-in fade-in slide-in-from-bottom-4 duration-300"
           data-testid="chat-window"
         >
-          {/* Header - Bold Gradient */}
-          <div className="bg-gradient-to-r from-[hsl(280_85%_60%)] via-[hsl(310_80%_62%)] to-[hsl(340_90%_65%)] text-white p-5 rounded-t-2xl border-b-2 border-[hsl(340_90%_65%)]/20">
+          {/* Header - Luxury Gold & Dark */}
+          <div className="bg-gradient-to-r from-[#1f1f1f] to-[#2a2a2a] text-[#B8860B] p-5 rounded-t-2xl border-b-2 border-[#B8860B]/30">
             <div className="flex items-center gap-2 mb-1">
               <HeartHandshake className="w-5 h-5" />
-              <h2 className="font-bold text-lg tracking-tight">Prime Pickz Support</h2>
+              <h2 className="font-serif font-bold text-lg tracking-tight">Prime Pickz Support</h2>
             </div>
-            <p className="text-xs text-white/85 font-medium">Always here to help! 24/7</p>
+            <p className="text-xs text-[#B8860B]/80 font-medium">Dedicated concierge service • 24/7</p>
           </div>
 
-          {/* Messages - Enhanced Styling */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
+          {/* Messages - Luxury Dark Background */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#1a1a1a] dark:bg-[#1a1a1a]">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -116,8 +116,8 @@ export function SupportChat() {
                 <div
                   className={`max-w-xs px-4 py-3 rounded-2xl text-sm leading-relaxed font-medium transition-all duration-200 ${
                     msg.type === "user"
-                      ? "bg-gradient-to-br from-[hsl(280_85%_60%)] to-[hsl(340_90%_65%)] text-white rounded-br-none shadow-lg"
-                      : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none border border-slate-200 dark:border-slate-600"
+                      ? "bg-[#B8860B] text-[#1f1f1f] rounded-br-none shadow-lg font-semibold"
+                      : "bg-[#252525] text-[#E8E8E8] rounded-bl-none border border-[#B8860B]/20"
                   }`}
                 >
                   <p>{msg.text}</p>
@@ -126,11 +126,11 @@ export function SupportChat() {
             ))}
             {isLoading && (
               <div className="flex justify-start animate-in fade-in duration-300">
-                <div className="bg-slate-100 dark:bg-slate-700 px-4 py-3 rounded-2xl rounded-bl-none border border-slate-200 dark:border-slate-600">
+                <div className="bg-[#252525] px-4 py-3 rounded-2xl rounded-bl-none border border-[#B8860B]/20">
                   <div className="flex gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[hsl(280_85%_60%)] to-[hsl(340_90%_65%)] animate-bounce"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[hsl(280_85%_60%)] to-[hsl(340_90%_65%)] animate-bounce" style={{ animationDelay: "0.15s" }}></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-[hsl(280_85%_60%)] to-[hsl(340_90%_65%)] animate-bounce" style={{ animationDelay: "0.3s" }}></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-bounce"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-bounce" style={{ animationDelay: "0.15s" }}></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#B8860B] animate-bounce" style={{ animationDelay: "0.3s" }}></div>
                   </div>
                 </div>
               </div>
@@ -138,8 +138,8 @@ export function SupportChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area - Sleek Design */}
-          <div className="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 rounded-b-2xl">
+          {/* Input Area - Luxury Dark */}
+          <div className="border-t border-[#B8860B]/20 bg-[#1a1a1a] p-4 rounded-b-2xl">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -147,7 +147,7 @@ export function SupportChat() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder="Ask me anything..."
-                className="flex-1 px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:border-[hsl(280_85%_60%)] focus:ring-2 focus:ring-[hsl(280_85%_60%)]/20 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400 font-medium transition-all duration-200"
+                className="flex-1 px-4 py-3 border-2 border-[#B8860B]/30 rounded-xl text-sm focus:outline-none focus:border-[#B8860B] focus:ring-2 focus:ring-[#B8860B]/20 bg-[#252525] text-white placeholder-[#888] font-medium transition-all duration-200"
                 disabled={isLoading}
                 data-testid="input-chat-message"
               />
@@ -155,7 +155,7 @@ export function SupportChat() {
                 size="icon"
                 onClick={handleSendMessage}
                 disabled={isLoading || !input.trim()}
-                className="bg-gradient-to-br from-[hsl(280_85%_60%)] to-[hsl(340_90%_65%)] text-white border-0 rounded-xl hover-elevate disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="bg-[#B8860B] text-[#1f1f1f] border-0 rounded-xl hover-elevate disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold"
                 data-testid="button-send-message"
               >
                 <Send className="w-5 h-5" />
