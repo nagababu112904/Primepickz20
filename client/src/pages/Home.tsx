@@ -8,7 +8,6 @@ import { ProductCarousel } from "@/components/ProductCarousel";
 import { CategoryTiles } from "@/components/CategoryTiles";
 import { SocialProof } from "@/components/SocialProof";
 import { MiniCart } from "@/components/MiniCart";
-import { LiveChatWidget } from "@/components/LiveChatWidget";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { QuickViewDialog } from "@/components/QuickViewDialog";
@@ -343,9 +342,6 @@ export default function Home() {
         onToggleWishlist={handleToggleWishlist}
         isWishlisted={quickViewProduct ? wishlistedProducts.has(quickViewProduct.id) : false}
       />
-
-      {/* Live Chat Widget */}
-      <LiveChatWidget />
     </div>
   );
 }
