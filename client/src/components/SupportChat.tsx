@@ -73,27 +73,37 @@ export function SupportChat() {
 
   return (
     <>
-      {/* Chat Button - Floating with Pulse */}
-      <Button
-        size="icon"
-        className="fixed bottom-6 right-6 rounded-full w-16 h-16 shadow-2xl hover-elevate z-40 bg-[#1A3A52] text-white border-0 transition-all duration-300 font-semibold"
-        onClick={() => setIsOpen(!isOpen)}
-        data-testid="button-support-chat"
-      >
-        {isOpen ? (
-          <X className="w-7 h-7" />
-        ) : (
-          <div className="relative flex items-center justify-center">
-            <MessageCircle className="w-7 h-7" />
-            <span className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full animate-pulse"></span>
+      {/* Chat Button - Highly Visible Floating with Strong Animation */}
+      <div className="fixed bottom-5 right-5 z-40 group">
+        <Button
+          size="icon"
+          className="rounded-full w-20 h-20 shadow-2xl hover-elevate bg-gradient-to-br from-[#1A3A52] to-[#0A1A2A] text-white border-2 border-[#C9A961] transition-all duration-300 font-semibold text-lg flex items-center justify-center"
+          onClick={() => setIsOpen(!isOpen)}
+          data-testid="button-support-chat"
+        >
+          {isOpen ? (
+            <X className="w-8 h-8" />
+          ) : (
+            <div className="relative flex items-center justify-center">
+              <MessageCircle className="w-8 h-8 animate-bounce" />
+              <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 rounded-full animate-pulse ring-2 ring-white"></span>
+            </div>
+          )}
+        </Button>
+        
+        {/* Tooltip Label */}
+        {!isOpen && (
+          <div className="absolute bottom-24 right-0 bg-[#1A3A52] text-white px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap shadow-lg animate-in fade-in duration-300 pointer-events-none">
+            Chat Support
+            <div className="absolute bottom-0 right-2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-[#1A3A52]"></div>
           </div>
         )}
-      </Button>
+      </div>
 
       {/* Chat Window */}
       {isOpen && (
         <div
-          className="fixed bottom-28 right-6 w-96 max-h-[32rem] rounded-2xl shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col z-40 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          className="fixed bottom-28 right-5 w-full sm:w-96 max-h-[32rem] rounded-2xl shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col z-40 animate-in fade-in slide-in-from-bottom-4 duration-300"
           data-testid="chat-window"
         >
           {/* Header - Navy Blue & Gold */}
