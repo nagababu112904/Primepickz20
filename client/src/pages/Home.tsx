@@ -176,47 +176,109 @@ export default function Home() {
         {/* Hero Section */}
         <HeroSection />
 
-        {/* Trending Products Carousel */}
-        {trendingProducts.length > 0 && (
-          <ProductCarousel
-            title="Trending Now"
-            subtitle="Most popular products this week"
-            products={trendingProducts}
-            onAddToCart={handleAddToCart}
-            onToggleWishlist={handleToggleWishlist}
-            onQuickView={handleQuickView}
-            wishlistedProducts={wishlistedProducts}
-          />
-        )}
+        {/* Editorial Grid Layout with Sidebar */}
+        <section className="px-4 md:px-8 py-12 md:py-16 bg-white">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Featured Products Grid - Left/Center (takes 3 columns) */}
+            <div className="lg:col-span-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 auto-rows-max">
+                {/* Large Featured Product - Takes 2x2 grid cells */}
+                {products.length > 0 && (
+                  <div className="col-span-1 md:col-span-2 md:row-span-2" data-testid="featured-large-product">
+                    <div className="bg-secondary/30 rounded-lg overflow-hidden h-full hover-elevate transition-all">
+                      <div className="relative aspect-square md:aspect-auto md:h-80 bg-muted overflow-hidden">
+                        <img
+                          src={products[0].imageUrl}
+                          alt={products[0].name}
+                          className={`w-full h-full object-contain p-4 ${
+                            ["Electronics", "Furniture"].includes(products[0].category) ? 'blur-lg' : ''
+                          }`}
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-semibold text-sm md:text-base mb-2">{products[0].name}</h3>
+                        <p className="text-foreground font-bold text-lg">
+                          from ${Number(products[0].price).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Medium Featured Products - Top right */}
+                {products.length > 1 && (
+                  <div className="col-span-1 md:col-span-1 md:row-span-1" data-testid="featured-medium-product">
+                    <div className="bg-blue-50 rounded-lg overflow-hidden h-full hover-elevate transition-all">
+                      <div className="relative aspect-square bg-muted overflow-hidden">
+                        <img
+                          src={products[1].imageUrl}
+                          alt={products[1].name}
+                          className={`w-full h-full object-contain p-3 ${
+                            ["Electronics", "Furniture"].includes(products[1].category) ? 'blur-lg' : ''
+                          }`}
+                        />
+                      </div>
+                      <div className="p-3">
+                        <h3 className="font-semibold text-xs md:text-sm line-clamp-2">{products[1].name}</h3>
+                        <p className="text-foreground font-bold text-sm mt-1">${Number(products[1].price).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional products in grid */}
+                {products.slice(2, 8).map((product) => (
+                  <div key={product.id} className="col-span-1" data-testid={`product-card-${product.id}`}>
+                    <div className="bg-white rounded-lg border border-card-border overflow-hidden h-full hover-elevate transition-all cursor-pointer">
+                      <div className="relative aspect-square bg-muted overflow-hidden">
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className={`w-full h-full object-contain p-2 ${
+                            ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
+                          }`}
+                        />
+                      </div>
+                      <div className="p-2">
+                        <h3 className="font-semibold text-xs line-clamp-2">{product.name}</h3>
+                        <p className="text-foreground font-bold text-xs mt-1">${Number(product.price).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Sidebar - Today's Picks (Right side - takes 1 column) */}
+            <aside className="lg:col-span-1">
+              <div className="sticky top-24">
+                <h2 className="text-xl font-bold text-foreground mb-6">Today's Picks</h2>
+                <div className="space-y-4">
+                  {products.slice(0, 6).map((product, idx) => (
+                    <div key={product.id} className="flex gap-3 hover-elevate p-2 rounded-lg transition-all cursor-pointer" data-testid={`sidebar-pick-${idx}`}>
+                      <div className="w-16 h-16 bg-muted rounded flex-shrink-0 overflow-hidden">
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className={`w-full h-full object-contain ${
+                            ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
+                          }`}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold line-clamp-2 text-foreground">{product.name}</p>
+                        <p className="text-sm font-bold text-primary mt-1">${Number(product.price).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
 
         {/* Category Tiles */}
         {categories.length > 0 && <CategoryTiles categories={categories} />}
-
-        {/* Recommended Products Carousel */}
-        {recommendedProducts.length > 0 && (
-          <ProductCarousel
-            title="Recommended for You"
-            subtitle="Curated picks based on your style"
-            products={recommendedProducts}
-            onAddToCart={handleAddToCart}
-            onToggleWishlist={handleToggleWishlist}
-            onQuickView={handleQuickView}
-            wishlistedProducts={wishlistedProducts}
-          />
-        )}
-
-        {/* New Arrivals Carousel */}
-        {newArrivals.length > 0 && (
-          <ProductCarousel
-            title="New Arrivals"
-            subtitle="Fresh styles just landed"
-            products={newArrivals}
-            onAddToCart={handleAddToCart}
-            onToggleWishlist={handleToggleWishlist}
-            onQuickView={handleQuickView}
-            wishlistedProducts={wishlistedProducts}
-          />
-        )}
 
         {/* Social Proof / Reviews */}
         {reviews.length > 0 && <SocialProof reviews={reviews} />}
