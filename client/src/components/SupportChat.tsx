@@ -44,13 +44,13 @@ export function SupportChat() {
     setIsLoading(true);
 
     try {
-      const response = await apiRequest("POST", "/api/support/chat", {
+      const response = (await apiRequest("POST", "/api/support/chat", {
         message: input,
         conversationHistory: messages.map((m) => ({
           role: m.type === "user" ? "user" : "assistant",
           content: m.text,
         })),
-      });
+      })) as unknown as { reply: string };
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
