@@ -4,9 +4,16 @@ import { storage } from "./storage";
 import { insertCartItemSchema, insertWishlistItemSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { seed } from "./seed";
+import OpenAI from "openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
+
+  // Initialize OpenAI with Replit AI Integrations
+  const openai = new OpenAI({
+    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  });
 
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
@@ -210,6 +217,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error checking wishlist:", error);
       res.status(500).json({ error: "Failed to check wishlist" });
+    }
+  });
+
+  // AI Customer Support Chat
+  app.post("/api/support/chat", async (req, res) => {
+    try {
+      const { message, conversationHistory = [] } = req.body;
+
+      if (!message || typeof message !== "string") {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      const systemPrompt = `You are a helpful customer support agent for Prime Pickz, a premium USA-based e-commerce store located in Trumbull, Connecticut. 
+
+You help customers with:
+- Product information and recommendations
+- Shipping (handled by FedEx, UPS, USPS)
+- Returns and refunds (7-day return policy)
+- Order tracking
+- General inquiries
+
+Key facts:
+- Company: Prime Pickz
+- Location: 9121 Avalon Gates, Trumbull, CT 06611
+- Phone: 475-239-6334
+- Free shipping on orders over $99
+- 7-day returns policy
+- Products across categories: Fashion, Beauty & Wellness, Electronics, Furniture, Food & Spices, Toys & Handicrafts, Pet Products
+
+Be friendly, helpful, and professional. If you don't know something specific, offer to help them contact the support team or visit the website.`;
+
+      const messages = [
+        { role: "system" as const, content: systemPrompt },
+        ...conversationHistory.slice(-6),
+        { role: "user" as const, content: message },
+      ];
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 300,
+      });
+
+      const reply = completion.choices[0]?.message?.content || "I'm unable to respond at the moment.";
+
+      res.json({ reply });
+    } catch (error) {
+      console.error("Error in support chat:", error);
+      res.status(500).json({ error: "Failed to process chat request" });
     }
   });
 
