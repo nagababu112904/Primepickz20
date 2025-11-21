@@ -188,6 +188,8 @@ export default function CategoryPage() {
                       <img
                         src={product.imageUrl}
                         alt={product.name}
+                        loading="lazy"
+                        decoding="async"
                         className={`w-full h-full object-contain ${
                           ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : 'object-cover'
                         }`}

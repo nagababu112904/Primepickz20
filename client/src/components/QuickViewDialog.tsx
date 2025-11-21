@@ -55,6 +55,8 @@ export function QuickViewDialog({
               <img
                 src={product.imageUrl}
                 alt={product.name}
+                loading="eager"
+                decoding="async"
                 className={`w-full h-full object-contain ${
                   ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
                 }`}

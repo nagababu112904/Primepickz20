@@ -191,6 +191,8 @@ export default function Home() {
                           <img
                             src={products[0].imageUrl}
                             alt={products[0].name}
+                            loading="lazy"
+                            decoding="async"
                             className={`w-full h-full object-contain ${
                               ["Electronics", "Furniture"].includes(products[0].category) ? 'blur-lg' : ''
                             }`}
@@ -212,6 +214,8 @@ export default function Home() {
                           <img
                             src={products[1].imageUrl}
                             alt={products[1].name}
+                            loading="lazy"
+                            decoding="async"
                             className={`w-full h-full object-contain ${
                               ["Electronics", "Furniture"].includes(products[1].category) ? 'blur-lg' : ''
                             }`}
@@ -233,6 +237,8 @@ export default function Home() {
                           <img
                             src={product.imageUrl}
                             alt={product.name}
+                            loading="lazy"
+                            decoding="async"
                             className={`w-full h-full object-contain ${
                               ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
                             }`}
@@ -254,6 +260,8 @@ export default function Home() {
                           <img
                             src={product.imageUrl}
                             alt={product.name}
+                            loading="lazy"
+                            decoding="async"
                             className={`w-full h-full object-contain ${
                               ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
                             }`}
@@ -280,6 +288,8 @@ export default function Home() {
                           <img
                             src={product.imageUrl}
                             alt={product.name}
+                            loading="lazy"
+                            decoding="async"
                             className={`w-full h-full object-contain ${
                               ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
                             }`}
