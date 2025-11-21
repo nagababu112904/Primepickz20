@@ -1,10 +1,10 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, Check } from "lucide-react";
+import { Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, Check, MapPin, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { Product } from "@shared/schema";
+import type { Product, CartItemWithProduct, Review } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
@@ -23,8 +23,18 @@ export default function ProductDetail() {
     queryKey: ["/api/products"],
   });
 
-  const { data: cartItems = [] } = useQuery({
+  const { data: cartItems = [] } = useQuery<CartItemWithProduct[]>({
     queryKey: ["/api/cart"],
+    queryFn: async () => {
+      const response = await fetch("/api/cart?sessionId=default-session");
+      if (!response.ok) throw new Error("Failed to fetch cart");
+      return response.json();
+    },
+  });
+
+  const { data: reviews = [] } = useQuery({
+    queryKey: [`/api/reviews/product/${productId}`],
+    enabled: !!productId,
   });
 
   const product = allProducts?.find(p => p.id === productId);
@@ -258,7 +268,7 @@ export default function ProductDetail() {
               </div>
 
               {/* Features */}
-              <div className="grid grid-cols-2 gap-4 border-t pt-6">
+              <div className="grid grid-cols-2 gap-4 border-t pt-6 mb-8">
                 <div className="flex items-start gap-3">
                   <Truck className="w-5 h-5 text-primary mt-0.5" />
                   <div>
@@ -287,6 +297,64 @@ export default function ProductDetail() {
                     <p className="text-xs text-muted-foreground">Premium quality</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Specs & Reviews Tabs */}
+          <div className="border-t pt-8">
+            <div className="max-w-6xl">
+              {/* Reviews Section */}
+              <div>
+                <h2 className="text-2xl font-bold mb-6">Customer Reviews ({product.reviewCount || 0})</h2>
+                
+                {reviews && reviews.length > 0 ? (
+                  <div className="space-y-6">
+                    {reviews.map((review: Review) => (
+                      <div key={review.id} className="border-b pb-6 last:border-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold">{review.customerName}</p>
+                              {review.verified && (
+                                <Badge variant="secondary" className="text-xs">Verified Purchase</Badge>
+                              )}
+                            </div>
+                            {review.customerLocation && (
+                              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                {review.customerLocation}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < review.rating
+                                    ? "fill-yellow-400 text-yellow-400"
+                                    : "fill-muted text-muted"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-foreground mb-2">{review.comment}</p>
+                        {review.date && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {review.date}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-muted/30 rounded-lg">
+                    <p className="text-muted-foreground">No reviews yet. Be the first to review this product!</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

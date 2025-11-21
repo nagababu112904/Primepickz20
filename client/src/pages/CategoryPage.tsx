@@ -1,10 +1,9 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRoute } from "wouter";
+import { useRoute, Link } from "wouter";
 import { ArrowLeft, Filter, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
 import type { Product, Category, CartItemWithProduct } from "@shared/schema";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -182,82 +181,67 @@ export default function CategoryPage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
             {sortedProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover-elevate flex flex-col" data-testid={`card-product-${product.id}`}>
-                <CardContent className="p-0">
-                  <div className="aspect-square bg-muted relative">
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {product.badge && (
-                      <Badge className="absolute top-2 left-2" variant="destructive">
-                        {product.badge}
-                      </Badge>
-                    )}
-                    {product.discount && product.discount > 0 && (
-                      <Badge className="absolute top-2 right-2" variant="default">
-                        {product.discount}% OFF
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="p-3 md:p-4 flex flex-col h-full">
-                    <h3 className="font-semibold line-clamp-2 mb-2 text-sm md:text-base min-h-[2.5rem] md:min-h-[3rem]">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-baseline gap-2 mb-2 flex-wrap">
-                      <span className="text-lg font-bold">${product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          ${product.originalPrice}
-                        </span>
+              <Link key={product.id} href={`/product/${product.id}`}>
+                <Card className="overflow-hidden hover-elevate flex flex-col cursor-pointer" data-testid={`card-product-${product.id}`}>
+                  <CardContent className="p-0">
+                    <div className="aspect-square bg-muted relative">
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className={`w-full h-full object-contain ${
+                          ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : 'object-cover'
+                        }`}
+                      />
+                      {product.badge && (
+                        <Badge className="absolute top-2 left-2" variant="destructive">
+                          {product.badge}
+                        </Badge>
+                      )}
+                      {product.discount && product.discount > 0 && (
+                        <Badge className="absolute top-2 right-2" variant="default">
+                          {product.discount}% OFF
+                        </Badge>
                       )}
                     </div>
-                    
-                    {/* Variants */}
-                    {product.variants && product.variants.length > 0 && (
-                      <div className="mb-2">
-                        <p className="text-xs text-muted-foreground mb-1">Available:</p>
-                        <Select
-                          value={selectedVariant[product.id] || product.variants[0]}
-                          onValueChange={(value) => setSelectedVariant({ ...selectedVariant, [product.id]: value })}
-                        >
-                          <SelectTrigger className="h-8 text-xs w-full" data-testid={`select-variant-${product.id}`}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {product.variants.map((variant) => (
-                              <SelectItem key={variant} value={variant}>
-                                {variant}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    <div className="p-3 md:p-4 flex flex-col h-full">
+                      <h3 className="font-semibold line-clamp-2 mb-2 text-sm md:text-base min-h-[2.5rem] md:min-h-[3rem]">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-baseline gap-2 mb-2 flex-wrap">
+                        <span className="text-lg font-bold">${Number(product.price).toLocaleString()}</span>
+                        {product.originalPrice && (
+                          <span className="text-sm text-muted-foreground line-through">
+                            ${Number(product.originalPrice).toLocaleString()}
+                          </span>
+                        )}
                       </div>
-                    )}
 
-                    <div className="flex items-center gap-1 text-xs mt-auto">
-                      <span className="text-yellow-500">★</span>
-                      <span className="font-medium">{product.rating}</span>
-                      <span className="text-muted-foreground">({product.reviewCount})</span>
+                      <div className="flex items-center gap-1 text-xs mt-auto">
+                        <span className="text-yellow-500">★</span>
+                        <span className="font-medium">{product.rating}</span>
+                        <span className="text-muted-foreground">({product.reviewCount})</span>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="p-4 pt-0 gap-2">
-                  <Button 
-                    className="flex-1" 
-                    size="sm" 
-                    onClick={() => addToCartMutation.mutate(product.id)}
-                    disabled={addToCartMutation.isPending}
-                    data-testid={`button-add-cart-${product.id}`}
-                  >
-                    {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
-                  </Button>
-                  <Button variant="outline" size="sm" data-testid={`button-wishlist-${product.id}`}>
-                    ♡
-                  </Button>
-                </CardFooter>
-              </Card>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0 gap-2">
+                    <Button 
+                      className="flex-1" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        addToCartMutation.mutate(product.id);
+                      }}
+                      disabled={addToCartMutation.isPending}
+                      data-testid={`button-add-cart-${product.id}`}
+                    >
+                      {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+                    </Button>
+                    <Button variant="outline" size="sm" data-testid={`button-wishlist-${product.id}`}>
+                      ♡
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </Link>
             ))}
           </div>
         )}
