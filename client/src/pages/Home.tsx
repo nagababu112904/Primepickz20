@@ -177,103 +177,124 @@ export default function Home() {
         <HeroSection />
 
         {/* Editorial Grid Layout with Sidebar */}
-        <section className="px-4 md:px-8 py-12 md:py-16 bg-white">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Featured Products Grid - Left/Center (takes 3 columns) */}
-            <div className="lg:col-span-3">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 auto-rows-max">
-                {/* Large Featured Product - Takes 2x2 grid cells */}
-                {products.length > 0 && (
-                  <div className="col-span-1 md:col-span-2 md:row-span-2" data-testid="featured-large-product">
-                    <div className="bg-secondary/30 rounded-lg overflow-hidden h-full hover-elevate transition-all">
-                      <div className="relative aspect-square md:aspect-auto md:h-80 bg-muted overflow-hidden">
-                        <img
-                          src={products[0].imageUrl}
-                          alt={products[0].name}
-                          className={`w-full h-full object-contain p-4 ${
-                            ["Electronics", "Furniture"].includes(products[0].category) ? 'blur-lg' : ''
-                          }`}
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-sm md:text-base mb-2">{products[0].name}</h3>
-                        <p className="text-foreground font-bold text-lg">
-                          from ${Number(products[0].price).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Medium Featured Products - Top right */}
-                {products.length > 1 && (
-                  <div className="col-span-1 md:col-span-1 md:row-span-1" data-testid="featured-medium-product">
-                    <div className="bg-blue-50 rounded-lg overflow-hidden h-full hover-elevate transition-all">
-                      <div className="relative aspect-square bg-muted overflow-hidden">
-                        <img
-                          src={products[1].imageUrl}
-                          alt={products[1].name}
-                          className={`w-full h-full object-contain p-3 ${
-                            ["Electronics", "Furniture"].includes(products[1].category) ? 'blur-lg' : ''
-                          }`}
-                        />
-                      </div>
-                      <div className="p-3">
-                        <h3 className="font-semibold text-xs md:text-sm line-clamp-2">{products[1].name}</h3>
-                        <p className="text-foreground font-bold text-sm mt-1">${Number(products[1].price).toLocaleString()}</p>
+        <section className="bg-white py-12 px-4 md:px-6">
+          <div className="max-w-full mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              {/* Main Product Grid (9 columns on desktop, 1 on mobile) */}
+              <div className="lg:col-span-9">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {/* Large Featured Product */}
+                  {products.length > 0 && (
+                    <div className="col-span-2 row-span-2" data-testid="featured-large-product">
+                      <div className="bg-pink-50 rounded-md overflow-hidden h-full hover-elevate cursor-pointer">
+                        <div className="aspect-square bg-muted overflow-hidden flex items-center justify-center">
+                          <img
+                            src={products[0].imageUrl}
+                            alt={products[0].name}
+                            className={`w-full h-full object-contain ${
+                              ["Electronics", "Furniture"].includes(products[0].category) ? 'blur-lg' : ''
+                            }`}
+                          />
+                        </div>
+                        <div className="p-3">
+                          <h3 className="font-semibold text-sm line-clamp-2">{products[0].name}</h3>
+                          <p className="text-foreground font-bold text-sm mt-1">from ${Number(products[0].price).toLocaleString()}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Additional products in grid */}
-                {products.slice(2, 8).map((product) => (
-                  <div key={product.id} className="col-span-1" data-testid={`product-card-${product.id}`}>
-                    <div className="bg-white rounded-lg border border-card-border overflow-hidden h-full hover-elevate transition-all cursor-pointer">
-                      <div className="relative aspect-square bg-muted overflow-hidden">
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className={`w-full h-full object-contain p-2 ${
-                            ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
-                          }`}
-                        />
-                      </div>
-                      <div className="p-2">
-                        <h3 className="font-semibold text-xs line-clamp-2">{product.name}</h3>
-                        <p className="text-foreground font-bold text-xs mt-1">${Number(product.price).toLocaleString()}</p>
+                  {/* Top right featured product */}
+                  {products.length > 1 && (
+                    <div className="col-span-1" data-testid="featured-top-right">
+                      <div className="bg-blue-50 rounded-md overflow-hidden h-full hover-elevate cursor-pointer">
+                        <div className="aspect-square bg-muted overflow-hidden flex items-center justify-center">
+                          <img
+                            src={products[1].imageUrl}
+                            alt={products[1].name}
+                            className={`w-full h-full object-contain ${
+                              ["Electronics", "Furniture"].includes(products[1].category) ? 'blur-lg' : ''
+                            }`}
+                          />
+                        </div>
+                        <div className="p-2">
+                          <h3 className="font-semibold text-xs line-clamp-2">{products[1].name}</h3>
+                          <p className="text-foreground font-bold text-xs mt-0.5">${Number(products[1].price).toLocaleString()}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  )}
 
-            {/* Sidebar - Today's Picks (Right side - takes 1 column) */}
-            <aside className="lg:col-span-1">
-              <div className="sticky top-24">
-                <h2 className="text-xl font-bold text-foreground mb-6">Today's Picks</h2>
-                <div className="space-y-4">
-                  {products.slice(0, 6).map((product, idx) => (
-                    <div key={product.id} className="flex gap-3 hover-elevate p-2 rounded-lg transition-all cursor-pointer" data-testid={`sidebar-pick-${idx}`}>
-                      <div className="w-16 h-16 bg-muted rounded flex-shrink-0 overflow-hidden">
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className={`w-full h-full object-contain ${
-                            ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
-                          }`}
-                        />
+                  {/* Bottom right featured products */}
+                  {products.slice(2, 4).map((product) => (
+                    <div key={product.id} className="col-span-1" data-testid={`product-card-${product.id}`}>
+                      <div className="bg-white border border-card-border rounded-md overflow-hidden h-full hover-elevate cursor-pointer">
+                        <div className="aspect-square bg-muted overflow-hidden flex items-center justify-center">
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className={`w-full h-full object-contain ${
+                              ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
+                            }`}
+                          />
+                        </div>
+                        <div className="p-2">
+                          <h3 className="font-semibold text-xs line-clamp-2">{product.name}</h3>
+                          <p className="text-foreground font-bold text-xs mt-0.5">${Number(product.price).toLocaleString()}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold line-clamp-2 text-foreground">{product.name}</p>
-                        <p className="text-sm font-bold text-primary mt-1">${Number(product.price).toLocaleString()}</p>
+                    </div>
+                  ))}
+
+                  {/* Bottom row products */}
+                  {products.slice(4, 10).map((product) => (
+                    <div key={product.id} className="col-span-1" data-testid={`product-card-${product.id}`}>
+                      <div className="bg-white border border-card-border rounded-md overflow-hidden h-full hover-elevate cursor-pointer">
+                        <div className="aspect-square bg-muted overflow-hidden flex items-center justify-center">
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className={`w-full h-full object-contain ${
+                              ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
+                            }`}
+                          />
+                        </div>
+                        <div className="p-2">
+                          <h3 className="font-semibold text-xs line-clamp-2">{product.name}</h3>
+                          <p className="text-foreground font-bold text-xs mt-0.5">${Number(product.price).toLocaleString()}</p>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            </aside>
+
+              {/* Sidebar - Today's Picks (3 columns on desktop) */}
+              <aside className="lg:col-span-3">
+                <div className="sticky top-24">
+                  <h2 className="text-lg font-bold text-foreground mb-4">Today's Picks</h2>
+                  <div className="space-y-3">
+                    {products.slice(0, 6).map((product, idx) => (
+                      <div key={product.id} className="flex gap-3 hover-elevate p-2 rounded-md transition-all cursor-pointer" data-testid={`sidebar-pick-${idx}`}>
+                        <div className="w-14 h-14 bg-muted rounded-md flex-shrink-0 overflow-hidden flex items-center justify-center">
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className={`w-full h-full object-contain ${
+                              ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : ''
+                            }`}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold line-clamp-2 text-foreground">{product.name}</p>
+                          <p className="text-xs font-bold text-primary mt-1">${Number(product.price).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </aside>
+            </div>
           </div>
         </section>
 
