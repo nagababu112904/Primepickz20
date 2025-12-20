@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertCartItemSchema, insertWishlistItemSchema } from "@shared/schema";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { seed } from "./seed";
+import { storage } from "./storage.js";
+import { insertCartItemSchema, insertWishlistItemSchema } from "../shared/schema.js";
+import { setupAuth, isAuthenticated } from "./replitAuth.js";
+import { seed } from "./seed.js";
 import OpenAI from "openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {

@@ -28,7 +28,7 @@ import type {
   OrderItem,
   InsertOrderItem,
   OrderWithItems,
-} from "@shared/schema";
+} from "../shared/schema.js";
 
 export interface IStorage {
   // Users
