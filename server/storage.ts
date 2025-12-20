@@ -34,42 +34,42 @@ export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+
   // Products
   getAllProducts(): Promise<Product[]>;
   getProduct(id: string): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
-  
+
   // Categories
   getAllCategories(): Promise<Category[]>;
   getCategory(id: string): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
-  
+
   // Deals
   getAllDeals(): Promise<DealWithProduct[]>;
   getDeal(id: string): Promise<Deal | undefined>;
   createDeal(deal: InsertDeal): Promise<Deal>;
-  
+
   // Reviews
   getAllReviews(): Promise<Review[]>;
   getReviewsByProduct(productId: string): Promise<Review[]>;
   createReview(review: InsertReview): Promise<Review>;
-  
+
   // Cart
   getCartItems(sessionId: string): Promise<CartItemWithProduct[]>;
   addToCart(item: InsertCartItem): Promise<CartItem>;
   updateCartItemQuantity(id: string, quantity: number): Promise<CartItem | undefined>;
   removeFromCart(id: string): Promise<boolean>;
-  
+
   // Purchase Notifications
   getAllNotifications(): Promise<PurchaseNotification[]>;
-  
+
   // Wishlist
   getWishlistItems(userId: string): Promise<WishlistItemWithProduct[]>;
   addToWishlist(item: InsertWishlistItem): Promise<WishlistItem>;
   removeFromWishlist(userId: string, productId: string): Promise<boolean>;
   isInWishlist(userId: string, productId: string): Promise<boolean>;
-  
+
   // Addresses
   getUserAddresses(userId: string): Promise<Address[]>;
   getAddress(id: string): Promise<Address | undefined>;
@@ -77,7 +77,7 @@ export interface IStorage {
   updateAddress(userId: string, id: string, address: Partial<InsertAddress>): Promise<Address | undefined>;
   deleteAddress(userId: string, id: string): Promise<boolean>;
   setDefaultAddress(userId: string, addressId: string): Promise<void>;
-  
+
   // Orders
   createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems>;
   getUserOrders(userId: string): Promise<OrderWithItems[]>;
@@ -233,7 +233,7 @@ export class MemStorage implements IStorage {
         badge: "New",
         freeShipping: true,
       },
-      
+
       // Kurtas & Suits
       {
         name: "Anarkali Kurta Set with Dupatta",
@@ -723,7 +723,7 @@ export class MemStorage implements IStorage {
   async getWishlistItems(userId: string): Promise<WishlistItemWithProduct[]> {
     const items = Array.from(this.wishlistItems.values()).filter(item => item.userId === userId);
     const itemsWithProducts: WishlistItemWithProduct[] = [];
-    
+
     for (const item of items) {
       const product = await this.getProduct(item.productId);
       if (product) {
@@ -733,7 +733,7 @@ export class MemStorage implements IStorage {
         });
       }
     }
-    
+
     return itemsWithProducts;
   }
 
@@ -763,6 +763,141 @@ export class MemStorage implements IStorage {
     return Array.from(this.wishlistItems.values()).some(
       item => item.userId === userId && item.productId === productId
     );
+  }
+
+  // Addresses (stub implementations for MemStorage)
+  private addresses: Map<string, Address> = new Map();
+
+  async getUserAddresses(userId: string): Promise<Address[]> {
+    return Array.from(this.addresses.values()).filter(addr => addr.userId === userId);
+  }
+
+  async getAddress(id: string): Promise<Address | undefined> {
+    return this.addresses.get(id);
+  }
+
+  async createAddress(address: InsertAddress): Promise<Address> {
+    const id = randomUUID();
+    const newAddress: Address = {
+      id,
+      ...address,
+      isDefault: address.isDefault || false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.addresses.set(id, newAddress);
+    return newAddress;
+  }
+
+  async updateAddress(userId: string, id: string, address: Partial<InsertAddress>): Promise<Address | undefined> {
+    const existing = this.addresses.get(id);
+    if (!existing || existing.userId !== userId) {
+      return undefined;
+    }
+    const updated = { ...existing, ...address, updatedAt: new Date() };
+    this.addresses.set(id, updated);
+    return updated;
+  }
+
+  async deleteAddress(userId: string, id: string): Promise<boolean> {
+    const existing = this.addresses.get(id);
+    if (!existing || existing.userId !== userId) {
+      return false;
+    }
+    return this.addresses.delete(id);
+  }
+
+  async setDefaultAddress(userId: string, addressId: string): Promise<void> {
+    // Set all addresses for user to not default
+    for (const [id, addr] of this.addresses.entries()) {
+      if (addr.userId === userId) {
+        addr.isDefault = false;
+        this.addresses.set(id, addr);
+      }
+    }
+    // Set target address to default
+    const targetAddr = this.addresses.get(addressId);
+    if (targetAddr && targetAddr.userId === userId) {
+      targetAddr.isDefault = true;
+      this.addresses.set(addressId, targetAddr);
+    }
+  }
+
+  // Orders (stub implementations for MemStorage)
+  private orders: Map<string, Order> = new Map();
+  private orderItems: Map<string, OrderItem> = new Map();
+
+  async createOrder(order: InsertOrder, items: InsertOrderItem[]): Promise<OrderWithItems> {
+    const orderId = randomUUID();
+    const newOrder: Order = {
+      id: orderId,
+      ...order,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.orders.set(orderId, newOrder);
+
+    const orderItemsArray: OrderItem[] = items.map(item => {
+      const itemId = randomUUID();
+      const orderItem: OrderItem = {
+        id: itemId,
+        orderId,
+        ...item,
+        createdAt: new Date(),
+      };
+      this.orderItems.set(itemId, orderItem);
+      return orderItem;
+    });
+
+    const shippingAddress = this.addresses.get(order.shippingAddressId);
+
+    return {
+      ...newOrder,
+      items: orderItemsArray,
+      shippingAddress: shippingAddress!,
+    };
+  }
+
+  async getUserOrders(userId: string): Promise<OrderWithItems[]> {
+    const userOrders = Array.from(this.orders.values()).filter(order => order.userId === userId);
+    const ordersWithItems: OrderWithItems[] = [];
+
+    for (const order of userOrders) {
+      const items = Array.from(this.orderItems.values()).filter(item => item.orderId === order.id);
+      const shippingAddress = this.addresses.get(order.shippingAddressId);
+      ordersWithItems.push({
+        ...order,
+        items,
+        shippingAddress: shippingAddress!,
+      });
+    }
+
+    return ordersWithItems;
+  }
+
+  async getOrder(id: string): Promise<OrderWithItems | undefined> {
+    const order = this.orders.get(id);
+    if (!order) return undefined;
+
+    const items = Array.from(this.orderItems.values()).filter(item => item.orderId === id);
+    const shippingAddress = this.addresses.get(order.shippingAddressId);
+
+    return {
+      ...order,
+      items,
+      shippingAddress: shippingAddress!,
+    };
+  }
+
+  async updateOrderStatus(id: string, status: string, paymentStatus?: string): Promise<Order | undefined> {
+    const order = this.orders.get(id);
+    if (!order) return undefined;
+
+    order.status = status;
+    if (paymentStatus) order.paymentStatus = paymentStatus;
+    order.updatedAt = new Date();
+    this.orders.set(id, order);
+    return order;
   }
 }
 
@@ -822,7 +957,7 @@ export class DBStorage implements IStorage {
   // Deals
   async getAllDeals(): Promise<DealWithProduct[]> {
     const dealsResult = await db.select().from(schema.deals).where(eq(schema.deals.isActive, true));
-    
+
     const dealsWithProducts: DealWithProduct[] = [];
     for (const deal of dealsResult) {
       const product = await this.getProduct(deal.productId);
@@ -833,7 +968,7 @@ export class DBStorage implements IStorage {
         });
       }
     }
-    
+
     return dealsWithProducts;
   }
 
@@ -864,7 +999,7 @@ export class DBStorage implements IStorage {
   // Cart
   async getCartItems(sessionId: string): Promise<CartItemWithProduct[]> {
     const items = await db.select().from(schema.cartItems).where(eq(schema.cartItems.sessionId, sessionId));
-    
+
     const itemsWithProducts: CartItemWithProduct[] = [];
     for (const item of items) {
       const product = await this.getProduct(item.productId);
@@ -875,7 +1010,7 @@ export class DBStorage implements IStorage {
         });
       }
     }
-    
+
     return itemsWithProducts;
   }
 
@@ -921,7 +1056,7 @@ export class DBStorage implements IStorage {
   // Wishlist
   async getWishlistItems(userId: string): Promise<WishlistItemWithProduct[]> {
     const items = await db.select().from(schema.wishlistItems).where(eq(schema.wishlistItems.userId, userId));
-    
+
     const itemsWithProducts: WishlistItemWithProduct[] = [];
     for (const item of items) {
       const product = await this.getProduct(item.productId);
@@ -932,7 +1067,7 @@ export class DBStorage implements IStorage {
         });
       }
     }
-    
+
     return itemsWithProducts;
   }
 
@@ -1026,7 +1161,7 @@ export class DBStorage implements IStorage {
     await db.update(schema.addresses)
       .set({ isDefault: false })
       .where(eq(schema.addresses.userId, userId));
-    
+
     await db.update(schema.addresses)
       .set({ isDefault: true, updatedAt: new Date() })
       .where(eq(schema.addresses.id, addressId));
@@ -1038,7 +1173,7 @@ export class DBStorage implements IStorage {
     if (!address) {
       throw new Error("Shipping address not found");
     }
-    
+
     if (address.userId !== order.userId) {
       throw new Error("Shipping address does not belong to user");
     }
@@ -1062,30 +1197,30 @@ export class DBStorage implements IStorage {
 
   async getUserOrders(userId: string): Promise<OrderWithItems[]> {
     const userOrders = await db.select().from(schema.orders).where(eq(schema.orders.userId, userId));
-    
+
     const ordersWithItems: OrderWithItems[] = [];
     for (const order of userOrders) {
       const items = await db.select().from(schema.orderItems).where(eq(schema.orderItems.orderId, order.id));
       const address = await this.getAddress(order.shippingAddressId);
-      
+
       ordersWithItems.push({
         ...order,
         items,
         shippingAddress: address!,
       });
     }
-    
+
     return ordersWithItems;
   }
 
   async getOrder(id: string): Promise<OrderWithItems | undefined> {
     const results = await db.select().from(schema.orders).where(eq(schema.orders.id, id));
     if (results.length === 0) return undefined;
-    
+
     const order = results[0];
     const items = await db.select().from(schema.orderItems).where(eq(schema.orderItems.orderId, order.id));
     const address = await this.getAddress(order.shippingAddressId);
-    
+
     return {
       ...order,
       items,
@@ -1096,7 +1231,7 @@ export class DBStorage implements IStorage {
   async updateOrderStatus(id: string, status: string, paymentStatus?: string): Promise<Order | undefined> {
     const updateData: any = { status, updatedAt: new Date() };
     if (paymentStatus) updateData.paymentStatus = paymentStatus;
-    
+
     const results = await db.update(schema.orders)
       .set(updateData)
       .where(eq(schema.orders.id, id))
