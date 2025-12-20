@@ -181,7 +181,11 @@ export class MemStorage implements IStorage {
 
     categories.forEach(cat => {
       const id = randomUUID();
-      this.categories.set(id, { ...cat, id });
+      this.categories.set(id, {
+        ...cat,
+        id,
+        description: cat.description ?? null
+      });
     });
 
     // Seed Products
@@ -439,7 +443,18 @@ export class MemStorage implements IStorage {
 
     products.forEach(prod => {
       const id = randomUUID();
-      this.products.set(id, { ...prod, id });
+      this.products.set(id, {
+        ...prod,
+        id,
+        originalPrice: prod.originalPrice ?? null,
+        discount: prod.discount ?? null,
+        rating: prod.rating ?? null,
+        reviewCount: prod.reviewCount ?? null,
+        stockCount: prod.stockCount ?? null,
+        tags: prod.tags ?? null,
+        badge: prod.badge ?? null,
+        variants: prod.variants ?? null,
+      });
     });
 
     // Seed Deals (flash deals use some products)
@@ -477,7 +492,12 @@ export class MemStorage implements IStorage {
 
     deals.forEach(deal => {
       const id = randomUUID();
-      this.deals.set(id, { ...deal, id });
+      this.deals.set(id, {
+        ...deal,
+        id,
+        viewCount: deal.viewCount ?? null,
+        isActive: deal.isActive ?? null,
+      });
     });
 
     // Seed Reviews
@@ -540,7 +560,13 @@ export class MemStorage implements IStorage {
 
     reviews.forEach(review => {
       const id = randomUUID();
-      this.reviews.set(id, { ...review, id });
+      this.reviews.set(id, {
+        ...review,
+        id,
+        imageUrl: review.imageUrl ?? null,
+        customerLocation: review.customerLocation ?? null,
+        verified: review.verified ?? null,
+      });
     });
 
     // Seed Purchase Notifications
