@@ -1618,9 +1618,9 @@ async function seed() {
 export { seed };
 
 // Only run if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seed().catch((error) => {
-    console.error("Error seeding database:", error);
-    process.exit(1);
-  });
-}
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//   seed().catch((error) => {
+//     console.error("Error seeding database:", error);
+//     process.exit(1);
+//   });
+// }
