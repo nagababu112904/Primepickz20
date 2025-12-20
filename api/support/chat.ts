@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { storage } from '../../server/storage';
+import { storage } from '../../server/storage.js';
 import OpenAI from 'openai';
 
 export default async function handler(

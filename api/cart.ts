@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { storage } from '../server/storage';
-import { insertCartItemSchema } from '../shared/schema';
+import { storage } from '../server/storage.js';
+import { insertCartItemSchema } from '../shared/schema.js';
 
 export default async function handler(
     req: VercelRequest,
