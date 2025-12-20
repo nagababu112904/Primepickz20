@@ -7,7 +7,10 @@ import { seed } from "./seed";
 import OpenAI from "openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  await setupAuth(app);
+  // Only setup Replit auth if running on Replit
+  if (process.env.REPLIT_DOMAINS) {
+    await setupAuth(app);
+  }
 
   // Initialize OpenAI with Replit AI Integrations
   const openai = new OpenAI({
@@ -195,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { productId } = req.params;
-      
+
       const deleted = await storage.removeFromWishlist(userId, productId);
       if (!deleted) {
         return res.status(404).json({ error: "Wishlist item not found" });
@@ -211,7 +214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { productId } = req.params;
-      
+
       const isInWishlist = await storage.isInWishlist(userId, productId);
       res.json({ isInWishlist });
     } catch (error) {
@@ -236,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Build product knowledge section
       const categoryNames = categories.map(c => c.name).join(", ");
       const topProducts = products.slice(0, 15).map(p => `${p.name} ($${Number(p.price).toFixed(2)}) - ${p.category}`).join("\n");
-      const avgPrice = products.length > 0 
+      const avgPrice = products.length > 0
         ? (products.reduce((sum, p) => sum + Number(p.price), 0) / products.length).toFixed(2)
         : "0";
 
@@ -302,15 +305,15 @@ RESPONSE GUIDELINES:
     } catch (error) {
       console.error("[CHAT ERROR]", error);
       const errorMsg = error instanceof Error ? error.message : "Unknown error";
-      
+
       // Return helpful error response instead of generic error
       if (errorMsg.includes("API") || errorMsg.includes("auth")) {
-        res.status(500).json({ 
+        res.status(500).json({
           error: "I'm having connection issues. Please try again or call 475-239-6334 for immediate help.",
           details: process.env.NODE_ENV === "development" ? errorMsg : undefined
         });
       } else {
-        res.status(500).json({ 
+        res.status(500).json({
           error: "Sorry, I couldn't process your request. Please try a simpler question or contact us at 475-239-6334.",
           details: process.env.NODE_ENV === "development" ? errorMsg : undefined
         });
