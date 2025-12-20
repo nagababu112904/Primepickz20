@@ -613,7 +613,20 @@ export class MemStorage implements IStorage {
 
   async createProduct(product: InsertProduct): Promise<Product> {
     const id = randomUUID();
-    const newProduct: Product = { ...product, id };
+    const newProduct: Product = {
+      ...product,
+      id,
+      originalPrice: product.originalPrice ?? null,
+      discount: product.discount ?? null,
+      rating: product.rating ?? null,
+      reviewCount: product.reviewCount ?? null,
+      inStock: product.inStock ?? null,
+      stockCount: product.stockCount ?? null,
+      tags: product.tags ?? null,
+      badge: product.badge ?? null,
+      freeShipping: product.freeShipping ?? null,
+      variants: product.variants ?? null,
+    };
     this.products.set(id, newProduct);
     return newProduct;
   }
@@ -629,7 +642,11 @@ export class MemStorage implements IStorage {
 
   async createCategory(category: InsertCategory): Promise<Category> {
     const id = randomUUID();
-    const newCategory: Category = { ...category, id };
+    const newCategory: Category = {
+      ...category,
+      id,
+      description: category.description ?? null,
+    };
     this.categories.set(id, newCategory);
     return newCategory;
   }
@@ -658,7 +675,12 @@ export class MemStorage implements IStorage {
 
   async createDeal(deal: InsertDeal): Promise<Deal> {
     const id = randomUUID();
-    const newDeal: Deal = { ...deal, id };
+    const newDeal: Deal = {
+      ...deal,
+      id,
+      viewCount: deal.viewCount ?? null,
+      isActive: deal.isActive ?? null,
+    };
     this.deals.set(id, newDeal);
     return newDeal;
   }
@@ -676,7 +698,13 @@ export class MemStorage implements IStorage {
 
   async createReview(review: InsertReview): Promise<Review> {
     const id = randomUUID();
-    const newReview: Review = { ...review, id };
+    const newReview: Review = {
+      ...review,
+      id,
+      imageUrl: review.imageUrl ?? null,
+      customerLocation: review.customerLocation ?? null,
+      verified: review.verified ?? null,
+    };
     this.reviews.set(id, newReview);
     return newReview;
   }
@@ -712,13 +740,17 @@ export class MemStorage implements IStorage {
 
     if (existingItem) {
       // Update quantity
-      existingItem.quantity += item.quantity;
+      existingItem.quantity += (item.quantity ?? 1);
       this.cartItems.set(existingItem.id, existingItem);
       return existingItem;
     }
 
     const id = randomUUID();
-    const newItem: CartItem = { ...item, id };
+    const newItem: CartItem = {
+      ...item,
+      id,
+      quantity: item.quantity ?? 1,
+    };
     this.cartItems.set(id, newItem);
     return newItem;
   }
@@ -807,6 +839,7 @@ export class MemStorage implements IStorage {
     const newAddress: Address = {
       id,
       ...address,
+      addressLine2: address.addressLine2 ?? null,
       isDefault: address.isDefault || false,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -858,6 +891,9 @@ export class MemStorage implements IStorage {
     const newOrder: Order = {
       id: orderId,
       ...order,
+      status: order.status ?? "pending",
+      paymentMethod: order.paymentMethod ?? null,
+      paymentStatus: order.paymentStatus ?? null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -867,9 +903,9 @@ export class MemStorage implements IStorage {
       const itemId = randomUUID();
       const orderItem: OrderItem = {
         id: itemId,
-        orderId,
         ...item,
-        createdAt: new Date(),
+        orderId,
+        productImageUrl: item.productImageUrl ?? null,
       };
       this.orderItems.set(itemId, orderItem);
       return orderItem;
