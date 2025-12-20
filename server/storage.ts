@@ -450,9 +450,11 @@ export class MemStorage implements IStorage {
         discount: prod.discount ?? null,
         rating: prod.rating ?? null,
         reviewCount: prod.reviewCount ?? null,
+        inStock: prod.inStock ?? null,
         stockCount: prod.stockCount ?? null,
         tags: prod.tags ?? null,
         badge: prod.badge ?? null,
+        freeShipping: prod.freeShipping ?? null,
         variants: prod.variants ?? null,
       });
     });
