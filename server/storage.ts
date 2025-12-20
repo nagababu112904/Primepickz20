@@ -870,12 +870,12 @@ export class MemStorage implements IStorage {
 
   async setDefaultAddress(userId: string, addressId: string): Promise<void> {
     // Set all addresses for user to not default
-    for (const [id, addr] of this.addresses.entries()) {
+    Array.from(this.addresses.entries()).forEach(([id, addr]) => {
       if (addr.userId === userId) {
         addr.isDefault = false;
         this.addresses.set(id, addr);
       }
-    }
+    });
     // Set target address to default
     const targetAddr = this.addresses.get(addressId);
     if (targetAddr && targetAddr.userId === userId) {
