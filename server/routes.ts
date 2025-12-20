@@ -12,11 +12,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     await setupAuth(app);
   }
 
-  // Initialize OpenAI with Replit AI Integrations
-  const openai = new OpenAI({
-    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  });
+  // Initialize OpenAI only if API key is available
+  const openai = process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY
+    ? new OpenAI({
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    })
+    : null;
 
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
@@ -226,6 +228,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Customer Support Chat - With Dynamic Database Knowledge
   app.post("/api/support/chat", async (req, res) => {
     try {
+      // Check if OpenAI is configured
+      if (!openai) {
+        return res.status(503).json({
+          error: "Chat functionality is currently unavailable. Please call us at 475-239-6334 for support."
+        });
+      }
+
       const { message, conversationHistory = [] } = req.body;
 
       if (!message || typeof message !== "string") {
