@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE - Deep Navy Blue & Gold */
+/* LIGHT MODE - PrimePickz Marketplace Theme */
 :root {
   --button-outline: rgba(0, 0, 0, .10);
   --badge-outline: rgba(0, 0, 0, .05);
@@ -11,48 +11,88 @@
   --opaque-button-border-intensity: -8; /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(26, 58, 82, .05);
-  --elevate-2: rgba(26, 58, 82, .10);
+  --elevate-1: rgba(11, 60, 93, .05);
+  --elevate-2: rgba(11, 60, 93, .10);
 
-  --background: 0 0% 100%;
-  --foreground: 211 32% 19%;
-  --border: 211 20% 90%;
+  /* PrimePickz Brand Colors */
+  --prime-blue: 211 77% 20%;        /* #0B3C5D - Deep Blue for "PRIME" */
+  --pickz-gold: 40 48% 54%;         /* #C9A14A - Antique Gold for "PICKZ" */
+  
+  /* Base colors */
+  --background: 0 0% 100%;           /* White */
+  --foreground: 0 0% 10%;            /* Almost black for text */
+  --border: 0 0% 88%;                /* Light grey borders */
+  
+  /* Card styling */
   --card: 0 0% 100%;
-  --card-foreground: 211 32% 19%;
-  --card-border: 211 20% 92%;
-  --sidebar: 211 30% 97%;
-  --sidebar-foreground: 211 32% 19%;
-  --sidebar-border: 211 20% 92%;
-  --sidebar-primary: 211 60% 35%;
+  --card-foreground: 0 0% 10%;
+  --card-border: 0 0% 92%;
+  
+  /* Sidebar (for filters) */
+  --sidebar: 0 0% 98%;
+  --sidebar-foreground: 0 0% 10%;
+  --sidebar-border: 0 0% 92%;
+  --sidebar-primary: var(--prime-blue);
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 40 80% 50%;
-  --sidebar-accent-foreground: 211 32% 19%;
-  --sidebar-ring: 211 60% 35%;
+  --sidebar-accent: var(--pickz-gold);
+  --sidebar-accent-foreground: 0 0% 10%;
+  --sidebar-ring: var(--prime-blue);
+  
+  /* Popover/Modal */
   --popover: 0 0% 100%;
-  --popover-foreground: 211 32% 19%;
-  --popover-border: 211 20% 90%;
-  --primary: 211 60% 35%;
+  --popover-foreground: 0 0% 10%;
+  --popover-border: 0 0% 90%;
+  
+  /* Primary = Deep Blue */
+  --primary: var(--prime-blue);
   --primary-foreground: 0 0% 100%;
-  --secondary: 40 80% 95%;
-  --secondary-foreground: 211 32% 19%;
-  --muted: 211 20% 94%;
-  --muted-foreground: 211 20% 40%;
-  --accent: 40 80% 50%;
-  --accent-foreground: 211 32% 19%;
-  --destructive: 0 90% 55%;
+  
+  /* Secondary = Light gold tint */
+  --secondary: 40 48% 96%;
+  --secondary-foreground: 0 0% 10%;
+  
+  /* Muted */
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  
+  /* Accent = Antique Gold */
+  --accent: var(--pickz-gold);
+  --accent-foreground: 0 0% 10%;
+  
+  /* Destructive */
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --input: 211 20% 88%;
-  --ring: 211 60% 35%;
-  --chart-1: 211 60% 35%;
+  
+  /* Input */
+  --input: 0 0% 90%;
+  
+  /* Ring (focus) */
+  --ring: var(--prime-blue);
+  
+  /* Charts */
+  --chart-1: var(--prime-blue);
   --chart-2: 200 95% 42%;
   --chart-3: 142 76% 36%;
-  --chart-4: 40 80% 50%;
+  --chart-4: var(--pickz-gold);
   --chart-5: 32 95% 44%;
 
-  --font-sans: "Inter", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-serif: "Playfair Display", "Cinzel", Georgia, serif;
+  /* Typography */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
   --font-mono: "SF Mono", Monaco, Menlo, monospace;
-  --radius: .5rem;
+  
+  /* Spacing - Mobile-first (base unit: 4px) */
+  --spacing-xs: 0.5rem;   /* 8px */
+  --spacing-sm: 0.75rem;  /* 12px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2rem;     /* 32px */
+  --spacing-2xl: 3rem;    /* 48px */
+  
+  /* Radius */
+  --radius: 0.5rem;
+  
+  /* Shadows - Minimal */
   --shadow-2xs: 0px 1px 2px 0px hsl(220 13% 15% / 0.05);
   --shadow-xs: 0px 1px 2px 0px hsl(220 13% 15% / 0.06);
   --shadow-sm: 0px 1px 2px 0px hsl(220 13% 15% / 0.06), 0px 1px 3px 0px hsl(220 13% 15% / 0.10);
@@ -61,36 +101,23 @@
   --shadow-lg: 0px 4px 6px -2px hsl(220 13% 15% / 0.05), 0px 10px 15px -3px hsl(220 13% 15% / 0.10);
   --shadow-xl: 0px 10px 10px -5px hsl(220 13% 15% / 0.04), 0px 20px 25px -5px hsl(220 13% 15% / 0.10);
   --shadow-2xl: 0px 25px 50px -12px hsl(220 13% 15% / 0.25);
+  
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
-  /* Automatically computed borders - intensity can be controlled by the user by the --opaque-button-border-intensity setting */
-
-  /* Fallback for older browsers */
+  /* Automatically computed borders */
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
   --sidebar-accent-border: hsl(var(--sidebar-accent));
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
   --primary-border: hsl(var(--primary));
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
   --secondary-border: hsl(var(--secondary));
   --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
   --muted-border: hsl(var(--muted));
   --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
   --accent-border: hsl(var(--accent));
   --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
   --destructive-border: hsl(var(--destructive));
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
