@@ -4,7 +4,7 @@ import { ArrowLeft, Filter, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { Product, Category, CartItemWithProduct } from "@shared/schema";
+import type { Product, Category } from "@shared/schema";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -15,17 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Header } from "@/components/Header";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { MiniCart } from "@/components/MiniCart";
-import { Footer } from "@/components/Footer";
+import { Header } from "@/components/marketplace/Header";
+import { BottomNav } from "@/components/marketplace/BottomNav";
+import { Footer } from "@/components/marketplace/Footer";
 
 export default function CategoryPage() {
   const [, params] = useRoute("/category/:slug");
   const slug = params?.slug || "";
-  const [selectedVariant, setSelectedVariant] = useState<Record<string, string>>({});
   const [sortBy, setSortBy] = useState("featured");
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const { toast } = useToast();
   const sessionId = "default-session";
 
@@ -35,15 +32,6 @@ export default function CategoryPage() {
 
   const { data: allProducts } = useQuery<Product[]>({
     queryKey: ["/api/products"],
-  });
-
-  const { data: cartItems = [] } = useQuery<CartItemWithProduct[]>({
-    queryKey: ["/api/cart"],
-    queryFn: async () => {
-      const response = await fetch(`/api/cart?sessionId=${sessionId}`);
-      if (!response.ok) throw new Error("Failed to fetch cart");
-      return response.json();
-    },
   });
 
   const category = categories?.find(cat => cat.slug === slug);
@@ -90,55 +78,37 @@ export default function CategoryPage() {
     },
   });
 
-  const updateQuantityMutation = useMutation({
-    mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
-      return await apiRequest("PATCH", `/api/cart/${itemId}`, { quantity });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
-    },
-  });
-
-  const removeItemMutation = useMutation({
-    mutationFn: async (itemId: string) => {
-      return await apiRequest("DELETE", `/api/cart/${itemId}`, {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
-    },
-  });
-
   if (!category) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Category Not Found</h2>
-          <p className="text-muted-foreground mb-4">The category you're looking for doesn't exist.</p>
-          <Link href="/">
-            <Button data-testid="button-back-home">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">Category Not Found</h2>
+            <p className="text-gray-600 mb-4">The category you're looking for doesn't exist.</p>
+            <Link href="/">
+              <Button>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
+          </div>
         </div>
+        <Footer />
+        <BottomNav />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header
-        cartCount={cartItems.length}
-        wishlistCount={0}
-        onCartClick={() => setIsCartOpen(true)}
-        language="en"
-        onLanguageChange={() => {}}
-      />
+    <div className="min-h-screen bg-white flex flex-col">
+      <Header />
+
       {/* Category Header */}
-      <div className="bg-card border-b">
-        <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-8">
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 py-8">
           <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-4" data-testid="button-back">
+            <Button variant="ghost" size="sm" className="mb-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
@@ -146,14 +116,14 @@ export default function CategoryPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold mb-2">{category.name}</h1>
-              <p className="text-muted-foreground">{category.description}</p>
-              <p className="text-sm text-muted-foreground mt-2">{products.length} products</p>
+              <p className="text-gray-600">{category.description}</p>
+              <p className="text-sm text-gray-500 mt-2">{products.length} products</p>
             </div>
-            
+
             {/* Sort & Filter */}
             <div className="flex items-center gap-2">
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px]" data-testid="select-sort">
+                <SelectTrigger className="w-[180px]">
                   <SlidersHorizontal className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
@@ -164,7 +134,7 @@ export default function CategoryPage() {
                   <SelectItem value="rating">Highest Rated</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="icon" data-testid="button-filter">
+              <Button variant="outline" size="icon">
                 <Filter className="w-4 h-4" />
               </Button>
             </div>
@@ -173,95 +143,72 @@ export default function CategoryPage() {
       </div>
 
       {/* Products Grid */}
-      <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 flex-1">
         {sortedProducts.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No products available in this category yet.</p>
+            <p className="text-gray-600 text-lg">No products available in this category yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {sortedProducts.map((product) => (
-              <Link key={product.id} href={`/product/${product.id}`}>
-                <Card className="overflow-hidden hover-elevate flex flex-col cursor-pointer" data-testid={`card-product-${product.id}`}>
-                  <CardContent className="p-0">
-                    <div className="aspect-square bg-muted relative">
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        loading="lazy"
-                        decoding="async"
-                        className={`w-full h-full object-contain ${
-                          ["Electronics", "Furniture"].includes(product.category) ? 'blur-lg' : 'object-cover'
-                        }`}
-                      />
-                      {product.badge && (
-                        <Badge className="absolute top-2 left-2" variant="destructive">
-                          {product.badge}
-                        </Badge>
-                      )}
-                      {product.discount && product.discount > 0 && (
-                        <Badge className="absolute top-2 right-2" variant="default">
-                          {product.discount}% OFF
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="p-3 md:p-4 flex flex-col h-full">
-                      <h3 className="font-semibold line-clamp-2 mb-2 text-sm md:text-base min-h-[2.5rem] md:min-h-[3rem]">
-                        {product.name}
-                      </h3>
-                      <div className="flex items-baseline gap-2 mb-2 flex-wrap">
-                        <span className="text-lg font-bold">${Number(product.price).toLocaleString()}</span>
-                        {product.originalPrice && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            ${Number(product.originalPrice).toLocaleString()}
-                          </span>
+              <div key={product.id}>
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
+                  <Link href={`/product/${product.id}`}>
+                    <CardContent className="p-0">
+                      <div className="aspect-[4/5] bg-gray-100 relative overflow-hidden">
+                        <img
+                          src={product.imageUrl ?? ''}
+                          alt={product.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover"
+                        />
+                        {product.badge && (
+                          <Badge className="absolute top-2 left-2 bg-[hsl(var(--primary))] text-white">
+                            {product.badge}
+                          </Badge>
+                        )}
+                        {product.discount && product.discount > 0 && (
+                          <Badge className="absolute top-2 right-2 bg-red-500 text-white">
+                            {product.discount}% OFF
+                          </Badge>
                         )}
                       </div>
-
-                      <div className="flex items-center gap-1 text-xs mt-auto">
-                        <span className="text-yellow-500">★</span>
-                        <span className="font-medium">{product.rating}</span>
-                        <span className="text-muted-foreground">({product.reviewCount})</span>
+                      <div className="p-3 h-24 flex flex-col justify-between">
+                        <h3 className="font-semibold line-clamp-2 text-sm">
+                          {product.name}
+                        </h3>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg font-bold text-[hsl(var(--primary))]">
+                            ${Number(product.price).toLocaleString()}
+                          </span>
+                          {product.originalPrice && (
+                            <span className="text-sm text-gray-500 line-through">
+                              ${Number(product.originalPrice).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0 gap-2">
-                    <Button 
-                      className="flex-1" 
-                      size="sm" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        addToCartMutation.mutate(product.id);
-                      }}
+                    </CardContent>
+                  </Link>
+                  <CardFooter className="p-3 pt-0">
+                    <Button
+                      className="w-full"
+                      size="sm"
+                      onClick={() => addToCartMutation.mutate(product.id)}
                       disabled={addToCartMutation.isPending}
-                      data-testid={`button-add-cart-${product.id}`}
                     >
                       {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
                     </Button>
-                    <Button variant="outline" size="sm" data-testid={`button-wishlist-${product.id}`}>
-                      ♡
-                    </Button>
                   </CardFooter>
                 </Card>
-              </Link>
+              </div>
             ))}
           </div>
         )}
       </div>
+
       <Footer />
-      <MobileBottomNav
-        cartCount={cartItems.length}
-        activeTab="categories"
-        onCartClick={() => setIsCartOpen(true)}
-      />
-      <MiniCart
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={(itemId, quantity) => updateQuantityMutation.mutate({ itemId, quantity })}
-        onRemoveItem={(itemId) => removeItemMutation.mutate(itemId)}
-        onCheckout={() => window.location.href = "/checkout"}
-      />
+      <BottomNav />
     </div>
   );
 }
