@@ -13,14 +13,8 @@ async function seed() {
   await db.delete(schema.products);
   await db.delete(schema.categories);
 
-  // Seed Categories
+  // Seed Categories - Match the ShopByCategory component
   const categories = [
-    {
-      name: "Fashion",
-      slug: "fashion",
-      imageUrl: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800",
-      description: "Trendy apparel and accessories",
-    },
     {
       name: "Electronics",
       slug: "electronics",
@@ -28,34 +22,46 @@ async function seed() {
       description: "Latest gadgets and electronics",
     },
     {
-      name: "Beauty & Wellness",
-      slug: "beauty-wellness",
-      imageUrl: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800",
+      name: "Fashion",
+      slug: "fashion",
+      imageUrl: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800",
+      description: "Trendy apparel and accessories",
+    },
+    {
+      name: "Home & Kitchen",
+      slug: "home-kitchen",
+      imageUrl: "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800",
+      description: "Premium home and kitchen products",
+    },
+    {
+      name: "Beauty & Personal Care",
+      slug: "beauty-personal-care",
+      imageUrl: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800",
       description: "Beauty and wellness products",
     },
     {
-      name: "Furniture",
-      slug: "furniture",
-      imageUrl: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
-      description: "Premium furniture for your home",
+      name: "Sports & Fitness",
+      slug: "sports-fitness",
+      imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800",
+      description: "Sports and fitness equipment",
     },
     {
-      name: "Food & Spices",
-      slug: "food-spices",
-      imageUrl: "https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=800",
-      description: "Gourmet foods and specialty items",
+      name: "Books & Media",
+      slug: "books-media",
+      imageUrl: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=800",
+      description: "Books, movies, and media",
     },
     {
-      name: "Toys & Handicrafts",
-      slug: "toys-handicrafts",
-      imageUrl: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800",
-      description: "Fun toys and unique crafts",
+      name: "Automotive",
+      slug: "automotive",
+      imageUrl: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800",
+      description: "Auto parts and accessories",
     },
     {
-      name: "Pet Products",
-      slug: "pet-products",
-      imageUrl: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800",
-      description: "Products for your furry friends",
+      name: "Toys & Games",
+      slug: "toys-games",
+      imageUrl: "https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=800",
+      description: "Fun toys and games for all ages",
     },
   ];
 
