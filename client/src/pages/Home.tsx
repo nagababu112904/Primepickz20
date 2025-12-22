@@ -4,6 +4,7 @@ import { Header } from '@/components/marketplace/Header';
 import { BottomNav } from '@/components/marketplace/BottomNav';
 import { CategoryRow } from '@/components/marketplace/CategoryRow';
 import { HeroBanner } from '@/components/marketplace/HeroBanner';
+import { ShopByCategory } from '@/components/marketplace/ShopByCategory';
 import { FeaturedSection } from '@/components/marketplace/FeaturedSection';
 import { TrustSection } from '@/components/marketplace/TrustSection';
 import { Footer } from '@/components/marketplace/Footer';
@@ -76,6 +77,9 @@ export default function Home() {
       <main className="flex-1">
         {/* Hero Banner - Static */}
         <HeroBanner />
+
+        {/* Shop by Category Grid */}
+        <ShopByCategory />
 
         {/* Featured Section: Trending Items */}
         {trendingProducts.length > 0 && (

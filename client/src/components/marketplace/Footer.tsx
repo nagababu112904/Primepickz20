@@ -1,33 +1,36 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Phone, Mail, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
 import { Link } from 'wouter';
 
 const footerSections = [
     {
-        title: 'Shop',
+        title: 'Quick Links',
         links: [
-            { label: 'Electronics', href: '/category/electronics' },
-            { label: 'Fashion', href: '/category/fashion' },
-            { label: 'Home & Kitchen', href: '/category/home-kitchen' },
-            { label: 'Beauty', href: '/category/beauty-wellness' },
+            { label: 'Home', href: '/' },
+            { label: 'Categories', href: '/categories' },
+            { label: 'My Account', href: '/account' },
+            { label: 'Shopping Cart', href: '/checkout' },
+            { label: 'Wishlist', href: '/wishlist' },
         ],
     },
     {
         title: 'Customer Service',
         links: [
+            { label: 'Help Center', href: '/faq' },
             { label: 'Contact Us', href: '/contact' },
-            { label: 'Track Order', href: '/track-order' },
-            { label: 'Returns', href: '/returns' },
-            { label: 'Shipping Policy', href: '/shipping' },
-            { label: 'FAQs', href: '/faq' },
+            { label: 'Shipping Info', href: '/shipping' },
+            { label: 'Returns & Exchanges', href: '/returns' },
+            { label: 'Track Your Order', href: '/track-order' },
         ],
     },
     {
-        title: 'About',
+        title: 'Popular Categories',
         links: [
-            { label: 'About Us', href: '/about' },
-            { label: 'Privacy Policy', href: '/privacy' },
-            { label: 'Terms of Service', href: '/terms' },
+            { label: 'Electronics', href: '/category/electronics' },
+            { label: 'Fashion', href: '/category/fashion' },
+            { label: 'Home & Kitchen', href: '/category/home-kitchen' },
+            { label: 'Beauty & Personal Care', href: '/category/beauty-personal-care' },
+            { label: 'Sports & Fitness', href: '/category/sports-fitness' },
         ],
     },
 ];
@@ -36,10 +39,10 @@ function FooterSection({ title, links }: { title: string; links: { label: string
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="border-b border-[hsl(var(--border))] md:border-none">
+        <div className="border-b border-gray-700 md:border-none">
             {/* Mobile: Accordion Header */}
             <button
-                className="md:hidden w-full flex items-center justify-between py-4 text-left font-medium"
+                className="md:hidden w-full flex items-center justify-between py-4 text-left font-semibold text-white"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 {title}
@@ -47,13 +50,13 @@ function FooterSection({ title, links }: { title: string; links: { label: string
             </button>
 
             {/* Desktop: Static Title */}
-            <h3 className="hidden md:block font-medium text-lg mb-4">{title}</h3>
+            <h3 className="hidden md:block font-semibold text-white text-lg mb-4">{title}</h3>
 
             {/* Links */}
-            <ul className={`md:block ${isOpen ? 'block pb-4' : 'hidden'} space-y-2 text-sm`}>
+            <ul className={`md:block ${isOpen ? 'block pb-4' : 'hidden'} space-y-3`}>
                 {links.map((link) => (
                     <li key={link.href}>
-                        <Link href={link.href} className="text-gray-600 hover:text-[hsl(var(--primary))] transition-colors">
+                        <Link href={link.href} className="text-gray-300 hover:text-white transition-colors text-sm">
                             {link.label}
                         </Link>
                     </li>
@@ -65,32 +68,100 @@ function FooterSection({ title, links }: { title: string; links: { label: string
 
 export function Footer() {
     return (
-        <footer className="bg-gray-50 border-t border-[hsl(var(--border))] mt-auto">
-            <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-                {/* Footer Sections */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-0 md:gap-8 mb-8">
+        <footer className="bg-[#1a2332] text-gray-300 mt-auto">
+            <div className="max-w-7xl mx-auto px-4 py-12">
+                {/* Main Footer Content */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                     {/* Logo & Description */}
-                    <div className="mb-6 md:mb-0">
-                        <div className="font-bold text-2xl mb-4">
-                            <span className="text-[hsl(var(--prime-blue))]">PRIME</span>
-                            <span className="text-[hsl(var(--pickz-gold))]">PICKZ</span>
+                    <div className="md:col-span-1">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 bg-[hsl(var(--pickz-gold))] rounded flex items-center justify-center">
+                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                                </svg>
+                            </div>
+                            <div className="font-bold text-xl">
+                                <span className="text-white">PRIME</span>
+                                <span className="text-[hsl(var(--pickz-gold))]">PICKZ</span>
+                            </div>
                         </div>
-                        <p className="text-sm text-gray-600">
-                            Your premier destination for quality products across all categories.
+                        <p className="text-sm text-gray-400 mb-6">
+                            Your trusted marketplace for premium products with fast shipping and excellent customer service.
                         </p>
+
+                        {/* Contact Information */}
+                        <div className="space-y-3 text-sm">
+                            <div className="flex items-start gap-3">
+                                <Phone className="w-4 h-4 text-[hsl(var(--pickz-gold))] mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-300">475-239-6334</span>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <Mail className="w-4 h-4 text-[hsl(var(--pickz-gold))] mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-300">support@primepickz.com</span>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <MapPin className="w-4 h-4 text-[hsl(var(--pickz-gold))] mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-300">9121 Avalon Gates, Trumbull, CT 06611</span>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Dynamic Sections */}
+                    {/* Footer Sections */}
                     {footerSections.map((section) => (
                         <FooterSection key={section.title} title={section.title} links={section.links} />
                     ))}
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="pt-6 border-t border-[hsl(var(--border))] text-center md:text-left">
-                    <p className="text-sm text-gray-600">
-                        © {new Date().getFullYear()} PrimePickz. All rights reserved.
-                    </p>
+                <div className="pt-8 border-t border-gray-700">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        {/* Copyright */}
+                        <p className="text-sm text-gray-400">
+                            © {new Date().getFullYear()} PrimePickz. All rights reserved. Powered by Readdy
+                        </p>
+
+                        {/* Links & Social */}
+                        <div className="flex items-center gap-6">
+                            {/* Legal Links */}
+                            <Link href="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors">
+                                Privacy Policy
+                            </Link>
+                            <Link href="/terms" className="text-sm text-gray-400 hover:text-white transition-colors">
+                                Terms of Service
+                            </Link>
+
+                            {/* Social Icons */}
+                            <div className="flex items-center gap-3 ml-4">
+                                <a
+                                    href="https://facebook.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-8 h-8 rounded-full bg-gray-700 hover:bg-[hsl(var(--primary))] flex items-center justify-center transition-colors"
+                                    aria-label="Facebook"
+                                >
+                                    <Facebook className="w-4 h-4 text-white" />
+                                </a>
+                                <a
+                                    href="https://twitter.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-8 h-8 rounded-full bg-gray-700 hover:bg-[hsl(var(--primary))] flex items-center justify-center transition-colors"
+                                    aria-label="Twitter"
+                                >
+                                    <Twitter className="w-4 h-4 text-white" />
+                                </a>
+                                <a
+                                    href="https://instagram.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-8 h-8 rounded-full bg-gray-700 hover:bg-[hsl(var(--primary))] flex items-center justify-center transition-colors"
+                                    aria-label="Instagram"
+                                >
+                                    <Instagram className="w-4 h-4 text-white" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
