@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { adminFetch } from './AdminDashboard';
 
 interface Order {
     id: string;
@@ -20,9 +21,9 @@ interface Order {
 
 export function OrdersTab() {
     const { data: orders = [], isLoading } = useQuery<Order[]>({
-        queryKey: ['/api/admin/orders'],
+        queryKey: ['admin', 'orders'],
         queryFn: async () => {
-            const res = await fetch('/api/admin/orders');
+            const res = await adminFetch('orders');
             if (!res.ok) throw new Error('Failed to fetch orders');
             return res.json();
         },

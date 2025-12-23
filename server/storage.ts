@@ -456,6 +456,12 @@ export class MemStorage implements IStorage {
         badge: prod.badge ?? null,
         freeShipping: prod.freeShipping ?? null,
         variants: prod.variants ?? null,
+        amazonAsin: null,
+        amazonSku: null,
+        amazonSyncStatus: 'pending',
+        lastSyncedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
     });
 
@@ -628,6 +634,12 @@ export class MemStorage implements IStorage {
       badge: product.badge ?? null,
       freeShipping: product.freeShipping ?? null,
       variants: product.variants ?? null,
+      amazonAsin: product.amazonAsin ?? null,
+      amazonSku: product.amazonSku ?? null,
+      amazonSyncStatus: product.amazonSyncStatus ?? 'pending',
+      lastSyncedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.products.set(id, newProduct);
     return newProduct;

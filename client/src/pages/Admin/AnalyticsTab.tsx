@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, DollarSign, ShoppingCart, Package } from 'lucide-react';
+import { adminFetch } from './AdminDashboard';
 
 interface AdminStats {
     totalProducts: number;
@@ -12,9 +13,9 @@ interface AdminStats {
 
 export function AnalyticsTab() {
     const { data: stats } = useQuery<AdminStats>({
-        queryKey: ['/api/admin/stats'],
+        queryKey: ['admin', 'stats'],
         queryFn: async () => {
-            const res = await fetch('/api/admin/stats');
+            const res = await adminFetch('stats');
             if (!res.ok) throw new Error('Failed to fetch stats');
             return res.json();
         },

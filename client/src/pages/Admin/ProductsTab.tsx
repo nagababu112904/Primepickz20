@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Upload, Search, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Product, Category } from '@shared/schema';
+import { adminFetch } from './AdminDashboard';
 
 export function ProductsTab() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -34,9 +35,9 @@ export function ProductsTab() {
     const { toast } = useToast();
 
     const { data: products = [], isLoading } = useQuery<Product[]>({
-        queryKey: ['/api/admin/products'],
+        queryKey: ['admin', 'products'],
         queryFn: async () => {
-            const res = await fetch('/api/admin/products');
+            const res = await adminFetch('products');
             if (!res.ok) throw new Error('Failed to fetch products');
             return res.json();
         },
@@ -48,17 +49,16 @@ export function ProductsTab() {
 
     const addProductMutation = useMutation({
         mutationFn: async (data: Partial<Product>) => {
-            const res = await fetch('/api/admin/products', {
+            const res = await adminFetch('products', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
             if (!res.ok) throw new Error('Failed to add product');
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/products'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
             setIsAddDialogOpen(false);
             toast({ title: 'Product added successfully' });
         },
@@ -69,16 +69,15 @@ export function ProductsTab() {
 
     const updateProductMutation = useMutation({
         mutationFn: async ({ id, data }: { id: string; data: Partial<Product> }) => {
-            const res = await fetch(`/api/admin/products?id=${id}`, {
+            const res = await adminFetch(`products&id=${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
             if (!res.ok) throw new Error('Failed to update product');
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/products'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
             setEditingProduct(null);
             toast({ title: 'Product updated successfully' });
         },
@@ -86,15 +85,15 @@ export function ProductsTab() {
 
     const deleteProductMutation = useMutation({
         mutationFn: async (id: string) => {
-            const res = await fetch(`/api/admin/products?id=${id}`, {
+            const res = await adminFetch(`products&id=${id}`, {
                 method: 'DELETE',
             });
             if (!res.ok) throw new Error('Failed to delete product');
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/products'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
             toast({ title: 'Product deleted successfully' });
         },
     });
@@ -225,7 +224,7 @@ export function ProductsTab() {
                                             </td>
                                             <td className="py-4 px-6 font-medium">${product.price}</td>
                                             <td className="py-4 px-6">
-                                                <Badge variant={product.stockCount && product.stockCount > 0 ? 'default' : 'destructive'} className="bg-blue-100 text-blue-700">
+                                                <Badge variant="default" className="bg-blue-100 text-blue-700">
                                                     {product.stockCount || 0} units
                                                 </Badge>
                                             </td>

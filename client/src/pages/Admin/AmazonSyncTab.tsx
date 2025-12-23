@@ -3,9 +3,9 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { RefreshCw, Package, Box, ShoppingCart, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { adminFetch } from './AdminDashboard';
 
 interface SyncStatus {
     connected: boolean;
@@ -27,18 +27,18 @@ export function AmazonSyncTab() {
     const { toast } = useToast();
 
     const { data: status } = useQuery<SyncStatus>({
-        queryKey: ['/api/admin/amazon/sync', 'status'],
+        queryKey: ['admin', 'amazon-status'],
         queryFn: async () => {
-            const res = await fetch('/api/admin/amazon/sync?action=status');
+            const res = await adminFetch('amazon-status');
             if (!res.ok) throw new Error('Failed to fetch status');
             return res.json();
         },
     });
 
     const { data: logs = [] } = useQuery<SyncLog[]>({
-        queryKey: ['/api/admin/amazon/sync', 'logs'],
+        queryKey: ['admin', 'amazon-logs'],
         queryFn: async () => {
-            const res = await fetch('/api/admin/amazon/sync?action=logs');
+            const res = await adminFetch('amazon-logs');
             if (!res.ok) throw new Error('Failed to fetch logs');
             return res.json();
         },
@@ -46,14 +46,12 @@ export function AmazonSyncTab() {
 
     const syncProductsMutation = useMutation({
         mutationFn: async () => {
-            const res = await fetch('/api/admin/amazon/sync?action=products', { method: 'POST' });
+            const res = await adminFetch('amazon-sync-products', { method: 'POST' });
             if (!res.ok) throw new Error('Sync failed');
             return res.json();
         },
         onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/amazon/sync'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/products'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+            queryClient.invalidateQueries({ queryKey: ['admin'] });
             toast({ title: `Product sync complete: ${data.syncedCount} synced, ${data.failedCount} failed` });
         },
         onError: () => {
@@ -63,24 +61,24 @@ export function AmazonSyncTab() {
 
     const syncInventoryMutation = useMutation({
         mutationFn: async () => {
-            const res = await fetch('/api/admin/amazon/sync?action=inventory', { method: 'POST' });
+            const res = await adminFetch('amazon-sync-inventory', { method: 'POST' });
             if (!res.ok) throw new Error('Sync failed');
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/amazon/sync'] });
+            queryClient.invalidateQueries({ queryKey: ['admin'] });
             toast({ title: 'Inventory sync completed' });
         },
     });
 
     const syncOrdersMutation = useMutation({
         mutationFn: async () => {
-            const res = await fetch('/api/admin/amazon/sync?action=orders', { method: 'POST' });
+            const res = await adminFetch('amazon-sync-orders', { method: 'POST' });
             if (!res.ok) throw new Error('Sync failed');
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['/api/admin/amazon/sync'] });
+            queryClient.invalidateQueries({ queryKey: ['admin'] });
             toast({ title: 'Order sync completed' });
         },
     });
