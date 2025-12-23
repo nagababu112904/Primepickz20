@@ -38,11 +38,18 @@ export const products = pgTable("products", {
   rating: decimal("rating", { precision: 2, scale: 1 }).default("0"),
   reviewCount: integer("review_count").default(0),
   inStock: boolean("in_stock").default(true),
-  stockCount: integer("stock_count"),
+  stockCount: integer("stock_count").default(0),
   tags: text("tags").array(),
   badge: text("badge"),
   freeShipping: boolean("free_shipping").default(false),
   variants: text("variants").array(),
+  // Amazon SP-API fields
+  amazonAsin: text("amazon_asin"),
+  amazonSku: text("amazon_sku"),
+  amazonSyncStatus: text("amazon_sync_status").default("pending"), // 'synced', 'pending', 'failed'
+  lastSyncedAt: timestamp("last_synced_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Categories
@@ -145,8 +152,19 @@ export const orderItems = pgTable("order_items", {
   productImageUrl: text("product_image_url"),
 });
 
+// Amazon Sync Logs
+export const amazonSyncLogs = pgTable("amazon_sync_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id"),
+  syncType: text("sync_type").notNull(), // 'product', 'inventory', 'order'
+  status: text("status").notNull(), // 'success', 'failed', 'pending'
+  message: text("message"),
+  errorDetails: text("error_details"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Schemas for type safety
-export const insertProductSchema = createInsertSchema(products).omit({ id: true });
+export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true, lastSyncedAt: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 export const insertDealSchema = createInsertSchema(deals).omit({ id: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true });
@@ -155,6 +173,7 @@ export const insertWishlistItemSchema = createInsertSchema(wishlistItems).omit({
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertOrderSchema = createInsertSchema(orders).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertOrderItemSchema = createInsertSchema(orderItems).omit({ id: true });
+export const insertSyncLogSchema = createInsertSchema(amazonSyncLogs).omit({ id: true, createdAt: true });
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -177,6 +196,8 @@ export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type AmazonSyncLog = typeof amazonSyncLogs.$inferSelect;
+export type InsertSyncLog = z.infer<typeof insertSyncLogSchema>;
 
 // Additional types for frontend
 export interface CartItemWithProduct extends CartItem {
