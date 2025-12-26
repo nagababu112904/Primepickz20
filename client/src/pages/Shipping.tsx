@@ -9,12 +9,12 @@ import { BottomNav } from '@/components/marketplace/BottomNav';
 
 export default function Shipping() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#1a2332]">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
@@ -26,28 +26,28 @@ export default function Shipping() {
           <div className="grid md:grid-cols-2 gap-6 mb-10">
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6">
-                <DollarSign className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <DollarSign className="w-8 h-8 text-[#1a2332] mb-4" />
                 <h3 className="font-bold text-lg mb-2">Free Shipping</h3>
                 <p className="text-gray-600">On orders over $99. Standard shipping available for smaller orders at $9.99.</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6">
-                <Clock className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <Clock className="w-8 h-8 text-[#1a2332] mb-4" />
                 <h3 className="font-bold text-lg mb-2">Processing Time</h3>
                 <p className="text-gray-600">Orders are processed within 1-2 business days after placement.</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6">
-                <Truck className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <Truck className="w-8 h-8 text-[#1a2332] mb-4" />
                 <h3 className="font-bold text-lg mb-2">Delivery Time</h3>
                 <p className="text-gray-600">Standard: 5-7 business days. Express: 2-3 business days.</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6">
-                <Package className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <Package className="w-8 h-8 text-[#1a2332] mb-4" />
                 <h3 className="font-bold text-lg mb-2">Tracking</h3>
                 <p className="text-gray-600">All orders include tracking. Updates sent via email once shipped.</p>
               </CardContent>

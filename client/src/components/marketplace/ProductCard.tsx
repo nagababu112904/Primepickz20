@@ -76,8 +76,8 @@ export function ProductCard({
                     setIsWishlisted(!isWishlisted);
                 }}
                 className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isWishlisted
-                        ? 'bg-[#7c3aed] text-white'
-                        : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:text-[#7c3aed] hover:bg-white'
+                        ? 'bg-[#1a2332] text-white'
+                        : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:text-[#1a2332] hover:bg-white'
                     }`}
             >
                 <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
@@ -87,7 +87,7 @@ export function ProductCard({
             {badge && (
                 <div className={`absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${badge === 'Sale' || badge === 'Hot'
                         ? 'bg-red-500 text-white'
-                        : 'bg-[#7c3aed] text-white'
+                        : 'bg-[#1a2332] text-white'
                     }`}>
                     {badge === 'New' ? 'Top Item' : badge}
                 </div>
@@ -96,7 +96,7 @@ export function ProductCard({
             {/* Content */}
             <div className="p-4">
                 <Link href={`/product/${id}`}>
-                    <h3 className="font-medium text-gray-900 line-clamp-2 mb-3 min-h-[2.5rem] hover:text-[#7c3aed] transition-colors">
+                    <h3 className="font-medium text-gray-900 line-clamp-2 mb-3 min-h-[2.5rem] hover:text-[#1a2332] transition-colors">
                         {name}
                     </h3>
                 </Link>
@@ -110,8 +110,8 @@ export function ProductCard({
                             </span>
                         )}
                         <div className="flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-full">
-                            <ShoppingCart className="w-4 h-4 text-[#7c3aed]" />
-                            <span className={`font-bold ${hasDiscount ? 'text-[#7c3aed]' : 'text-gray-900'}`}>
+                            <ShoppingCart className="w-4 h-4 text-[#1a2332]" />
+                            <span className={`font-bold ${hasDiscount ? 'text-[#1a2332]' : 'text-gray-900'}`}>
                                 ${parseFloat(price).toFixed(2)}
                             </span>
                         </div>

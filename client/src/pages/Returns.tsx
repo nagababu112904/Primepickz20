@@ -9,12 +9,12 @@ import { BottomNav } from '@/components/marketplace/BottomNav';
 
 export default function Returns() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#1a2332]">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
@@ -26,21 +26,21 @@ export default function Returns() {
           <div className="grid md:grid-cols-3 gap-6 mb-10">
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6 text-center">
-                <Clock className="w-10 h-10 text-[#7c3aed] mx-auto mb-4" />
+                <Clock className="w-10 h-10 text-[#1a2332] mx-auto mb-4" />
                 <h3 className="font-bold text-lg mb-2">30-Day Returns</h3>
                 <p className="text-gray-600">Return within 30 days of delivery for a full refund.</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6 text-center">
-                <RotateCcw className="w-10 h-10 text-[#7c3aed] mx-auto mb-4" />
+                <RotateCcw className="w-10 h-10 text-[#1a2332] mx-auto mb-4" />
                 <h3 className="font-bold text-lg mb-2">Easy Process</h3>
                 <p className="text-gray-600">Simple online return request with prepaid labels.</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6 text-center">
-                <CheckCircle className="w-10 h-10 text-[#7c3aed] mx-auto mb-4" />
+                <CheckCircle className="w-10 h-10 text-[#1a2332] mx-auto mb-4" />
                 <h3 className="font-bold text-lg mb-2">Fast Refunds</h3>
                 <p className="text-gray-600">Refunds processed within 5-7 business days.</p>
               </CardContent>
@@ -71,11 +71,11 @@ export default function Returns() {
             </div>
           </div>
 
-          <div className="bg-[#7c3aed]/10 rounded-xl p-6 text-center">
+          <div className="bg-[#1a2332]/10 rounded-xl p-6 text-center">
             <h3 className="font-bold text-lg mb-2">Need to return something?</h3>
             <p className="text-gray-600 mb-4">Start your return request online.</p>
             <Link href="/return-request">
-              <Button className="bg-[#7c3aed] hover:bg-[#6d28d9]">
+              <Button className="bg-[#1a2332] hover:bg-[#0f1419]">
                 Start Return Request
               </Button>
             </Link>

@@ -54,7 +54,7 @@ export function AnalyticsTab() {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                <Card className="bg-gradient-to-br from-gray-700 to-gray-800 text-white">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>

@@ -44,12 +44,12 @@ const faqs = [
 
 export default function FAQ() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#1a2332]">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
@@ -76,7 +76,7 @@ export default function FAQ() {
             <h3 className="font-bold text-lg mb-2">Still have questions?</h3>
             <p className="text-gray-600 mb-4">Our support team is here to help.</p>
             <Link href="/contact">
-              <Button className="bg-[#7c3aed] hover:bg-[#6d28d9]">Contact Us</Button>
+              <Button className="bg-[#1a2332] hover:bg-[#0f1419]">Contact Us</Button>
             </Link>
           </div>
         </div>

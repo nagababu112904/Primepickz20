@@ -127,7 +127,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="bg-white p-8 rounded-2xl shadow-sm text-center">
@@ -144,7 +144,7 @@ export default function ProductDetail() {
   const hasDiscount = discountPercentage > 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
       <div className="flex-1">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8">

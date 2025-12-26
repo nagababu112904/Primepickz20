@@ -20,8 +20,8 @@ export function PromoBanner({
 }: PromoBannerProps) {
   const gradientClasses = {
     pink: "from-pink-600 via-pink-500 to-pink-400",
-    purple: "from-purple-600 via-purple-500 to-purple-400",
-    dual: "from-pink-600 via-purple-500 to-pink-400"
+    purple: "from-gray-800 via-gray-700 to-gray-600",
+    dual: "from-pink-600 via-gray-700 to-pink-400"
   };
 
   return (

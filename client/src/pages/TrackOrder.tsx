@@ -41,12 +41,12 @@ export default function TrackOrder() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#1a2332]">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
@@ -84,7 +84,7 @@ export default function TrackOrder() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-[#7c3aed] hover:bg-[#6d28d9]">
+                <Button type="submit" className="w-full bg-[#1a2332] hover:bg-[#0f1419]">
                   <Search className="w-4 h-4 mr-2" />
                   Track Order
                 </Button>
@@ -96,7 +96,7 @@ export default function TrackOrder() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Package className="w-5 h-5 text-[#7c3aed]" />
+                  <Package className="w-5 h-5 text-[#1a2332]" />
                   Order #{tracking.orderNumber}
                 </CardTitle>
               </CardHeader>
@@ -104,7 +104,7 @@ export default function TrackOrder() {
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
                   <div>
                     <p className="text-sm text-gray-500">Status</p>
-                    <p className="font-semibold text-[#7c3aed]">{tracking.status}</p>
+                    <p className="font-semibold text-[#1a2332]">{tracking.status}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Carrier</p>
@@ -120,7 +120,7 @@ export default function TrackOrder() {
                   {tracking.steps.map((step: any, index: number) => (
                     <div key={index} className="flex items-start gap-4">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${step.completed
-                          ? 'bg-[#7c3aed] text-white'
+                          ? 'bg-[#1a2332] text-white'
                           : 'bg-gray-200 text-gray-400'
                         }`}>
                         {step.completed ? (
@@ -130,7 +130,7 @@ export default function TrackOrder() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <p className={`font-medium ${step.current ? 'text-[#7c3aed]' : ''}`}>
+                        <p className={`font-medium ${step.current ? 'text-[#1a2332]' : ''}`}>
                           {step.status}
                         </p>
                         {step.date && (

@@ -64,14 +64,14 @@ export default function Wishlist() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <Card className="max-w-md text-center py-12 px-8">
             <CardContent>
               <h2 className="text-2xl font-bold mb-2">Login Required</h2>
               <p className="text-gray-500 mb-6">Please log in to view your wishlist</p>
-              <Button className="bg-[#7c3aed] hover:bg-[#6d28d9]">Login</Button>
+              <Button className="bg-[#1a2332] hover:bg-[#0f1419]">Login</Button>
             </CardContent>
           </Card>
         </div>
@@ -82,12 +82,12 @@ export default function Wishlist() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 lg:px-8 py-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#1a2332]">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Continue Shopping
           </Button>
@@ -103,15 +103,15 @@ export default function Wishlist() {
         {wishlistedProducts.length === 0 ? (
           <Card className="text-center py-16">
             <CardContent>
-              <div className="w-24 h-24 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center">
-                <svg className="w-12 h-12 text-[#7c3aed]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg className="w-12 h-12 text-[#1a2332]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Your wishlist is empty</h3>
               <p className="text-gray-500 mb-6">Start adding products you love!</p>
               <Link href="/">
-                <Button className="bg-[#7c3aed] hover:bg-[#6d28d9]">Browse Products</Button>
+                <Button className="bg-[#1a2332] hover:bg-[#0f1419]">Browse Products</Button>
               </Link>
             </CardContent>
           </Card>
@@ -151,7 +151,7 @@ export default function Wishlist() {
                 </CardContent>
                 <CardFooter className="p-4 pt-0">
                   <Button
-                    className="w-full bg-[#7c3aed] hover:bg-[#6d28d9]"
+                    className="w-full bg-[#1a2332] hover:bg-[#0f1419]"
                     size="sm"
                     onClick={() => addToCartMutation.mutate(product.id)}
                     disabled={addToCartMutation.isPending}

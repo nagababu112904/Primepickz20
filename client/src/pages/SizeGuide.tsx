@@ -8,12 +8,12 @@ import { BottomNav } from '@/components/marketplace/BottomNav';
 
 export default function SizeGuide() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#1a2332]">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
@@ -21,7 +21,7 @@ export default function SizeGuide() {
 
         <div className="bg-white rounded-2xl p-6 md:p-10 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
-            <Ruler className="w-8 h-8 text-[#7c3aed]" />
+            <Ruler className="w-8 h-8 text-[#1a2332]" />
             <h1 className="text-3xl font-bold text-gray-900">Size Guide</h1>
           </div>
 
@@ -67,7 +67,7 @@ export default function SizeGuide() {
             </table>
           </div>
 
-          <div className="bg-[#7c3aed]/10 rounded-xl p-6">
+          <div className="bg-[#1a2332]/10 rounded-xl p-6">
             <h3 className="font-bold mb-2">💡 Measuring Tips</h3>
             <ul className="text-gray-600 space-y-1 text-sm">
               <li>• Use a soft measuring tape for accurate measurements</li>

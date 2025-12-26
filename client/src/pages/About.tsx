@@ -9,12 +9,12 @@ import { BottomNav } from '@/components/marketplace/BottomNav';
 
 export default function About() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#1a2332]">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
@@ -31,28 +31,28 @@ export default function About() {
           <div className="grid md:grid-cols-2 gap-6 mb-10">
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6">
-                <Users className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <Users className="w-8 h-8 text-[#1a2332] mb-4" />
                 <h3 className="font-bold text-lg mb-2">Customer First</h3>
                 <p className="text-gray-600">Your satisfaction is our top priority. We offer easy returns and 24/7 support.</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6">
-                <Award className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <Award className="w-8 h-8 text-[#1a2332] mb-4" />
                 <h3 className="font-bold text-lg mb-2">Quality Products</h3>
                 <p className="text-gray-600">Every product is carefully vetted to ensure the highest quality standards.</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6">
-                <Globe className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <Globe className="w-8 h-8 text-[#1a2332] mb-4" />
                 <h3 className="font-bold text-lg mb-2">Fast Shipping</h3>
                 <p className="text-gray-600">Free shipping on orders over $99. Quick delivery across the United States.</p>
               </CardContent>
             </Card>
             <Card className="border-0 bg-gray-50">
               <CardContent className="p-6">
-                <Heart className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <Heart className="w-8 h-8 text-[#1a2332] mb-4" />
                 <h3 className="font-bold text-lg mb-2">Trusted by Many</h3>
                 <p className="text-gray-600">Thousands of happy customers trust PrimePickz for their shopping needs.</p>
               </CardContent>

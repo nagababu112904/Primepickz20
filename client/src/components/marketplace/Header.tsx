@@ -24,7 +24,7 @@ export function Header() {
                             <Input
                                 type="text"
                                 placeholder="Search"
-                                className="w-full pl-12 pr-4 py-3 bg-gray-50 border-gray-200 rounded-full focus:bg-white focus:ring-2 focus:ring-[#7c3aed]/20"
+                                className="w-full pl-12 pr-4 py-3 bg-gray-50 border-gray-200 rounded-full focus:bg-white focus:ring-2 focus:ring-[#1a2332]/20"
                             />
                         </div>
                     </div>
@@ -49,10 +49,10 @@ export function Header() {
                         </Link>
 
                         {/* Cart */}
-                        <Link href="/checkout" className="flex items-center gap-2 text-[#7c3aed] hover:text-[#6d28d9]">
+                        <Link href="/checkout" className="flex items-center gap-2 text-[#1a2332] hover:text-[#0f1419]">
                             <div className="relative">
                                 <ShoppingCart className="w-5 h-5" />
-                                <span className="absolute -top-2 -right-2 bg-[#7c3aed] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                                <span className="absolute -top-2 -right-2 bg-[#1a2332] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                                     0
                                 </span>
                             </div>
@@ -61,7 +61,7 @@ export function Header() {
 
                         {/* Account */}
                         <Link href="/account" className="p-2 hover:bg-gray-100 rounded-full">
-                            <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+                            <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center">
                                 <User className="w-4 h-4 text-white" />
                             </div>
                         </Link>
@@ -93,19 +93,19 @@ export function Header() {
                 {mobileMenuOpen && (
                     <div className="md:hidden border-t border-gray-100 bg-white">
                         <nav className="flex flex-col p-4 gap-3">
-                            <Link href="/" className="py-2 text-gray-700 hover:text-[#7c3aed]" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/" className="py-2 text-gray-700 hover:text-[#1a2332]" onClick={() => setMobileMenuOpen(false)}>
                                 Home
                             </Link>
-                            <Link href="/category/electronics" className="py-2 text-gray-700 hover:text-[#7c3aed]" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/category/electronics" className="py-2 text-gray-700 hover:text-[#1a2332]" onClick={() => setMobileMenuOpen(false)}>
                                 Electronics
                             </Link>
-                            <Link href="/category/fashion" className="py-2 text-gray-700 hover:text-[#7c3aed]" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/category/fashion" className="py-2 text-gray-700 hover:text-[#1a2332]" onClick={() => setMobileMenuOpen(false)}>
                                 Fashion
                             </Link>
-                            <Link href="/category/home-kitchen" className="py-2 text-gray-700 hover:text-[#7c3aed]" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/category/home-kitchen" className="py-2 text-gray-700 hover:text-[#1a2332]" onClick={() => setMobileMenuOpen(false)}>
                                 Home & Kitchen
                             </Link>
-                            <Link href="/account" className="py-2 text-gray-700 hover:text-[#7c3aed]" onClick={() => setMobileMenuOpen(false)}>
+                            <Link href="/account" className="py-2 text-gray-700 hover:text-[#1a2332]" onClick={() => setMobileMenuOpen(false)}>
                                 My Account
                             </Link>
                         </nav>

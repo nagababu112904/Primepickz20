@@ -34,7 +34,7 @@ export default function Search() {
     );
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
             <Header />
 
             <main className="flex-1 max-w-7xl mx-auto w-full px-4 lg:px-8 py-8">
@@ -47,7 +47,7 @@ export default function Search() {
                             placeholder="Search products..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-full pl-12 pr-12 py-6 text-lg bg-white border-gray-200 rounded-full focus:ring-2 focus:ring-[#7c3aed]/20"
+                            className="w-full pl-12 pr-12 py-6 text-lg bg-white border-gray-200 rounded-full focus:ring-2 focus:ring-[#1a2332]/20"
                             autoFocus
                         />
                         {query && (
@@ -64,8 +64,8 @@ export default function Search() {
                 {/* Results */}
                 {debouncedQuery.length < 2 ? (
                     <div className="text-center py-16">
-                        <div className="w-24 h-24 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center">
-                            <SearchIcon className="w-12 h-12 text-[#7c3aed]" />
+                        <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                            <SearchIcon className="w-12 h-12 text-[#1a2332]" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">Search for products</h3>
                         <p className="text-gray-500">Enter at least 2 characters to search</p>
@@ -104,8 +104,8 @@ export default function Search() {
                     </>
                 ) : (
                     <div className="text-center py-16">
-                        <div className="w-24 h-24 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center">
-                            <SearchIcon className="w-12 h-12 text-[#7c3aed]" />
+                        <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                            <SearchIcon className="w-12 h-12 text-[#1a2332]" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">No results found</h3>
                         <p className="text-gray-500">Try a different search term</p>

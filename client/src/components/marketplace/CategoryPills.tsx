@@ -55,7 +55,7 @@ export function CategoryPills({ activeCategory = '', onCategoryChange }: Categor
                                     key={category.id}
                                     onClick={() => onCategoryChange(category.slug)}
                                     className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${isActive
-                                            ? 'bg-[#7c3aed] text-white shadow-md'
+                                            ? 'bg-[#1a2332] text-white shadow-md'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >
@@ -71,7 +71,7 @@ export function CategoryPills({ activeCategory = '', onCategoryChange }: Categor
                             >
                                 <button
                                     className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${isActive
-                                            ? 'bg-[#7c3aed] text-white shadow-md'
+                                            ? 'bg-[#1a2332] text-white shadow-md'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
                                 >

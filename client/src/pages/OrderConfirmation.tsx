@@ -13,7 +13,7 @@ export default function OrderConfirmation() {
     const orderId = params.get('order_id') || params.get('session_id') || 'ORD-' + Date.now();
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
             <Header />
 
             <main className="flex-1 max-w-2xl mx-auto w-full px-4 lg:px-8 py-12">
@@ -30,13 +30,13 @@ export default function OrderConfirmation() {
 
                         <div className="bg-gray-50 rounded-xl p-6 mb-8">
                             <p className="text-sm text-gray-500 mb-1">Order Number</p>
-                            <p className="text-xl font-bold text-[#7c3aed]">{orderId}</p>
+                            <p className="text-xl font-bold text-[#1a2332]">{orderId}</p>
                         </div>
 
                         <div className="grid grid-cols-3 gap-4 mb-8">
                             <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-2 bg-[#7c3aed]/10 rounded-full flex items-center justify-center">
-                                    <CheckCircle className="w-6 h-6 text-[#7c3aed]" />
+                                <div className="w-12 h-12 mx-auto mb-2 bg-[#1a2332]/10 rounded-full flex items-center justify-center">
+                                    <CheckCircle className="w-6 h-6 text-[#1a2332]" />
                                 </div>
                                 <p className="text-sm font-medium">Confirmed</p>
                             </div>
@@ -65,7 +65,7 @@ export default function OrderConfirmation() {
                                 </Button>
                             </Link>
                             <Link href="/">
-                                <Button className="w-full sm:w-auto bg-[#7c3aed] hover:bg-[#6d28d9]">
+                                <Button className="w-full sm:w-auto bg-[#1a2332] hover:bg-[#0f1419]">
                                     Continue Shopping
                                     <ArrowRight className="w-4 h-4 ml-2" />
                                 </Button>

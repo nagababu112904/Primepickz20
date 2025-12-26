@@ -89,8 +89,8 @@ export function DashboardTab() {
                                     {stats?.totalProducts || 0}
                                 </p>
                             </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <Package className="w-6 h-6 text-purple-600" />
+                            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <Package className="w-6 h-6 text-gray-800" />
                             </div>
                         </div>
                     </CardContent>

@@ -34,7 +34,7 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
             <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="font-bold text-gray-900">Price Range</h3>
-                    <button onClick={resetFilters} className="text-sm text-gray-400 hover:text-[#7c3aed]">Reset</button>
+                    <button onClick={resetFilters} className="text-sm text-gray-400 hover:text-[#1a2332]">Reset</button>
                 </div>
                 <p className="text-sm text-gray-500 mb-4">The average price is $300</p>
 
@@ -48,8 +48,8 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
                         />
                         <defs>
                             <linearGradient id="priceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#7c3aed" />
-                                <stop offset="100%" stopColor="#c4b5fd" />
+                                <stop offset="0%" stopColor="#1a2332" />
+                                <stop offset="100%" stopColor="#adb5bd" />
                             </linearGradient>
                         </defs>
                     </svg>
@@ -101,7 +101,7 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
                     <button
                         onClick={() => setDeliveryOption('standard')}
                         className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${deliveryOption === 'standard'
-                                ? 'bg-[#7c3aed] text-white'
+                                ? 'bg-[#1a2332] text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >
@@ -110,7 +110,7 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
                     <button
                         onClick={() => setDeliveryOption('pickup')}
                         className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${deliveryOption === 'pickup'
-                                ? 'bg-[#7c3aed] text-white'
+                                ? 'bg-[#1a2332] text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >

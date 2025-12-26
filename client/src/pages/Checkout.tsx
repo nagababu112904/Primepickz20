@@ -108,12 +108,12 @@ export default function Checkout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 lg:px-8 py-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#1a2332]">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Continue Shopping
           </Button>
@@ -126,7 +126,7 @@ export default function Checkout() {
             <CardContent>
               <p className="text-gray-500 mb-4">Your cart is empty</p>
               <Link href="/">
-                <Button className="bg-[#7c3aed] hover:bg-[#6d28d9]">Start Shopping</Button>
+                <Button className="bg-[#1a2332] hover:bg-[#0f1419]">Start Shopping</Button>
               </Link>
             </CardContent>
           </Card>
@@ -322,7 +322,7 @@ export default function Checkout() {
                   )}
 
                   <Button
-                    className="w-full bg-[#7c3aed] hover:bg-[#6d28d9]"
+                    className="w-full bg-[#1a2332] hover:bg-[#0f1419]"
                     size="lg"
                     onClick={handleCheckout}
                     disabled={isProcessing}

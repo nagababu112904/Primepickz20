@@ -8,13 +8,13 @@ import { BottomNav } from '@/components/marketplace/BottomNav';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-32 h-32 mx-auto mb-8 bg-purple-100 rounded-full flex items-center justify-center">
-            <span className="text-6xl font-bold text-[#7c3aed]">404</span>
+          <div className="w-32 h-32 mx-auto mb-8 bg-gray-100 rounded-full flex items-center justify-center">
+            <span className="text-6xl font-bold text-[#1a2332]">404</span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Page Not Found</h1>
           <p className="text-gray-600 mb-8 max-w-md">
@@ -30,7 +30,7 @@ export default function NotFound() {
               Go Back
             </Button>
             <Link href="/">
-              <Button className="bg-[#7c3aed] hover:bg-[#6d28d9] flex items-center gap-2">
+              <Button className="bg-[#1a2332] hover:bg-[#0f1419] flex items-center gap-2">
                 <Home className="w-4 h-4" />
                 Back to Home
               </Button>

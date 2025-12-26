@@ -62,14 +62,14 @@ export default function CategoryPage() {
 
   if (!category) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center bg-white p-8 rounded-2xl shadow-sm">
             <h2 className="text-2xl font-bold mb-2">Category Not Found</h2>
             <p className="text-gray-600 mb-4">The category you're looking for doesn't exist.</p>
             <Link href="/">
-              <Button className="bg-[#7c3aed] hover:bg-[#6d28d9]">
+              <Button className="bg-[#1a2332] hover:bg-[#0f1419]">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Home
               </Button>
@@ -83,14 +83,14 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       {/* Category Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
           <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-3 text-gray-600 hover:text-[#7c3aed]">
+            <Button variant="ghost" size="sm" className="mb-3 text-gray-600 hover:text-[#1a2332]">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
@@ -159,8 +159,8 @@ export default function CategoryPage() {
               </div>
             ) : (
               <div className="text-center py-16 bg-white rounded-2xl">
-                <div className="w-24 h-24 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center">
-                  <svg className="w-12 h-12 text-[#7c3aed]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-[#1a2332]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>

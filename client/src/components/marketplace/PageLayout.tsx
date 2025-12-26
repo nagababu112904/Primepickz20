@@ -18,7 +18,7 @@ export function PageLayout({
     onCategoryChange,
 }: PageLayoutProps) {
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
             {/* Header */}
             <Header />
 

@@ -30,12 +30,12 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
       <Header />
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#1a2332]">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Button>
@@ -46,21 +46,21 @@ export default function Contact() {
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card className="text-center">
             <CardContent className="pt-6">
-              <Phone className="w-8 h-8 text-[#7c3aed] mx-auto mb-3" />
+              <Phone className="w-8 h-8 text-[#1a2332] mx-auto mb-3" />
               <h3 className="font-bold mb-1">Phone</h3>
               <p className="text-gray-600">475-239-6334</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="pt-6">
-              <Mail className="w-8 h-8 text-[#7c3aed] mx-auto mb-3" />
+              <Mail className="w-8 h-8 text-[#1a2332] mx-auto mb-3" />
               <h3 className="font-bold mb-1">Email</h3>
               <p className="text-gray-600">support@primepickz.com</p>
             </CardContent>
           </Card>
           <Card className="text-center">
             <CardContent className="pt-6">
-              <MapPin className="w-8 h-8 text-[#7c3aed] mx-auto mb-3" />
+              <MapPin className="w-8 h-8 text-[#1a2332] mx-auto mb-3" />
               <h3 className="font-bold mb-1">Address</h3>
               <p className="text-gray-600">9121 Avalon Gates, Trumbull, CT</p>
             </CardContent>
@@ -115,7 +115,7 @@ export default function Contact() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full md:w-auto bg-[#7c3aed] hover:bg-[#6d28d9]">
+              <Button type="submit" className="w-full md:w-auto bg-[#1a2332] hover:bg-[#0f1419]">
                 <Send className="w-4 h-4 mr-2" />
                 Send Message
               </Button>
