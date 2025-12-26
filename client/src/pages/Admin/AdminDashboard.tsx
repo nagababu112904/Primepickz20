@@ -25,7 +25,7 @@ export const adminFetch = async (action: string, options?: RequestInit) => {
         ...options,
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': token ? `Basic ${token}` : '',
+            'Authorization': token ? `Bearer ${token}` : '',
             ...options?.headers,
         },
     });
