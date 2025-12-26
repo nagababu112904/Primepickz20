@@ -1,106 +1,81 @@
-import { useState } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { ShoppingBag, Users, Globe, Award } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import React from 'react';
+import { Link } from 'wouter';
+import { ArrowLeft, Users, Award, Globe, Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Header } from '@/components/marketplace/Header';
+import { Footer } from '@/components/marketplace/Footer';
+import { BottomNav } from '@/components/marketplace/BottomNav';
 
 export default function About() {
-  const [language, setLanguage] = useState("en");
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header
-        cartCount={0}
-        wishlistCount={0}
-        onCartClick={() => setIsCartOpen(true)}
-        language={language}
-        onLanguageChange={setLanguage}
-      />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+      <Header />
 
-      <main className="flex-1 max-w-screen-xl mx-auto px-4 md:px-6 py-8 md:py-12">
-        <h1 className="text-3xl md:text-4xl font-bold mb-6">
-          About Prime Pickz
-        </h1>
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
+        <Link href="/">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </Link>
 
-        <div className="prose max-w-none mb-12">
-          <p className="text-lg text-muted-foreground mb-6">
-            Prime Pickz is your premier destination for fashion and lifestyle
-            products. We bring you the latest trends in contemporary
-            wear, curated with passion and delivered with care.
+        <div className="bg-white rounded-2xl p-6 md:p-10 shadow-sm">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">About PrimePickz</h1>
+
+          <p className="text-gray-600 mb-8 text-lg">
+            PrimePickz is your trusted marketplace for premium products. We curate the best selection
+            of electronics, fashion, home goods, and more to bring you quality items at competitive prices.
           </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <Card className="p-6 text-center">
-            <ShoppingBag className="w-12 h-12 mx-auto mb-4 text-primary" />
-            <h3 className="font-semibold text-lg mb-2">10M+ Products</h3>
-            <p className="text-sm text-muted-foreground">
-              Vast collection across categories
-            </p>
-          </Card>
+          <div className="grid md:grid-cols-2 gap-6 mb-10">
+            <Card className="border-0 bg-gray-50">
+              <CardContent className="p-6">
+                <Users className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <h3 className="font-bold text-lg mb-2">Customer First</h3>
+                <p className="text-gray-600">Your satisfaction is our top priority. We offer easy returns and 24/7 support.</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-gray-50">
+              <CardContent className="p-6">
+                <Award className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <h3 className="font-bold text-lg mb-2">Quality Products</h3>
+                <p className="text-gray-600">Every product is carefully vetted to ensure the highest quality standards.</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-gray-50">
+              <CardContent className="p-6">
+                <Globe className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <h3 className="font-bold text-lg mb-2">Fast Shipping</h3>
+                <p className="text-gray-600">Free shipping on orders over $99. Quick delivery across the United States.</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-gray-50">
+              <CardContent className="p-6">
+                <Heart className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <h3 className="font-bold text-lg mb-2">Trusted by Many</h3>
+                <p className="text-gray-600">Thousands of happy customers trust PrimePickz for their shopping needs.</p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="p-6 text-center">
-            <Users className="w-12 h-12 mx-auto mb-4 text-primary" />
-            <h3 className="font-semibold text-lg mb-2">5M+ Customers</h3>
-            <p className="text-sm text-muted-foreground">Trusted by millions</p>
-          </Card>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h2>
+          <p className="text-gray-600 mb-6">
+            We're on a mission to make quality products accessible to everyone. By partnering with top brands
+            and manufacturers, we deliver exceptional value without compromising on quality.
+          </p>
 
-          <Card className="p-6 text-center">
-            <Globe className="w-12 h-12 mx-auto mb-4 text-primary" />
-            <h3 className="font-semibold text-lg mb-2">Nationwide</h3>
-            <p className="text-sm text-muted-foreground">
-              Delivery across USA
-            </p>
-          </Card>
-
-          <Card className="p-6 text-center">
-            <Award className="w-12 h-12 mx-auto mb-4 text-primary" />
-            <h3 className="font-semibold text-lg mb-2">99% Satisfaction</h3>
-            <p className="text-sm text-muted-foreground">
-              Customer happiness guaranteed
-            </p>
-          </Card>
-        </div>
-
-        <div className="space-y-8">
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Our Story</h2>
-            <p className="text-muted-foreground">
-              Founded in 2020, Prime Pickz started with a simple mission: to
-              make high-quality fashion accessible to everyone. From
-              contemporary wear to modern fashion essentials, we've grown to
-              become one of the most trusted online shopping destinations.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Our Values</h2>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>Quality products at competitive prices</li>
-              <li>Fast and reliable delivery</li>
-              <li>Exceptional customer service</li>
-              <li>Authentic products, 100% genuine</li>
-              <li>Sustainable and ethical sourcing</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Contact Information</h2>
-            <p className="text-muted-foreground">
-              <strong>Email:</strong> support@primepickz.com
-              <br />
-              <strong>Phone:</strong> 475-239-6334
-              <br />
-              <strong>Address:</strong> 9121 Avalon Gates, Trumbull, CT 06611, United States
-            </p>
-          </section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Us</h2>
+          <div className="text-gray-600 space-y-2">
+            <p>📞 475-239-6334</p>
+            <p>📧 support@primepickz.com</p>
+            <p>📍 9121 Avalon Gates, Trumbull, CT 06611</p>
+          </div>
         </div>
       </main>
 
       <Footer />
-      <MobileBottomNav cartCount={0} activeTab="home" />
+      <BottomNav />
     </div>
   );
 }

@@ -1,137 +1,95 @@
-import { useState } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { Truck, MapPin, Clock, Package } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import React from 'react';
+import { Link } from 'wouter';
+import { ArrowLeft, Truck, Clock, Package, DollarSign } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Header } from '@/components/marketplace/Header';
+import { Footer } from '@/components/marketplace/Footer';
+import { BottomNav } from '@/components/marketplace/BottomNav';
 
 export default function Shipping() {
-  const [language, setLanguage] = useState("en");
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header
-        cartCount={0}
-        wishlistCount={0}
-        onCartClick={() => setIsCartOpen(true)}
-        language={language}
-        onLanguageChange={setLanguage}
-      />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+      <Header />
 
-      <main className="flex-1 max-w-screen-lg mx-auto px-4 md:px-6 py-8 md:py-12">
-        <h1 className="text-3xl md:text-4xl font-bold mb-6">Shipping Policy</h1>
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
+        <Link href="/">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </Link>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="p-4 text-center">
-            <Truck className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-semibold mb-1">Free Shipping</h3>
-            <p className="text-xs text-muted-foreground">On orders $999+</p>
-          </Card>
-          
-          <Card className="p-4 text-center">
-            <Clock className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-semibold mb-1">3-7 Days</h3>
-            <p className="text-xs text-muted-foreground">Standard delivery</p>
-          </Card>
-          
-          <Card className="p-4 text-center">
-            <MapPin className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-semibold mb-1">Nationwide</h3>
-            <p className="text-xs text-muted-foreground">US delivery</p>
-          </Card>
-          
-          <Card className="p-4 text-center">
-            <Package className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-semibold mb-1">Secure Packaging</h3>
-            <p className="text-xs text-muted-foreground">Safe transit</p>
-          </Card>
-        </div>
+        <div className="bg-white rounded-2xl p-6 md:p-10 shadow-sm">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Shipping Information</h1>
 
-        <div className="prose max-w-none space-y-6">
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Shipping Charges</h2>
-            <div className="bg-muted/30 rounded-lg p-4">
-              <ul className="text-muted-foreground space-y-2">
-                <li><strong>Orders above $999:</strong> FREE shipping</li>
-                <li><strong>Orders below $999:</strong> $49 flat shipping fee</li>
-                <li><strong>Express delivery:</strong> Additional $99 (1-3 days in select cities)</li>
-              </ul>
-            </div>
-          </section>
+          <div className="grid md:grid-cols-2 gap-6 mb-10">
+            <Card className="border-0 bg-gray-50">
+              <CardContent className="p-6">
+                <DollarSign className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <h3 className="font-bold text-lg mb-2">Free Shipping</h3>
+                <p className="text-gray-600">On orders over $99. Standard shipping available for smaller orders at $9.99.</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-gray-50">
+              <CardContent className="p-6">
+                <Clock className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <h3 className="font-bold text-lg mb-2">Processing Time</h3>
+                <p className="text-gray-600">Orders are processed within 1-2 business days after placement.</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-gray-50">
+              <CardContent className="p-6">
+                <Truck className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <h3 className="font-bold text-lg mb-2">Delivery Time</h3>
+                <p className="text-gray-600">Standard: 5-7 business days. Express: 2-3 business days.</p>
+              </CardContent>
+            </Card>
+            <Card className="border-0 bg-gray-50">
+              <CardContent className="p-6">
+                <Package className="w-8 h-8 text-[#7c3aed] mb-4" />
+                <h3 className="font-bold text-lg mb-2">Tracking</h3>
+                <p className="text-gray-600">All orders include tracking. Updates sent via email once shipped.</p>
+              </CardContent>
+            </Card>
+          </div>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Delivery Timeline</h2>
-            <p className="text-muted-foreground mb-3">
-              Delivery times vary based on your location and product availability:
-            </p>
-            <ul className="list-disc list-inside text-muted-foreground ml-4 space-y-2">
-              <li><strong>Metro cities:</strong> 3-5 business days</li>
-              <li><strong>Other cities:</strong> 5-7 business days</li>
-              <li><strong>Remote areas:</strong> 7-10 business days</li>
-              <li><strong>Express delivery:</strong> 1-3 business days (select locations)</li>
-            </ul>
-          </section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Shipping Rates</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-3 px-4 font-semibold">Method</th>
+                  <th className="py-3 px-4 font-semibold">Delivery Time</th>
+                  <th className="py-3 px-4 font-semibold">Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-3 px-4">Standard</td>
+                  <td className="py-3 px-4">5-7 business days</td>
+                  <td className="py-3 px-4">$9.99 (Free over $99)</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-3 px-4">Express</td>
+                  <td className="py-3 px-4">2-3 business days</td>
+                  <td className="py-3 px-4">$19.99</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-4">Overnight</td>
+                  <td className="py-3 px-4">1 business day</td>
+                  <td className="py-3 px-4">$29.99</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Order Processing</h2>
-            <p className="text-muted-foreground">
-              Orders are typically processed within 1-2 business days. You'll receive a confirmation email once your order is shipped with tracking details. Orders placed on weekends or holidays will be processed on the next business day.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Tracking Your Order</h2>
-            <p className="text-muted-foreground">
-              Once shipped, you'll receive a tracking number via email and SMS. You can track your order using:
-            </p>
-            <ul className="list-disc list-inside text-muted-foreground ml-4 space-y-2">
-              <li>Our Track Order page (enter order number)</li>
-              <li>Courier partner's website (using tracking number)</li>
-              <li>SMS/Email notifications at each delivery milestone</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Shipping Partners</h2>
-            <p className="text-muted-foreground">
-              We work with trusted courier partners including FedEx, UPS, and USPS to ensure safe and timely delivery of your orders.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Delivery Attempts</h2>
-            <p className="text-muted-foreground mb-3">
-              Our delivery partners will make up to 3 attempts to deliver your order:
-            </p>
-            <ul className="list-disc list-inside text-muted-foreground ml-4 space-y-2">
-              <li>You'll be notified before each delivery attempt</li>
-              <li>If delivery fails after 3 attempts, order will be returned</li>
-              <li>Reshipping charges may apply for returned orders</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">International Shipping</h2>
-            <p className="text-muted-foreground">
-              Currently, we only ship within the United States. International shipping will be available soon. Sign up for our newsletter to be notified when we expand globally.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Contact Us</h2>
-            <p className="text-muted-foreground">
-              For shipping-related queries:<br />
-              Email: shipping@primepickz.com<br />
-              Phone: 475-239-6334<br />
-              Available: Mon-Sat, 9 AM - 6 PM
-            </p>
-          </section>
+          <p className="text-gray-600 mt-6 text-sm">* Currently shipping to United States addresses only.</p>
         </div>
       </main>
 
       <Footer />
-      <MobileBottomNav cartCount={0} activeTab="home" />
+      <BottomNav />
     </div>
   );
 }

@@ -75,14 +75,14 @@ export function Footer() {
                     {/* Logo & Description */}
                     <div className="md:col-span-1">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 bg-[hsl(var(--pickz-gold))] rounded flex items-center justify-center">
-                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                                </svg>
-                            </div>
+                            <img
+                                src="/logo.png"
+                                alt="PrimePickz Logo"
+                                className="w-10 h-10 object-contain"
+                            />
                             <div className="font-bold text-xl">
                                 <span className="text-white">PRIME</span>
-                                <span className="text-[hsl(var(--pickz-gold))]">PICKZ</span>
+                                <span className="text-[#d4a574]">PICKZ</span>
                             </div>
                         </div>
                         <p className="text-sm text-gray-400 mb-6">

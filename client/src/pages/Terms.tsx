@@ -1,101 +1,59 @@
-import { useState } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
+import React from 'react';
+import { Link } from 'wouter';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Header } from '@/components/marketplace/Header';
+import { Footer } from '@/components/marketplace/Footer';
+import { BottomNav } from '@/components/marketplace/BottomNav';
 
 export default function Terms() {
-  const [language, setLanguage] = useState("en");
-  const [isCartOpen, setIsCartOpen] = useState(false);
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header
-        cartCount={0}
-        wishlistCount={0}
-        onCartClick={() => setIsCartOpen(true)}
-        language={language}
-        onLanguageChange={setLanguage}
-      />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+      <Header />
 
-      <main className="flex-1 max-w-screen-lg mx-auto px-4 md:px-6 py-8 md:py-12">
-        <h1 className="text-3xl md:text-4xl font-bold mb-6">Terms of Service</h1>
-        <p className="text-sm text-muted-foreground mb-8">Last updated: October 24, 2025</p>
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 lg:px-8 py-8">
+        <Link href="/">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </Link>
 
-        <div className="prose max-w-none space-y-6">
-          <section>
-            <h2 className="text-2xl font-bold mb-4">1. Acceptance of Terms</h2>
-            <p className="text-muted-foreground">
-              By accessing and using Prime Pickz, you accept and agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our website.
-            </p>
-          </section>
+        <div className="bg-white rounded-2xl p-6 md:p-10 shadow-sm prose prose-gray max-w-none">
+          <h1>Terms of Service</h1>
+          <p className="text-gray-500">Last updated: January 2024</p>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">2. Use of Website</h2>
-            <p className="text-muted-foreground">
-              You agree to use this website only for lawful purposes and in a way that does not infringe the rights of others or restrict their use and enjoyment of the website.
-            </p>
-          </section>
+          <h2>Acceptance of Terms</h2>
+          <p>By accessing and using PrimePickz, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">3. Product Information</h2>
-            <p className="text-muted-foreground">
-              We strive to provide accurate product descriptions and pricing. However, we do not warrant that product descriptions, pricing, or other content is accurate, complete, or error-free. We reserve the right to correct errors and update information at any time.
-            </p>
-          </section>
+          <h2>Products and Pricing</h2>
+          <p>All products are subject to availability. Prices are subject to change without notice. We reserve the right to limit quantities and refuse orders.</p>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">4. Pricing and Payment</h2>
-            <p className="text-muted-foreground">
-              All prices are in USD and are subject to change without notice. Payment must be received before order processing. We accept various payment methods including credit/debit cards, UPI, and cash on delivery.
-            </p>
-          </section>
+          <h2>Order Acceptance</h2>
+          <p>Your receipt of an order confirmation does not constitute our acceptance of your order. We reserve the right to cancel any order for any reason.</p>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">5. Order Acceptance</h2>
-            <p className="text-muted-foreground">
-              We reserve the right to refuse or cancel any order at our discretion. This may include orders that appear fraudulent, violate our terms, or are placed by resellers.
-            </p>
-          </section>
+          <h2>Payment</h2>
+          <p>Payment must be received prior to shipment. We accept major credit cards and other payment methods as displayed at checkout.</p>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">6. Returns and Refunds</h2>
-            <p className="text-muted-foreground">
-              Please refer to our Returns & Refunds policy for detailed information about returns, exchanges, and refunds.
-            </p>
-          </section>
+          <h2>Shipping and Delivery</h2>
+          <p>We ship to addresses within the United States. Delivery times are estimates and not guaranteed. Risk of loss passes to you upon delivery.</p>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">7. Limitation of Liability</h2>
-            <p className="text-muted-foreground">
-              Prime Pickz shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with your use of our website or products.
-            </p>
-          </section>
+          <h2>Returns and Refunds</h2>
+          <p>Please refer to our Returns Policy for information about returns and refunds. All returns must be initiated within 30 days of delivery.</p>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">8. Intellectual Property</h2>
-            <p className="text-muted-foreground">
-              All content on this website, including text, graphics, logos, and images, is the property of Prime Pickz and is protected by copyright and trademark laws.
-            </p>
-          </section>
+          <h2>Intellectual Property</h2>
+          <p>All content on this website is the property of PrimePickz and protected by copyright laws. You may not reproduce or distribute any content without permission.</p>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">9. Governing Law</h2>
-            <p className="text-muted-foreground">
-              These terms shall be governed by and construed in accordance with the laws of Connecticut, United States. Any disputes shall be subject to the exclusive jurisdiction of courts in Connecticut.
-            </p>
-          </section>
+          <h2>Limitation of Liability</h2>
+          <p>PrimePickz shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of our services.</p>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-4">10. Changes to Terms</h2>
-            <p className="text-muted-foreground">
-              We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting to the website.
-            </p>
-          </section>
+          <h2>Contact</h2>
+          <p>Questions? Contact us at support@primepickz.com</p>
         </div>
       </main>
 
       <Footer />
-      <MobileBottomNav cartCount={0} activeTab="home" />
+      <BottomNav />
     </div>
   );
 }

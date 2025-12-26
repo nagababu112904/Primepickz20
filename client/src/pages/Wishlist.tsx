@@ -1,18 +1,15 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Product, CartItemWithProduct } from "@shared/schema";
-import { useState } from "react";
-import { Header } from "@/components/Header";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { MiniCart } from "@/components/MiniCart";
-import { Footer } from "@/components/Footer";
+import type { Product } from "@shared/schema";
+import { Header } from "@/components/marketplace/Header";
+import { Footer } from "@/components/marketplace/Footer";
+import { BottomNav } from "@/components/marketplace/BottomNav";
 
 interface WishlistItem {
   id: string;
@@ -23,8 +20,6 @@ interface WishlistItem {
 export default function Wishlist() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const sessionId = "default-session";
 
   const { data: wishlistItems = [] } = useQuery<WishlistItem[]>({
     queryKey: ["/api/wishlist"],
@@ -33,15 +28,6 @@ export default function Wishlist() {
 
   const { data: allProducts = [] } = useQuery<Product[]>({
     queryKey: ["/api/products"],
-  });
-
-  const { data: cartItems = [] } = useQuery<CartItemWithProduct[]>({
-    queryKey: ["/api/cart"],
-    queryFn: async () => {
-      const response = await fetch(`/api/cart?sessionId=${sessionId}`);
-      if (!response.ok) throw new Error("Failed to fetch cart");
-      return response.json();
-    },
   });
 
   const removeFromWishlistMutation = useMutation({
@@ -58,10 +44,10 @@ export default function Wishlist() {
 
   const addToCartMutation = useMutation({
     mutationFn: (productId: string) =>
-      apiRequest("POST", "/api/cart", { 
-        productId, 
+      apiRequest("POST", "/api/cart", {
+        productId,
         quantity: 1,
-        sessionId: "default-session" 
+        sessionId: "default-session"
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
@@ -69,31 +55,6 @@ export default function Wishlist() {
         title: "Added to cart",
         description: "Item has been added to your cart",
       });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to add product to cart. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateQuantityMutation = useMutation({
-    mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
-      return await apiRequest("PATCH", `/api/cart/${itemId}`, { quantity });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
-    },
-  });
-
-  const removeItemMutation = useMutation({
-    mutationFn: async (itemId: string) => {
-      return await apiRequest("DELETE", `/api/cart/${itemId}`, {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
     },
   });
 
@@ -103,135 +64,110 @@ export default function Wishlist() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold mb-2">Login Required</h2>
-          <p className="text-muted-foreground mb-4">
-            Please log in to view your wishlist
-          </p>
-          <Button onClick={() => window.location.href = '/api/login'} data-testid="button-login">
-            Login
-          </Button>
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <Card className="max-w-md text-center py-12 px-8">
+            <CardContent>
+              <h2 className="text-2xl font-bold mb-2">Login Required</h2>
+              <p className="text-gray-500 mb-6">Please log in to view your wishlist</p>
+              <Button className="bg-[#7c3aed] hover:bg-[#6d28d9]">Login</Button>
+            </CardContent>
+          </Card>
         </div>
+        <Footer />
+        <BottomNav />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header
-        cartCount={cartItems.length}
-        wishlistCount={wishlistedProducts.length}
-        onCartClick={() => setIsCartOpen(true)}
-        language="en"
-        onLanguageChange={() => {}}
-      />
-      {/* Header */}
-      <div className="bg-card border-b">
-        <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-6 md:py-8">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-4" data-testid="button-back">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-          </Link>
-          <h1 className="text-2xl md:text-3xl font-bold mb-2">My Wishlist</h1>
-          <p className="text-muted-foreground">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+      <Header />
+
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 lg:px-8 py-8">
+        <Link href="/">
+          <Button variant="ghost" size="sm" className="mb-6 text-gray-600 hover:text-[#7c3aed]">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Continue Shopping
+          </Button>
+        </Link>
+
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Wishlist</h1>
+          <p className="text-gray-500 mt-1">
             {wishlistedProducts.length} {wishlistedProducts.length === 1 ? "item" : "items"}
           </p>
         </div>
-      </div>
 
-      {/* Wishlist Items */}
-      <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-8">
         {wishlistedProducts.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg mb-4">Your wishlist is empty</p>
-            <Link href="/">
-              <Button data-testid="button-browse">Browse Products</Button>
-            </Link>
-          </div>
+          <Card className="text-center py-16">
+            <CardContent>
+              <div className="w-24 h-24 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center">
+                <svg className="w-12 h-12 text-[#7c3aed]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Your wishlist is empty</h3>
+              <p className="text-gray-500 mb-6">Start adding products you love!</p>
+              <Link href="/">
+                <Button className="bg-[#7c3aed] hover:bg-[#6d28d9]">Browse Products</Button>
+              </Link>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {wishlistedProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover-elevate" data-testid={`card-product-${product.id}`}>
+              <Card key={product.id} className="overflow-hidden group">
                 <CardContent className="p-0">
-                  <div className="aspect-square bg-muted relative">
+                  <div className="aspect-square bg-gray-100 relative overflow-hidden">
                     <img
-                      src={product.imageUrl}
+                      src={product.imageUrl || '/placeholder.jpg'}
                       alt={product.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      loading="lazy"
                     />
-                    {product.badge && (
-                      <Badge className="absolute top-2 left-2" variant="destructive">
-                        {product.badge}
-                      </Badge>
-                    )}
-                    {product.discount && product.discount > 0 && (
-                      <Badge className="absolute top-2 right-2" variant="default">
-                        {product.discount}% OFF
-                      </Badge>
-                    )}
                     <Button
                       variant="destructive"
                       size="icon"
-                      className="absolute top-2 right-2"
+                      className="absolute top-3 right-3 w-8 h-8"
                       onClick={() => removeFromWishlistMutation.mutate(product.id)}
                       disabled={removeFromWishlistMutation.isPending}
-                      data-testid={`button-remove-${product.id}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold line-clamp-2 mb-2 text-sm md:text-base">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-baseline gap-2 mb-2">
+                    <h3 className="font-medium line-clamp-2 mb-2 text-sm">{product.name}</h3>
+                    <div className="flex items-baseline gap-2 mb-3">
                       <span className="text-lg font-bold">${product.price}</span>
                       {product.originalPrice && (
-                        <span className="text-sm text-muted-foreground line-through">
+                        <span className="text-sm text-gray-400 line-through">
                           ${product.originalPrice}
                         </span>
                       )}
-                    </div>
-                    <div className="flex items-center gap-1 text-xs">
-                      <span className="text-yellow-500">★</span>
-                      <span className="font-medium">{product.rating}</span>
-                      <span className="text-muted-foreground">({product.reviewCount})</span>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter className="p-4 pt-0">
                   <Button
-                    className="w-full"
+                    className="w-full bg-[#7c3aed] hover:bg-[#6d28d9]"
                     size="sm"
                     onClick={() => addToCartMutation.mutate(product.id)}
                     disabled={addToCartMutation.isPending}
-                    data-testid={`button-add-cart-${product.id}`}
                   >
-                    {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Add to Cart
                   </Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
         )}
-      </div>
+      </main>
+
       <Footer />
-      <MobileBottomNav
-        cartCount={cartItems.length}
-        activeTab="account"
-        onCartClick={() => setIsCartOpen(true)}
-      />
-      <MiniCart
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={(itemId, quantity) => updateQuantityMutation.mutate({ itemId, quantity })}
-        onRemoveItem={(itemId) => removeItemMutation.mutate(itemId)}
-        onCheckout={() => window.location.href = "/checkout"}
-      />
+      <BottomNav />
     </div>
   );
 }

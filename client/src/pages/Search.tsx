@@ -1,179 +1,117 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useLocation, Link } from 'wouter';
-import { Header } from '@/components/marketplace/Header';
-import { BottomNav } from '@/components/marketplace/BottomNav';
-import { Footer } from '@/components/marketplace/Footer';
-import { Search, TrendingUp, Clock } from 'lucide-react';
+import { Link } from 'wouter';
+import { Search as SearchIcon, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Header } from '@/components/marketplace/Header';
+import { Footer } from '@/components/marketplace/Footer';
+import { BottomNav } from '@/components/marketplace/BottomNav';
+import { ProductCard } from '@/components/marketplace/ProductCard';
 import type { Product } from '@shared/schema';
 
-export default function SearchPage() {
-    const [, setLocation] = useLocation();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [recentSearches] = useState([
-        'Wireless Headphones',
-        'Running Shoes',
-        'Smart Watch',
-        'Laptop',
-    ]);
+export default function Search() {
+    const [query, setQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
 
-    const { data: products = [] } = useQuery<Product[]>({
+    // Debounce search
+    React.useEffect(() => {
+        const timer = setTimeout(() => setDebouncedQuery(query), 300);
+        return () => clearTimeout(timer);
+    }, [query]);
+
+    const { data: products = [], isLoading } = useQuery<Product[]>({
         queryKey: ['/api/products'],
     });
 
-    // Trending searches
-    const trendingSearches = [
-        'Electronics',
-        'Fashion',
-        'Home Decor',
-        'Fitness Equipment',
-        'Beauty Products',
-    ];
-
-    // Search suggestions
-    const suggestions = products
-        .filter(p =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    // Filter products based on search query
+    const filteredProducts = products.filter(p =>
+        debouncedQuery.length >= 2 && (
+            p.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+            p.description?.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+            p.category?.toLowerCase().includes(debouncedQuery.toLowerCase())
         )
-        .slice(0, 8);
-
-    const handleSearch = (query: string) => {
-        if (query.trim()) {
-            setLocation(`/search?q=${encodeURIComponent(query)}`);
-        }
-    };
+    );
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
             <Header />
 
-            <div className="flex-1 max-w-4xl mx-auto px-4 py-8 w-full">
-                {/* Search Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold mb-4">Search Products</h1>
-
-                    {/* Search Input */}
+            <main className="flex-1 max-w-7xl mx-auto w-full px-4 lg:px-8 py-8">
+                {/* Search Bar */}
+                <div className="max-w-2xl mx-auto mb-8">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input
                             type="text"
-                            placeholder="Search for products, brands, and more..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                            className="pl-12 pr-4 py-6 text-lg"
+                            placeholder="Search products..."
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            className="w-full pl-12 pr-12 py-6 text-lg bg-white border-gray-200 rounded-full focus:ring-2 focus:ring-[#7c3aed]/20"
                             autoFocus
                         />
+                        {query && (
+                            <button
+                                onClick={() => setQuery('')}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+                            >
+                                <X className="w-5 h-5 text-gray-400" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* Search Results / Suggestions */}
-                {searchQuery ? (
-                    <div>
-                        <h2 className="text-lg font-semibold mb-4">Suggestions</h2>
-                        {suggestions.length > 0 ? (
-                            <div className="space-y-2">
-                                {suggestions.map((product) => (
-                                    <Link key={product.id} href={`/product/${product.id}`}>
-                                        <div className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
-                                            <div className="w-16 h-16 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
-                                                <img
-                                                    src={product.imageUrl ?? ''}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className="font-medium line-clamp-1">{product.name}</h3>
-                                                <p className="text-sm text-gray-600">{product.category}</p>
-                                                <p className="text-sm font-bold text-[hsl(var(--primary))] mt-1">
-                                                    ${product.price}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-gray-600 text-center py-8">No products found</p>
-                        )}
+                {/* Results */}
+                {debouncedQuery.length < 2 ? (
+                    <div className="text-center py-16">
+                        <div className="w-24 h-24 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center">
+                            <SearchIcon className="w-12 h-12 text-[#7c3aed]" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Search for products</h3>
+                        <p className="text-gray-500">Enter at least 2 characters to search</p>
                     </div>
-                ) : (
+                ) : isLoading ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
+                                <div className="aspect-square bg-gray-200 rounded-xl mb-4" />
+                                <div className="h-4 bg-gray-200 rounded mb-2" />
+                                <div className="h-4 bg-gray-200 rounded w-2/3" />
+                            </div>
+                        ))}
+                    </div>
+                ) : filteredProducts.length > 0 ? (
                     <>
-                        {/* Recent Searches */}
-                        <div className="mb-8">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Clock className="w-5 h-5 text-gray-600" />
-                                <h2 className="text-lg font-semibold">Recent Searches</h2>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {recentSearches.map((search, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setSearchQuery(search)}
-                                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition-colors"
-                                    >
-                                        {search}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Trending Searches */}
-                        <div className="mb-8">
-                            <div className="flex items-center gap-2 mb-4">
-                                <TrendingUp className="w-5 h-5 text-[hsl(var(--primary))]" />
-                                <h2 className="text-lg font-semibold">Trending Searches</h2>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {trendingSearches.map((search, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setSearchQuery(search)}
-                                        className="px-4 py-2 bg-[hsl(var(--primary)/0.1)] hover:bg-[hsl(var(--primary)/0.2)] text-[hsl(var(--primary))] rounded-full text-sm transition-colors"
-                                    >
-                                        {search}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Popular Products */}
-                        <div>
-                            <h2 className="text-lg font-semibold mb-4">Popular Products</h2>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {products.slice(0, 8).map((product) => (
-                                    <Link key={product.id} href={`/product/${product.id}`}>
-                                        <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                                            <CardContent className="p-0">
-                                                <div className="aspect-square bg-gray-100 overflow-hidden">
-                                                    <img
-                                                        src={product.imageUrl ?? ''}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover"
-                                                        loading="lazy"
-                                                    />
-                                                </div>
-                                                <div className="p-3">
-                                                    <h3 className="text-sm font-medium line-clamp-2 mb-2">
-                                                        {product.name}
-                                                    </h3>
-                                                    <p className="text-sm font-bold text-[hsl(var(--primary))]">
-                                                        ${product.price}
-                                                    </p>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </Link>
-                                ))}
-                            </div>
+                        <p className="text-gray-500 mb-6">
+                            {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''} for "{debouncedQuery}"
+                        </p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                            {filteredProducts.map((product) => (
+                                <ProductCard
+                                    key={product.id}
+                                    id={product.id}
+                                    name={product.name}
+                                    price={product.price}
+                                    originalPrice={product.originalPrice || undefined}
+                                    imageUrl={product.imageUrl || undefined}
+                                    badge={product.badge || undefined}
+                                    rating={typeof product.rating === 'string' ? parseFloat(product.rating) : (product.rating || 0)}
+                                    reviewCount={product.reviewCount || 0}
+                                    inStock={product.inStock ?? true}
+                                />
+                            ))}
                         </div>
                     </>
+                ) : (
+                    <div className="text-center py-16">
+                        <div className="w-24 h-24 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center">
+                            <SearchIcon className="w-12 h-12 text-[#7c3aed]" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">No results found</h3>
+                        <p className="text-gray-500">Try a different search term</p>
+                    </div>
                 )}
-            </div>
+            </main>
 
             <Footer />
             <BottomNav />

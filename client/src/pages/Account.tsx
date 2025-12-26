@@ -43,7 +43,7 @@ export default function Account() {
     ];
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe] flex flex-col">
             <Header />
 
             <div className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
@@ -117,8 +117,8 @@ export default function Account() {
                                                     <p className="text-sm text-gray-600">{order.date}</p>
                                                 </div>
                                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Delivered'
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-blue-100 text-blue-700'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-blue-100 text-blue-700'
                                                     }`}>
                                                     {order.status}
                                                 </span>
