@@ -1,7 +1,7 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, Check, MapPin, Calendar } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, Check, MapPin, Calendar, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Product, CartItemWithProduct, Review } from "@shared/schema";
@@ -10,11 +10,24 @@ import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
+interface ProductVariant {
+  id: string;
+  productId: string;
+  size: string | null;
+  color: string | null;
+  colorHex: string | null;
+  price: string;
+  comparePrice: string | null;
+  stock: number | null;
+  sku: string | null;
+}
+
 export default function ProductDetail() {
   const [, params] = useRoute("/product/:id");
   const productId = params?.id || "";
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState<string>("");
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [language, setLanguage] = useState("en");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { toast } = useToast();
@@ -32,12 +45,50 @@ export default function ProductDetail() {
     },
   });
 
+  const { data: variants = [] } = useQuery<ProductVariant[]>({
+    queryKey: [`/api/products/variants?productId=${productId}`],
+    enabled: !!productId,
+    queryFn: async () => {
+      const response = await fetch(`/api/products/variants?productId=${productId}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+  });
+
   const { data: reviews = [] } = useQuery<Review[]>({
     queryKey: [`/api/reviews/product/${productId}`],
     enabled: !!productId,
   });
 
   const product = allProducts?.find(p => p.id === productId);
+
+  // Get unique sizes and colors
+  const uniqueSizes = useMemo(() => {
+    const sizes = variants.filter(v => v.size).map(v => v.size!);
+    return Array.from(new Set(sizes));
+  }, [variants]);
+
+  const uniqueColors = useMemo(() => {
+    const colors = variants.filter(v => v.color).map(v => ({ name: v.color!, hex: v.colorHex }));
+    return colors.filter((c, i, arr) => arr.findIndex(x => x.name === c.name) === i);
+  }, [variants]);
+
+  // Get selected variant
+  const selectedVariant = useMemo(() => {
+    if (!variants.length) return null;
+    return variants.find(v =>
+      (selectedSize ? v.size === selectedSize : !v.size) &&
+      (selectedColor ? v.color === selectedColor : !v.color)
+    ) || variants.find(v =>
+      (selectedSize ? v.size === selectedSize : true) &&
+      (selectedColor ? v.color === selectedColor : true)
+    );
+  }, [variants, selectedSize, selectedColor]);
+
+  // Current price and stock based on selection
+  const currentPrice = selectedVariant ? parseFloat(selectedVariant.price) : product ? parseFloat(product.price) : 0;
+  const currentStock = selectedVariant?.stock ?? product?.stockCount ?? 0;
+  const isInStock = currentStock > 0;
 
   const handleAddToCart = async () => {
     try {
@@ -116,7 +167,7 @@ export default function ProductDetail() {
                 className="w-full h-full object-cover"
                 data-testid="product-detail-image"
               />
-              
+
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2">
                 {product.badge && (
@@ -151,11 +202,10 @@ export default function ProductDetail() {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-5 h-5 ${
-                          i < Math.floor(Number(product.rating))
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "fill-muted text-muted"
-                        }`}
+                        className={`w-5 h-5 ${i < Math.floor(Number(product.rating))
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "fill-muted text-muted"
+                          }`}
                       />
                     ))}
                   </div>
@@ -168,9 +218,19 @@ export default function ProductDetail() {
               {/* Price */}
               <div className="flex items-baseline gap-3 mb-6">
                 <span className="text-4xl font-bold text-foreground" data-testid="product-price">
-                  ${Number(product.price).toLocaleString()}
+                  ${currentPrice.toLocaleString()}
                 </span>
-                {hasDiscount && product.originalPrice && (
+                {selectedVariant?.comparePrice && parseFloat(selectedVariant.comparePrice) > currentPrice && (
+                  <>
+                    <span className="text-2xl text-muted-foreground line-through">
+                      ${parseFloat(selectedVariant.comparePrice).toLocaleString()}
+                    </span>
+                    <Badge variant="destructive" className="text-sm">
+                      Save ${(parseFloat(selectedVariant.comparePrice) - currentPrice).toFixed(2)}
+                    </Badge>
+                  </>
+                )}
+                {!selectedVariant && hasDiscount && product.originalPrice && (
                   <>
                     <span className="text-2xl text-muted-foreground line-through">
                       ${Number(product.originalPrice).toLocaleString()}
@@ -187,25 +247,57 @@ export default function ProductDetail() {
                 {product.description}
               </p>
 
-              {/* Variants */}
-              {product.variants && product.variants.length > 0 && (
+              {/* Size Selector */}
+              {uniqueSizes.length > 0 && (
                 <div className="mb-6">
                   <label className="text-sm font-semibold mb-2 block">
-                    Select Variant
+                    Select Size
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {product.variants.map((variant) => (
+                    {uniqueSizes.map((size) => (
                       <Button
-                        key={variant}
-                        variant={selectedVariant === variant ? "default" : "outline"}
+                        key={size}
+                        variant={selectedSize === size ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setSelectedVariant(variant)}
-                        data-testid={`variant-${variant}`}
+                        onClick={() => setSelectedSize(selectedSize === size ? null : size)}
+                        data-testid={`size-${size}`}
                       >
-                        {variant}
+                        {size}
                       </Button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Color Selector */}
+              {uniqueColors.length > 0 && (
+                <div className="mb-6">
+                  <label className="text-sm font-semibold mb-2 block">
+                    Select Color {selectedColor && <span className="font-normal">({selectedColor})</span>}
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    {uniqueColors.map((color) => (
+                      <button
+                        key={color.name}
+                        className={`w-10 h-10 rounded-full border-2 transition-all ${selectedColor === color.name
+                          ? 'border-primary ring-2 ring-primary ring-offset-2'
+                          : 'border-gray-200 hover:border-gray-400'
+                          }`}
+                        style={{ backgroundColor: color.hex || '#ccc' }}
+                        onClick={() => setSelectedColor(selectedColor === color.name ? null : color.name)}
+                        title={color.name}
+                        data-testid={`color-${color.name}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Stock Warning */}
+              {variants.length > 0 && currentStock <= 5 && currentStock > 0 && (
+                <div className="flex items-center gap-2 mb-4 text-orange-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">Only {currentStock} left in stock!</span>
                 </div>
               )}
 
@@ -309,7 +401,7 @@ export default function ProductDetail() {
               {/* Reviews Section */}
               <div>
                 <h2 className="text-2xl font-bold mb-6">Customer Reviews ({product.reviewCount || 0})</h2>
-                
+
                 {reviews?.length > 0 ? (
                   <div className="space-y-6">
                     {(reviews as Review[]).map((review) => (
@@ -333,11 +425,10 @@ export default function ProductDetail() {
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-4 h-4 ${
-                                  i < review.rating
-                                    ? "fill-yellow-400 text-yellow-400"
-                                    : "fill-muted text-muted"
-                                }`}
+                                className={`w-4 h-4 ${i < review.rating
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "fill-muted text-muted"
+                                  }`}
                               />
                             ))}
                           </div>
