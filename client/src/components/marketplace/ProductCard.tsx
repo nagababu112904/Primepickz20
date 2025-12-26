@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { Link } from 'wouter';
-import { Star } from 'lucide-react';
 
 interface ProductCardProps {
     id: string;
@@ -9,10 +9,10 @@ interface ProductCardProps {
     originalPrice?: string;
     imageUrl?: string;
     badge?: string;
+    rating?: number;
+    reviewCount?: number;
     inStock?: boolean;
     stockCount?: number;
-    rating?: string | number;
-    reviewCount?: number;
 }
 
 export function ProductCard({
@@ -22,90 +22,102 @@ export function ProductCard({
     originalPrice,
     imageUrl,
     badge,
+    rating = 0,
+    reviewCount = 0,
     inStock = true,
     stockCount,
-    rating,
-    reviewCount
 }: ProductCardProps) {
-    const isOutOfStock = inStock === false || stockCount === 0;
-    const numericRating = typeof rating === 'string' ? parseFloat(rating) : (rating || 0);
+    const [isWishlisted, setIsWishlisted] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
+
+    const hasDiscount = originalPrice && parseFloat(originalPrice) > parseFloat(price);
 
     return (
-        <Link href={`/product/${id}`}>
-            <div className={`group bg-white border border-[hsl(var(--border))] rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer ${isOutOfStock ? 'opacity-75' : ''}`}>
-                {/* Image Container - Fixed aspect ratio 4:5 */}
-                <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
-                    {imageUrl ? (
-                        <img
-                            src={imageUrl}
-                            alt={name}
-                            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isOutOfStock ? 'grayscale' : ''}`}
-                            loading="lazy"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+        <div className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
+            {/* Image Container */}
+            <Link href={`/product/${id}`}>
+                <div className="relative aspect-square bg-gray-50 overflow-hidden">
+                    {/* Lazy loaded image */}
+                    {!imageLoaded && (
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
+                    )}
+                    <img
+                        src={imageUrl || '/placeholder.jpg'}
+                        alt={name}
+                        loading="lazy"
+                        onLoad={() => setImageLoaded(true)}
+                        className={`w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300 ${!inStock ? 'opacity-50 grayscale' : ''
+                            } ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    />
+
+                    {/* Rating Badge - Top Left */}
+                    {rating > 0 && (
+                        <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm">
+                            <span className="text-sm font-semibold">{rating.toFixed(1)}/5</span>
+                            <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
                         </div>
                     )}
 
                     {/* Out of Stock Badge */}
-                    {isOutOfStock && (
-                        <div className="absolute top-2 right-2 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded">
-                            Out of Stock
-                        </div>
-                    )}
-
-                    {/* Badge */}
-                    {badge && !isOutOfStock && (
-                        <div className="absolute top-2 left-2 bg-[hsl(var(--primary))] text-white text-xs font-bold px-2 py-1 rounded">
-                            {badge}
+                    {!inStock && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                            <span className="bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full">
+                                Out of Stock
+                            </span>
                         </div>
                     )}
                 </div>
+            </Link>
 
-                {/* Content */}
-                <div className="p-3 flex flex-col gap-1">
-                    {/* Title - 2 lines max */}
-                    <h3 className="text-sm font-medium line-clamp-2 text-[hsl(var(--foreground))] group-hover:text-[hsl(var(--primary))] transition-colors min-h-[2.5rem]">
+            {/* Wishlist Button - Top Right */}
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    setIsWishlisted(!isWishlisted);
+                }}
+                className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isWishlisted
+                        ? 'bg-[#7c3aed] text-white'
+                        : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:text-[#7c3aed] hover:bg-white'
+                    }`}
+            >
+                <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+            </button>
+
+            {/* Badge - Top Item / Sale */}
+            {badge && (
+                <div className={`absolute top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold shadow-sm ${badge === 'Sale' || badge === 'Hot'
+                        ? 'bg-red-500 text-white'
+                        : 'bg-[#7c3aed] text-white'
+                    }`}>
+                    {badge === 'New' ? 'Top Item' : badge}
+                </div>
+            )}
+
+            {/* Content */}
+            <div className="p-4">
+                <Link href={`/product/${id}`}>
+                    <h3 className="font-medium text-gray-900 line-clamp-2 mb-3 min-h-[2.5rem] hover:text-[#7c3aed] transition-colors">
                         {name}
                     </h3>
+                </Link>
 
-                    {/* Star Rating */}
-                    {numericRating > 0 && (
-                        <div className="flex items-center gap-1">
-                            <div className="flex items-center gap-0.5">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                        key={star}
-                                        className={`w-3 h-3 ${star <= Math.round(numericRating)
-                                                ? 'fill-yellow-400 text-yellow-400'
-                                                : 'fill-gray-200 text-gray-200'
-                                            }`}
-                                    />
-                                ))}
-                            </div>
-                            <span className="text-xs text-gray-500">
-                                {numericRating.toFixed(1)}
-                                {reviewCount !== undefined && ` (${reviewCount})`}
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Price Block */}
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className={`text-lg font-bold ${isOutOfStock ? 'text-gray-400' : 'text-[hsl(var(--primary))]'}`}>
-                            ${price}
-                        </span>
-                        {originalPrice && (
-                            <span className="text-sm text-gray-500 line-through">
-                                ${originalPrice}
+                {/* Price Row */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        {hasDiscount && (
+                            <span className="text-sm text-gray-400 line-through">
+                                ${parseFloat(originalPrice!).toFixed(2)}
                             </span>
                         )}
+                        <div className="flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-full">
+                            <ShoppingCart className="w-4 h-4 text-[#7c3aed]" />
+                            <span className={`font-bold ${hasDiscount ? 'text-[#7c3aed]' : 'text-gray-900'}`}>
+                                ${parseFloat(price).toFixed(2)}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </Link>
+        </div>
     );
 }
