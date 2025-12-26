@@ -3,7 +3,7 @@ import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, sql as drizzleSql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
-import { verifyToken, extractToken, checkRateLimit, hashPassword, verifyPassword, generateToken } from '../lib/auth.js';
+import { verifyToken, extractToken, checkRateLimit, hashPassword, verifyPassword, generateToken } from '../../server/lib/auth.js';
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });

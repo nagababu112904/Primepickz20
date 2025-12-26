@@ -4,7 +4,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, sql as drizzleSql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 import Stripe from 'stripe';
-import { sendOrderConfirmation, notifyAdminNewOrder } from '../lib/email.js';
+import { sendOrderConfirmation, notifyAdminNewOrder } from '../../server/lib/email.js';
 
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
