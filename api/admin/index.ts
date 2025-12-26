@@ -103,6 +103,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             case 'returns':
                 return handleReturns(req, res);
 
+            // Category management
+            case 'categories':
+                return handleCategories(req, res);
+
             default:
                 return res.status(400).json({ error: 'Invalid action' });
         }
@@ -630,4 +634,73 @@ async function getSyncLogs(req: VercelRequest, res: VercelResponse) {
         .limit(50);
 
     return res.status(200).json(logs);
+}
+
+async function handleCategories(req: VercelRequest, res: VercelResponse) {
+    switch (req.method) {
+        case 'GET': {
+            const categories = await db.select()
+                .from(schema.categories)
+                .orderBy(drizzleSql`name ASC`);
+            return res.status(200).json(categories);
+        }
+
+        case 'POST': {
+            const { name, slug, imageUrl, description } = req.body;
+
+            if (!name || !slug || !imageUrl) {
+                return res.status(400).json({ error: 'Name, slug, and imageUrl are required' });
+            }
+
+            const newCategory = await db.insert(schema.categories).values({
+                name,
+                slug,
+                imageUrl,
+                description: description || null,
+            }).returning();
+
+            return res.status(201).json(newCategory[0]);
+        }
+
+        case 'PUT': {
+            const { id } = req.query;
+            const { name, slug, imageUrl, description } = req.body;
+
+            if (!id || typeof id !== 'string') {
+                return res.status(400).json({ error: 'Category ID required' });
+            }
+
+            const updated = await db.update(schema.categories)
+                .set({
+                    name,
+                    slug,
+                    imageUrl,
+                    description,
+                })
+                .where(eq(schema.categories.id, id))
+                .returning();
+
+            if (!updated.length) {
+                return res.status(404).json({ error: 'Category not found' });
+            }
+
+            return res.status(200).json(updated[0]);
+        }
+
+        case 'DELETE': {
+            const { id } = req.query;
+
+            if (!id || typeof id !== 'string') {
+                return res.status(400).json({ error: 'Category ID required' });
+            }
+
+            await db.delete(schema.categories)
+                .where(eq(schema.categories.id, id));
+
+            return res.status(200).json({ success: true });
+        }
+
+        default:
+            return res.status(405).json({ error: 'Method not allowed' });
+    }
 }

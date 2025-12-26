@@ -6,13 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LayoutDashboard, Package, ShoppingCart, RefreshCw, BarChart3, Settings, LogOut, Lock, RotateCcw } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, RefreshCw, BarChart3, Settings, LogOut, Lock, RotateCcw, Warehouse, FolderOpen } from 'lucide-react';
 import { DashboardTab } from './DashboardTab';
 import { ProductsTab } from './ProductsTab';
 import { OrdersTab } from './OrdersTab';
 import { AmazonSyncTab } from './AmazonSyncTab';
 import { AnalyticsTab } from './AnalyticsTab';
 import { ReturnsTab } from './ReturnsTab';
+import { InventoryTab } from './InventoryTab';
+import { CategoriesTab } from './CategoriesTab';
 import { useToast } from '@/hooks/use-toast';
 
 // Auth helper
@@ -215,6 +217,20 @@ export default function AdminDashboard() {
                             <RotateCcw className="w-4 h-4 mr-2" />
                             Returns
                         </TabsTrigger>
+                        <TabsTrigger
+                            value="inventory"
+                            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                        >
+                            <Warehouse className="w-4 h-4 mr-2" />
+                            Inventory
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="categories"
+                            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                        >
+                            <FolderOpen className="w-4 h-4 mr-2" />
+                            Categories
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="dashboard">
@@ -239,6 +255,14 @@ export default function AdminDashboard() {
 
                     <TabsContent value="returns">
                         <ReturnsTab />
+                    </TabsContent>
+
+                    <TabsContent value="inventory">
+                        <InventoryTab />
+                    </TabsContent>
+
+                    <TabsContent value="categories">
+                        <CategoriesTab />
                     </TabsContent>
                 </Tabs>
             </main>
