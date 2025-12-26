@@ -115,10 +115,17 @@ export class MemStorage implements IStorage {
     const id = userData.id || randomUUID();
     const user: User = {
       id,
-      email: userData.email || null,
+      email: userData.email || '',
+      passwordHash: null,
+      googleId: null,
       firstName: userData.firstName || null,
       lastName: userData.lastName || null,
       profileImageUrl: userData.profileImageUrl || null,
+      role: 'customer',
+      emailVerified: false,
+      emailVerifyToken: null,
+      passwordResetToken: null,
+      passwordResetExpires: null,
       createdAt: userData.createdAt || new Date(),
       updatedAt: new Date(),
     };
@@ -1021,7 +1028,12 @@ export class DBStorage implements IStorage {
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {
-    const results = await db.insert(schema.products).values(product).returning();
+    // Cast images to string[] to satisfy type checker
+    const productData = {
+      ...product,
+      images: product.images ? Array.from(product.images as unknown as string[]) : [],
+    };
+    const results = await db.insert(schema.products).values(productData).returning();
     return results[0];
   }
 
@@ -1078,7 +1090,12 @@ export class DBStorage implements IStorage {
   }
 
   async createReview(review: InsertReview): Promise<Review> {
-    const results = await db.insert(schema.reviews).values(review).returning();
+    // Cast photos to string[] to satisfy type checker
+    const reviewData = {
+      ...review,
+      photos: review.photos ? Array.from(review.photos as unknown as string[]) : null,
+    };
+    const results = await db.insert(schema.reviews).values(reviewData).returning();
     return results[0];
   }
 
