@@ -12,6 +12,8 @@ interface Product {
     badge?: string;
     inStock?: boolean;
     stockCount?: number;
+    rating?: string | number;
+    reviewCount?: number;
 }
 
 interface FeaturedSectionProps {

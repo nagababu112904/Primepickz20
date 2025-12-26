@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'wouter';
+import { Star } from 'lucide-react';
 
 interface ProductCardProps {
     id: string;
@@ -10,10 +11,24 @@ interface ProductCardProps {
     badge?: string;
     inStock?: boolean;
     stockCount?: number;
+    rating?: string | number;
+    reviewCount?: number;
 }
 
-export function ProductCard({ id, name, price, originalPrice, imageUrl, badge, inStock = true, stockCount }: ProductCardProps) {
+export function ProductCard({
+    id,
+    name,
+    price,
+    originalPrice,
+    imageUrl,
+    badge,
+    inStock = true,
+    stockCount,
+    rating,
+    reviewCount
+}: ProductCardProps) {
     const isOutOfStock = inStock === false || stockCount === 0;
+    const numericRating = typeof rating === 'string' ? parseFloat(rating) : (rating || 0);
 
     return (
         <Link href={`/product/${id}`}>
@@ -50,15 +65,36 @@ export function ProductCard({ id, name, price, originalPrice, imageUrl, badge, i
                     )}
                 </div>
 
-                {/* Content - Fixed height */}
-                <div className="p-3 h-24 flex flex-col justify-between">
+                {/* Content */}
+                <div className="p-3 flex flex-col gap-1">
                     {/* Title - 2 lines max */}
-                    <h3 className="text-sm font-medium line-clamp-2 text-[hsl(var(--foreground))] group-hover:text-[hsl(var(--primary))] transition-colors">
+                    <h3 className="text-sm font-medium line-clamp-2 text-[hsl(var(--foreground))] group-hover:text-[hsl(var(--primary))] transition-colors min-h-[2.5rem]">
                         {name}
                     </h3>
 
+                    {/* Star Rating */}
+                    {numericRating > 0 && (
+                        <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-0.5">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                        key={star}
+                                        className={`w-3 h-3 ${star <= Math.round(numericRating)
+                                                ? 'fill-yellow-400 text-yellow-400'
+                                                : 'fill-gray-200 text-gray-200'
+                                            }`}
+                                    />
+                                ))}
+                            </div>
+                            <span className="text-xs text-gray-500">
+                                {numericRating.toFixed(1)}
+                                {reviewCount !== undefined && ` (${reviewCount})`}
+                            </span>
+                        </div>
+                    )}
+
                     {/* Price Block */}
-                    <div className="flex items-center gap-2 mt-auto">
+                    <div className="flex items-center gap-2 mt-1">
                         <span className={`text-lg font-bold ${isOutOfStock ? 'text-gray-400' : 'text-[hsl(var(--primary))]'}`}>
                             ${price}
                         </span>
