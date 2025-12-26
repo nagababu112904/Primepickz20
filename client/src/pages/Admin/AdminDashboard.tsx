@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LayoutDashboard, Package, ShoppingCart, RefreshCw, BarChart3, Settings, LogOut, Lock } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, RefreshCw, BarChart3, Settings, LogOut, Lock, RotateCcw } from 'lucide-react';
 import { DashboardTab } from './DashboardTab';
 import { ProductsTab } from './ProductsTab';
 import { OrdersTab } from './OrdersTab';
 import { AmazonSyncTab } from './AmazonSyncTab';
 import { AnalyticsTab } from './AnalyticsTab';
+import { ReturnsTab } from './ReturnsTab';
 import { useToast } from '@/hooks/use-toast';
 
 // Auth helper
@@ -207,6 +208,13 @@ export default function AdminDashboard() {
                             <BarChart3 className="w-4 h-4 mr-2" />
                             Analytics
                         </TabsTrigger>
+                        <TabsTrigger
+                            value="returns"
+                            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                        >
+                            <RotateCcw className="w-4 h-4 mr-2" />
+                            Returns
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="dashboard">
@@ -227,6 +235,10 @@ export default function AdminDashboard() {
 
                     <TabsContent value="analytics">
                         <AnalyticsTab />
+                    </TabsContent>
+
+                    <TabsContent value="returns">
+                        <ReturnsTab />
                     </TabsContent>
                 </Tabs>
             </main>

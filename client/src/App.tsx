@@ -20,6 +20,7 @@ import FAQ from "@/pages/FAQ";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Returns from "@/pages/Returns";
+import ReturnRequest from "@/pages/ReturnRequest";
 import Shipping from "@/pages/Shipping";
 import SizeGuide from "@/pages/SizeGuide";
 import TrackOrder from "@/pages/TrackOrder";
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/returns" component={Returns} />
+      <Route path="/return-request" component={ReturnRequest} />
       <Route path="/shipping" component={Shipping} />
       <Route path="/size-guide" component={SizeGuide} />
       <Route path="/track-order" component={TrackOrder} />

@@ -423,6 +423,42 @@ async function handleReturns(req: VercelRequest, res: VercelResponse) {
             return res.status(200).json(returns);
         }
 
+        case 'POST': {
+            // Create new return request (customer submission)
+            const { orderId, reason, description, photos, contactEmail, contactPhone } = req.body;
+
+            if (!orderId || !reason || !contactEmail) {
+                return res.status(400).json({ error: 'Order ID, reason, and contact email are required' });
+            }
+
+            // Verify order exists
+            const order = await db.select()
+                .from(schema.orders)
+                .where(eq(schema.orders.id, orderId))
+                .limit(1);
+
+            if (!order.length) {
+                return res.status(404).json({ error: 'Order not found' });
+            }
+
+            const newReturn = await db.insert(schema.returnRequests).values({
+                orderId,
+                reason,
+                description,
+                photos: photos || [],
+                contactEmail,
+                contactPhone,
+                status: 'pending',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            }).returning();
+
+            return res.status(201).json({
+                success: true,
+                returnRequest: newReturn[0],
+            });
+        }
+
         case 'PUT': {
             const { id } = req.query;
             const { status, adminNotes } = req.body;
