@@ -197,17 +197,17 @@ async function getStats(req: VercelRequest, res: VercelResponse) {
         .where(drizzleSql`amazon_sync_status = 'pending'`);
     const pendingSyncs = Number(pendingSyncsResult[0]?.count || 0);
 
-    // Low stock count
-    const lowStockResult = await db.select({ count: drizzleSql<number>`count(*)` })
+    // Get low stock products (stock <= 5) for alerts
+    const lowStockProducts = await db.select({
+        id: schema.products.id,
+        name: schema.products.name,
+        stockCount: schema.products.stockCount,
+        imageUrl: schema.products.imageUrl,
+    })
         .from(schema.products)
-        .where(drizzleSql`stock_count <= 5 AND stock_count > 0`);
-    const lowStockCount = Number(lowStockResult[0]?.count || 0);
-
-    // Out of stock count
-    const outOfStockResult = await db.select({ count: drizzleSql<number>`count(*)` })
-        .from(schema.products)
-        .where(drizzleSql`stock_count = 0 OR in_stock = false`);
-    const outOfStockCount = Number(outOfStockResult[0]?.count || 0);
+        .where(drizzleSql`(stock_count <= 5 OR stock_count IS NULL)`)
+        .orderBy(drizzleSql`stock_count ASC`)
+        .limit(10);
 
     const recentLogs = await db.select()
         .from(schema.amazonSyncLogs)
@@ -219,8 +219,7 @@ async function getStats(req: VercelRequest, res: VercelResponse) {
         totalOrders,
         totalRevenue,
         pendingSyncs,
-        lowStockCount,
-        outOfStockCount,
+        lowStockProducts,
         recentSyncLogs: recentLogs,
     });
 }

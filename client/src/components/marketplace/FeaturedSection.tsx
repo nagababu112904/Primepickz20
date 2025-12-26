@@ -10,6 +10,8 @@ interface Product {
     originalPrice?: string;
     imageUrl?: string;
     badge?: string;
+    inStock?: boolean;
+    stockCount?: number;
 }
 
 interface FeaturedSectionProps {

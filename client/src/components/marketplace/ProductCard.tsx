@@ -8,19 +8,23 @@ interface ProductCardProps {
     originalPrice?: string;
     imageUrl?: string;
     badge?: string;
+    inStock?: boolean;
+    stockCount?: number;
 }
 
-export function ProductCard({ id, name, price, originalPrice, imageUrl, badge }: ProductCardProps) {
+export function ProductCard({ id, name, price, originalPrice, imageUrl, badge, inStock = true, stockCount }: ProductCardProps) {
+    const isOutOfStock = inStock === false || stockCount === 0;
+
     return (
         <Link href={`/product/${id}`}>
-            <div className="group bg-white border border-[hsl(var(--border))] rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+            <div className={`group bg-white border border-[hsl(var(--border))] rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer ${isOutOfStock ? 'opacity-75' : ''}`}>
                 {/* Image Container - Fixed aspect ratio 4:5 */}
                 <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
                     {imageUrl ? (
                         <img
                             src={imageUrl}
                             alt={name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${isOutOfStock ? 'grayscale' : ''}`}
                             loading="lazy"
                         />
                     ) : (
@@ -31,8 +35,15 @@ export function ProductCard({ id, name, price, originalPrice, imageUrl, badge }:
                         </div>
                     )}
 
+                    {/* Out of Stock Badge */}
+                    {isOutOfStock && (
+                        <div className="absolute top-2 right-2 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded">
+                            Out of Stock
+                        </div>
+                    )}
+
                     {/* Badge */}
-                    {badge && (
+                    {badge && !isOutOfStock && (
                         <div className="absolute top-2 left-2 bg-[hsl(var(--primary))] text-white text-xs font-bold px-2 py-1 rounded">
                             {badge}
                         </div>
@@ -48,7 +59,7 @@ export function ProductCard({ id, name, price, originalPrice, imageUrl, badge }:
 
                     {/* Price Block */}
                     <div className="flex items-center gap-2 mt-auto">
-                        <span className="text-lg font-bold text-[hsl(var(--primary))]">
+                        <span className={`text-lg font-bold ${isOutOfStock ? 'text-gray-400' : 'text-[hsl(var(--primary))]'}`}>
                             ${price}
                         </span>
                         {originalPrice && (

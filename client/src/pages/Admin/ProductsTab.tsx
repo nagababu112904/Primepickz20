@@ -224,9 +224,23 @@ export function ProductsTab() {
                                             </td>
                                             <td className="py-4 px-6 font-medium">${product.price}</td>
                                             <td className="py-4 px-6">
-                                                <Badge variant="default" className="bg-blue-100 text-blue-700">
-                                                    {product.stockCount || 0} units
-                                                </Badge>
+                                                {(product.stockCount || 0) === 0 ? (
+                                                    <Badge className="bg-gray-800 text-white">
+                                                        Out of Stock
+                                                    </Badge>
+                                                ) : (product.stockCount || 0) < 5 ? (
+                                                    <Badge className="bg-red-100 text-red-700 border border-red-200">
+                                                        {product.stockCount} units ⚠️
+                                                    </Badge>
+                                                ) : (product.stockCount || 0) < 20 ? (
+                                                    <Badge className="bg-yellow-100 text-yellow-700 border border-yellow-200">
+                                                        {product.stockCount} units
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge className="bg-green-100 text-green-700 border border-green-200">
+                                                        {product.stockCount} units
+                                                    </Badge>
+                                                )}
                                             </td>
                                             <td className="py-4 px-6">
                                                 <Badge

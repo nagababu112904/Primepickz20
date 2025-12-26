@@ -9,6 +9,12 @@ interface AdminStats {
     totalOrders: number;
     totalRevenue: number;
     pendingSyncs: number;
+    lowStockProducts: Array<{
+        id: string;
+        name: string;
+        stockCount: number;
+        imageUrl: string;
+    }>;
     recentSyncLogs: Array<{
         id: string;
         productId: string | null;
@@ -107,6 +113,47 @@ export function DashboardTab() {
                 </Card>
             </div>
 
+            {/* Low Stock Alerts */}
+            {stats?.lowStockProducts && stats.lowStockProducts.length > 0 && (
+                <Card className="bg-white border-red-200">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2 text-red-600">
+                            ⚠️ Low Stock Alerts
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {stats.lowStockProducts.map((product) => (
+                                <div key={product.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100">
+                                    <div className="flex items-center gap-3">
+                                        <img
+                                            src={product.imageUrl}
+                                            alt={product.name}
+                                            className="w-10 h-10 rounded object-cover bg-gray-100"
+                                        />
+                                        <div>
+                                            <p className="font-medium text-gray-900">{product.name}</p>
+                                            <p className="text-sm text-red-600 font-semibold">
+                                                {product.stockCount === 0
+                                                    ? 'Out of Stock!'
+                                                    : `Only ${product.stockCount} left!`
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="text-sm text-blue-600 hover:underline"
+                                        onClick={() => {/* TODO: Navigate to edit */ }}
+                                    >
+                                        Restock →
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Recent Amazon Sync Activity */}
             <Card className="bg-white">
                 <CardHeader>
@@ -119,7 +166,7 @@ export function DashboardTab() {
                                 <div key={log.id} className="flex items-start justify-between py-3 border-b last:border-0">
                                     <div className="flex items-start gap-3">
                                         <span className={`w-2 h-2 rounded-full mt-2 ${log.status === 'success' ? 'bg-green-500' :
-                                                log.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'
+                                            log.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'
                                             }`} />
                                         <div>
                                             <p className="font-medium text-gray-900">{log.message}</p>
