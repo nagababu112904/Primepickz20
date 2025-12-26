@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, sql as drizzleSql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 import Stripe from 'stripe';
+import { sendOrderConfirmation, notifyAdminNewOrder } from '../lib/email.js';
 
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
@@ -72,8 +73,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             .where(eq(schema.products.id, item.productId));
                     }
 
-                    // TODO: Send order confirmation email via Resend
-                    // await sendOrderConfirmationEmail(session.customer_email, orderNumber);
+                    // Send order confirmation and admin notification emails
+                    if (session.customer_email) {
+                        const orderData = await db.select()
+                            .from(schema.orders)
+                            .where(eq(schema.orders.id, orderId))
+                            .limit(1);
+
+                        if (orderData[0]) {
+                            const items = orderItems.map(item => ({
+                                name: item.productName || 'Product',
+                                quantity: item.quantity,
+                                price: item.price?.toString() || '0',
+                            }));
+
+                            const emailOrder = {
+                                orderNumber: orderNumber || orderData[0].orderNumber,
+                                customerEmail: session.customer_email,
+                                customerName: session.customer_details?.name || 'Valued Customer',
+                                items,
+                                subtotal: ((session.amount_total || 0) / 100).toFixed(2),
+                                shipping: '0',
+                                total: ((session.amount_total || 0) / 100).toFixed(2),
+                            };
+
+                            // Send order confirmation to customer
+                            await sendOrderConfirmation(emailOrder);
+
+                            // Notify admin of new order
+                            await notifyAdminNewOrder(emailOrder);
+                        }
+                    }
 
                     console.log(`Order ${orderNumber} payment completed successfully`);
                 }
