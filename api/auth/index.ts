@@ -11,7 +11,7 @@ import {
     generateRandomToken,
     checkRateLimit,
     extractToken
-} from '../lib/auth.js';
+} from '../../server/lib/auth.js';
 import { z } from 'zod';
 
 const sql = neon(process.env.DATABASE_URL!);
