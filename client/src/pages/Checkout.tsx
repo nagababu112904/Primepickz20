@@ -9,22 +9,24 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Lock, MapPin, User } from "lucide-react";
+import { CreditCard, Lock, MapPin, User, Loader2, ShieldCheck } from "lucide-react";
 import type { CartItemWithProduct } from "@shared/schema";
 
 const US_STATES = [
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", 
-  "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", 
-  "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", 
-  "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", 
-  "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", 
-  "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", 
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware",
+  "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+  "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi",
+  "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico",
+  "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
+  "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont",
   "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
 ];
 
 export default function Checkout() {
   const [, setLocation] = useLocation();
   const sessionId = "default-session";
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { data: cartItems = [] } = useQuery<CartItemWithProduct[]>({
     queryKey: ["/api/cart"],
@@ -41,30 +43,74 @@ export default function Checkout() {
     lastName: "",
     address: "",
     apartment: "",
-    city: "New Haven",
-    state: "Connecticut",
+    city: "",
+    state: "New York",
     zipCode: "",
     phone: "",
-    cardNumber: "",
-    cardName: "",
-    expiryDate: "",
-    cvv: "",
   });
 
   const subtotal = cartItems.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0);
-  const shipping = subtotal > 999 ? 0 : 50;
-  const tax = subtotal * 0.0625;
+  const shipping = subtotal > 50 ? 0 : 5.99;
+  const tax = subtotal * 0.0825; // 8.25% tax
   const total = subtotal + shipping + tax;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Payment processing would happen here with Stripe API. Add STRIPE_SECRET_KEY to secrets to enable.");
+    setError(null);
+    setIsProcessing(true);
+
+    try {
+      // Validate form
+      if (!formData.email || !formData.firstName || !formData.lastName ||
+        !formData.address || !formData.city || !formData.zipCode || !formData.phone) {
+        throw new Error('Please fill in all required fields');
+      }
+
+      // Create checkout session
+      const response = await fetch('/api/payment/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cartItems.map(item => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+          })),
+          customerEmail: formData.email,
+          shippingAddress: {
+            fullName: `${formData.firstName} ${formData.lastName}`,
+            phone: formData.phone,
+            addressLine1: formData.address,
+            addressLine2: formData.apartment,
+            city: formData.city,
+            state: formData.state,
+            pincode: formData.zipCode,
+          },
+          sessionId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      // Redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong');
+      setIsProcessing(false);
+    }
   };
 
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header cartCount={0} wishlistCount={0} onCartClick={() => {}} language="en" onLanguageChange={() => {}} />
+        <Header cartCount={0} wishlistCount={0} onCartClick={() => { }} language="en" onLanguageChange={() => { }} />
         <main className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
             <CardContent className="pt-6 text-center">
@@ -83,17 +129,23 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header 
-        cartCount={cartItems.length} 
-        wishlistCount={0} 
-        onCartClick={() => {}} 
-        language="en" 
-        onLanguageChange={() => {}} 
+      <Header
+        cartCount={cartItems.length}
+        wishlistCount={0}
+        onCartClick={() => { }}
+        language="en"
+        onLanguageChange={() => { }}
       />
 
       <main className="flex-1 bg-muted/30 py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl md:text-4xl font-bold mb-8">Secure Checkout</h1>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -109,7 +161,7 @@ export default function Checkout() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="email">Email Address</Label>
+                      <Label htmlFor="email">Email Address *</Label>
                       <Input
                         id="email"
                         type="email"
@@ -122,7 +174,7 @@ export default function Checkout() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="firstName">First Name</Label>
+                        <Label htmlFor="firstName">First Name *</Label>
                         <Input
                           id="firstName"
                           required
@@ -132,7 +184,7 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName">Last Name</Label>
+                        <Label htmlFor="lastName">Last Name *</Label>
                         <Input
                           id="lastName"
                           required
@@ -155,7 +207,7 @@ export default function Checkout() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="address">Street Address</Label>
+                      <Label htmlFor="address">Street Address *</Label>
                       <Input
                         id="address"
                         required
@@ -177,7 +229,7 @@ export default function Checkout() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="city">City</Label>
+                        <Label htmlFor="city">City *</Label>
                         <Input
                           id="city"
                           required
@@ -187,7 +239,7 @@ export default function Checkout() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="state">State</Label>
+                        <Label htmlFor="state">State *</Label>
                         <Select value={formData.state} onValueChange={(value) => setFormData({ ...formData, state: value })}>
                           <SelectTrigger id="state" data-testid="select-state">
                             <SelectValue />
@@ -202,27 +254,27 @@ export default function Checkout() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="zipCode">ZIP Code</Label>
+                        <Label htmlFor="zipCode">ZIP Code *</Label>
                         <Input
                           id="zipCode"
                           required
                           value={formData.zipCode}
                           onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                          placeholder="06510"
+                          placeholder="10001"
                           maxLength={5}
                           pattern="[0-9]{5}"
                           data-testid="input-zipcode"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="phone">Phone</Label>
+                        <Label htmlFor="phone">Phone *</Label>
                         <Input
                           id="phone"
                           type="tel"
                           required
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          placeholder="(203) 555-0123"
+                          placeholder="(212) 555-0123"
                           data-testid="input-phone"
                         />
                       </div>
@@ -230,67 +282,28 @@ export default function Checkout() {
                   </CardContent>
                 </Card>
 
-                {/* Payment Information */}
-                <Card>
+                {/* Stripe Payment Info */}
+                <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-purple-700">
                       <CreditCard className="w-5 h-5" />
-                      Payment Information
+                      Secure Payment
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="cardNumber">Card Number</Label>
-                      <Input
-                        id="cardNumber"
-                        required
-                        value={formData.cardNumber}
-                        onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
-                        placeholder="1234 5678 9012 3456"
-                        maxLength={19}
-                        data-testid="input-cardnumber"
-                      />
+                  <CardContent>
+                    <div className="flex items-center gap-3 text-sm text-gray-600">
+                      <ShieldCheck className="w-5 h-5 text-green-600" />
+                      <p>
+                        You'll be redirected to <strong>Stripe's secure checkout</strong> to complete your payment.
+                        We never see or store your card details.
+                      </p>
                     </div>
-                    <div>
-                      <Label htmlFor="cardName">Cardholder Name</Label>
-                      <Input
-                        id="cardName"
-                        required
-                        value={formData.cardName}
-                        onChange={(e) => setFormData({ ...formData, cardName: e.target.value })}
-                        placeholder="John Doe"
-                        data-testid="input-cardname"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="expiryDate">Expiry Date</Label>
-                        <Input
-                          id="expiryDate"
-                          required
-                          value={formData.expiryDate}
-                          onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                          placeholder="MM/YY"
-                          maxLength={5}
-                          data-testid="input-expiry"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="cvv">CVV</Label>
-                        <Input
-                          id="cvv"
-                          required
-                          value={formData.cvv}
-                          onChange={(e) => setFormData({ ...formData, cvv: e.target.value })}
-                          placeholder="123"
-                          maxLength={4}
-                          data-testid="input-cvv"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Lock className="w-4 h-4" />
-                      <span>Your payment information is secure and encrypted</span>
+                    <div className="mt-4 flex items-center gap-2">
+                      <img src="https://img.icons8.com/color/48/visa.png" alt="Visa" className="h-8" />
+                      <img src="https://img.icons8.com/color/48/mastercard.png" alt="Mastercard" className="h-8" />
+                      <img src="https://img.icons8.com/color/48/amex.png" alt="Amex" className="h-8" />
+                      <img src="https://img.icons8.com/color/48/apple-pay.png" alt="Apple Pay" className="h-8" />
+                      <img src="https://img.icons8.com/color/48/google-pay.png" alt="Google Pay" className="h-8" />
                     </div>
                   </CardContent>
                 </Card>
@@ -303,7 +316,7 @@ export default function Checkout() {
                     <CardTitle>Order Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-h-64 overflow-y-auto">
                       {cartItems.map(item => (
                         <div key={item.id} className="flex gap-3" data-testid={`order-item-${item.product.id}`}>
                           <img
@@ -314,7 +327,7 @@ export default function Checkout() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium line-clamp-2">{item.product.name}</p>
                             <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
-                            <p className="text-sm font-semibold">${Number(item.product.price) * item.quantity}</p>
+                            <p className="text-sm font-semibold">${(Number(item.product.price) * item.quantity).toFixed(2)}</p>
                           </div>
                         </div>
                       ))}
@@ -329,12 +342,12 @@ export default function Checkout() {
                       </div>
                       <div className="flex justify-between">
                         <span>Shipping</span>
-                        <span data-testid="text-shipping">
+                        <span data-testid="text-shipping" className={shipping === 0 ? "text-green-600 font-medium" : ""}>
                           {shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Tax (6.25%)</span>
+                        <span>Tax (8.25%)</span>
                         <span data-testid="text-tax">${tax.toFixed(2)}</span>
                       </div>
                       <Separator />
@@ -344,14 +357,30 @@ export default function Checkout() {
                       </div>
                     </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
+                    {subtotal < 50 && (
+                      <div className="bg-amber-50 text-amber-700 text-xs p-2 rounded">
+                        Add ${(50 - subtotal).toFixed(2)} more for FREE shipping!
+                      </div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-[#0B3C5D] hover:bg-[#0B3C5D]/90"
                       size="lg"
+                      disabled={isProcessing}
                       data-testid="button-place-order"
                     >
-                      <Lock className="w-4 h-4 mr-2" />
-                      Place Order
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 mr-2" />
+                          Pay with Stripe - ${total.toFixed(2)}
+                        </>
+                      )}
                     </Button>
 
                     <p className="text-xs text-center text-muted-foreground">
@@ -369,3 +398,4 @@ export default function Checkout() {
     </div>
   );
 }
+
