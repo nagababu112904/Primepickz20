@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb, index, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, boolean, timestamp, jsonb, index, unique, serial, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -14,13 +14,20 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table for Replit Auth
+// Users table with authentication
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
+  email: varchar("email", { length: 255 }).unique().notNull(),
+  passwordHash: varchar("password_hash", { length: 255 }),
+  googleId: varchar("google_id", { length: 255 }).unique(),
+  firstName: varchar("first_name", { length: 100 }),
+  lastName: varchar("last_name", { length: 100 }),
+  profileImageUrl: varchar("profile_image_url", { length: 500 }),
+  role: varchar("role", { length: 20 }).default("customer"), // 'customer', 'admin'
+  emailVerified: boolean("email_verified").default(false),
+  emailVerifyToken: varchar("email_verify_token", { length: 255 }),
+  passwordResetToken: varchar("password_reset_token", { length: 255 }),
+  passwordResetExpires: timestamp("password_reset_expires"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -35,6 +42,7 @@ export const products = pgTable("products", {
   discount: integer("discount").default(0),
   category: text("category").notNull(),
   imageUrl: text("image_url").notNull(),
+  images: jsonb("images").$type<string[]>().default([]), // Array of image URLs
   rating: decimal("rating", { precision: 2, scale: 1 }).default("0"),
   reviewCount: integer("review_count").default(0),
   inStock: boolean("in_stock").default(true),
@@ -42,14 +50,29 @@ export const products = pgTable("products", {
   tags: text("tags").array(),
   badge: text("badge"),
   freeShipping: boolean("free_shipping").default(false),
-  variants: text("variants").array(),
+  hasVariants: boolean("has_variants").default(false),
   // Amazon SP-API fields
   amazonAsin: text("amazon_asin"),
   amazonSku: text("amazon_sku"),
-  amazonSyncStatus: text("amazon_sync_status").default("pending"), // 'synced', 'pending', 'failed'
+  amazonSyncStatus: text("amazon_sync_status").default("pending"),
   lastSyncedAt: timestamp("last_synced_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Product Variants (Size + Color combinations)
+export const productVariants = pgTable("product_variants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull(),
+  size: varchar("size", { length: 50 }),
+  color: varchar("color", { length: 50 }),
+  colorHex: varchar("color_hex", { length: 7 }),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  comparePrice: decimal("compare_price", { precision: 10, scale: 2 }),
+  stock: integer("stock").default(0),
+  sku: varchar("sku", { length: 100 }),
+  imageUrl: text("image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Categories
@@ -71,17 +94,37 @@ export const deals = pgTable("deals", {
   isActive: boolean("is_active").default(true),
 });
 
-// Reviews
+// Reviews with photos
 export const reviews = pgTable("reviews", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   productId: varchar("product_id").notNull(),
+  userId: varchar("user_id"),
   customerName: text("customer_name").notNull(),
   customerLocation: text("customer_location"),
   rating: integer("rating").notNull(),
+  title: varchar("title", { length: 200 }),
   comment: text("comment").notNull(),
+  photos: jsonb("photos").$type<string[]>().default([]),
   imageUrl: text("image_url"),
   date: text("date").notNull(),
   verified: boolean("verified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Return Requests
+export const returnRequests = pgTable("return_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").notNull(),
+  userId: varchar("user_id"),
+  reason: varchar("reason", { length: 100 }).notNull(),
+  description: text("description"),
+  photos: jsonb("photos").$type<string[]>().default([]),
+  contactEmail: varchar("contact_email", { length: 255 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 20 }),
+  status: varchar("status", { length: 20 }).default("pending"), // pending, approved, rejected, completed
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Cart Items
@@ -164,19 +207,24 @@ export const amazonSyncLogs = pgTable("amazon_sync_logs", {
 });
 
 // Schemas for type safety
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true, lastSyncedAt: true });
+export const insertProductVariantSchema = createInsertSchema(productVariants).omit({ id: true, createdAt: true });
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 export const insertDealSchema = createInsertSchema(deals).omit({ id: true });
-export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true });
+export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true });
 export const insertCartItemSchema = createInsertSchema(cartItems).omit({ id: true });
 export const insertWishlistItemSchema = createInsertSchema(wishlistItems).omit({ id: true, createdAt: true });
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertOrderSchema = createInsertSchema(orders).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertOrderItemSchema = createInsertSchema(orderItems).omit({ id: true });
 export const insertSyncLogSchema = createInsertSchema(amazonSyncLogs).omit({ id: true, createdAt: true });
+export const insertReturnRequestSchema = createInsertSchema(returnRequests).omit({ id: true, createdAt: true, updatedAt: true });
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type ProductVariant = typeof productVariants.$inferSelect;
+export type InsertProductVariant = z.infer<typeof insertProductVariantSchema>;
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Deal = typeof deals.$inferSelect;
@@ -188,6 +236,7 @@ export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
 export type PurchaseNotification = typeof purchaseNotifications.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type WishlistItem = typeof wishlistItems.$inferSelect;
 export type InsertWishlistItem = z.infer<typeof insertWishlistItemSchema>;
 export type Address = typeof addresses.$inferSelect;
@@ -198,6 +247,8 @@ export type OrderItem = typeof orderItems.$inferSelect;
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 export type AmazonSyncLog = typeof amazonSyncLogs.$inferSelect;
 export type InsertSyncLog = z.infer<typeof insertSyncLogSchema>;
+export type ReturnRequest = typeof returnRequests.$inferSelect;
+export type InsertReturnRequest = z.infer<typeof insertReturnRequestSchema>;
 
 // Additional types for frontend
 export interface CartItemWithProduct extends CartItem {
