@@ -455,7 +455,8 @@ export class MemStorage implements IStorage {
         tags: prod.tags ?? null,
         badge: prod.badge ?? null,
         freeShipping: prod.freeShipping ?? null,
-        variants: prod.variants ?? null,
+        hasVariants: false,
+        images: [],
         amazonAsin: null,
         amazonSku: null,
         amazonSyncStatus: 'pending',
@@ -571,9 +572,13 @@ export class MemStorage implements IStorage {
       this.reviews.set(id, {
         ...review,
         id,
+        title: null,
+        userId: null,
+        photos: null,
         imageUrl: review.imageUrl ?? null,
         customerLocation: review.customerLocation ?? null,
         verified: review.verified ?? null,
+        createdAt: new Date(),
       });
     });
 
@@ -633,7 +638,8 @@ export class MemStorage implements IStorage {
       tags: product.tags ?? null,
       badge: product.badge ?? null,
       freeShipping: product.freeShipping ?? null,
-      variants: product.variants ?? null,
+      hasVariants: product.hasVariants ?? false,
+      images: (product.images ?? []) as string[],
       amazonAsin: product.amazonAsin ?? null,
       amazonSku: product.amazonSku ?? null,
       amazonSyncStatus: product.amazonSyncStatus ?? 'pending',
@@ -715,9 +721,13 @@ export class MemStorage implements IStorage {
     const newReview: Review = {
       ...review,
       id,
+      title: review.title ?? null,
+      userId: review.userId ?? null,
+      photos: (review.photos ?? null) as string[] | null,
       imageUrl: review.imageUrl ?? null,
       customerLocation: review.customerLocation ?? null,
       verified: review.verified ?? null,
+      createdAt: new Date(),
     };
     this.reviews.set(id, newReview);
     return newReview;

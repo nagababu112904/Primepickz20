@@ -1,16 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { eq, sql as drizzleSql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 import Stripe from 'stripe';
 
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-11-20.acacia',
-});
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Enable CORS
@@ -25,6 +21,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    // Check for Stripe configuration
+    if (!process.env.STRIPE_SECRET_KEY) {
+        return res.status(503).json({
+            error: 'Payments not configured',
+            message: 'Stripe is not set up yet'
+        });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
     const { session_id, order } = req.query;
 
