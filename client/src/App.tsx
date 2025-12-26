@@ -11,6 +11,7 @@ import CategoryPage from "@/pages/CategoryPage";
 import SearchResults from "@/pages/SearchResults";
 import Search from "@/pages/Search";
 import Account from "@/pages/Account";
+import Login from "@/pages/Login";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import Wishlist from "@/pages/Wishlist";
 import ProductDetail from "@/pages/ProductDetail";
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/search" component={Search} />
       <Route path="/search-results" component={SearchResults} />
       <Route path="/account" component={Account} />
+      <Route path="/login" component={Login} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/wishlist" component={Wishlist} />
       <Route path="/about" component={About} />
