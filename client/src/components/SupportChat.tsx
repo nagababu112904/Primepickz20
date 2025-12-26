@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, HeartHandshake } from "lucide-react";
+import { MessageCircle, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
+import type { Product, Category } from "@shared/schema";
 
 interface Message {
   id: string;
@@ -9,18 +10,96 @@ interface Message {
   text: string;
 }
 
+// Knowledge base for smart responses
+const getSmartResponse = (
+  query: string,
+  products: Product[],
+  categories: Category[]
+): string => {
+  const q = query.toLowerCase();
+
+  // Greeting
+  if (q.match(/^(hi|hello|hey|good morning|good evening)/)) {
+    return "Hello! Welcome to PrimePickz. How can I help you today? I can assist with products, orders, shipping, returns, and more!";
+  }
+
+  // Product search
+  if (q.includes('product') || q.includes('find') || q.includes('search') || q.includes('looking for')) {
+    const productNames = products.slice(0, 5).map(p => p.name).join(', ');
+    return `We have a great selection! Some popular items: ${productNames || 'electronics, fashion, home goods and more'}. Use the search bar to find specific products, or browse our categories!`;
+  }
+
+  // Categories
+  if (q.includes('category') || q.includes('categories') || q.includes('what do you sell')) {
+    const catNames = categories.map(c => c.name).join(', ');
+    return `We offer: ${catNames || 'Electronics, Fashion, Home & Kitchen, Beauty, Sports & Fitness, and more'}. Click on any category to browse!`;
+  }
+
+  // Shipping
+  if (q.includes('ship') || q.includes('delivery') || q.includes('arrive')) {
+    return "📦 Shipping Info:\n• FREE shipping on orders over $99\n• Standard: 5-7 business days ($9.99)\n• Express: 2-3 business days ($19.99)\n• We ship to all US addresses!";
+  }
+
+  // Returns
+  if (q.includes('return') || q.includes('refund') || q.includes('exchange')) {
+    return "↩️ Returns Policy:\n• 30-day return window\n• Items must be in original condition\n• Free return shipping\n• Refunds processed in 5-7 days\n\nStart a return at /return-request";
+  }
+
+  // Order tracking
+  if (q.includes('track') || q.includes('order status') || q.includes('where is my order')) {
+    return "📍 To track your order:\n1. Go to 'Track Order' in the menu\n2. Enter your order number and email\n3. View real-time tracking\n\nCheck your email for tracking updates!";
+  }
+
+  // Payment
+  if (q.includes('pay') || q.includes('card') || q.includes('visa') || q.includes('mastercard')) {
+    return "💳 We accept:\n• Visa, Mastercard, American Express\n• PayPal\n• Apple Pay\n\nAll transactions are secured with SSL encryption through Stripe.";
+  }
+
+  // Contact
+  if (q.includes('contact') || q.includes('phone') || q.includes('email') || q.includes('help')) {
+    return "📞 Contact us:\n• Phone: 475-239-6334\n• Email: support@primepickz.com\n• Address: 9121 Avalon Gates, Trumbull, CT 06611\n\nWe're available 24/7!";
+  }
+
+  // Price/discount
+  if (q.includes('price') || q.includes('discount') || q.includes('sale') || q.includes('deal')) {
+    return "💰 We offer great deals!\n• Check our 'Deals' category for discounts\n• Free shipping on orders $99+\n• Sign up for email to get exclusive offers!";
+  }
+
+  // Account
+  if (q.includes('account') || q.includes('login') || q.includes('sign up') || q.includes('password')) {
+    return "👤 Account Help:\n• Click 'Account' in the menu to manage your profile\n• View order history, wishlist, and saved addresses\n• Update your password in Account Settings";
+  }
+
+  // Thank you
+  if (q.includes('thank') || q.includes('thanks')) {
+    return "You're welcome! Is there anything else I can help you with? 😊";
+  }
+
+  // Default response
+  return "I can help you with:\n• 🛍️ Product information\n• 📦 Shipping & delivery\n• ↩️ Returns & refunds\n• 📍 Order tracking\n• 💳 Payment methods\n• 👤 Account help\n\nWhat would you like to know?";
+};
+
 export function SupportChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       type: "bot",
-      text: "Hey there! Welcome to Prime Pickz Support. I'm here to help with product info, shipping, returns, and anything else. What can I assist with today?",
+      text: "Hey! 👋 I'm your PrimePickz assistant. Ask me about products, shipping, returns, or anything else!",
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch products and categories for smart responses
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ['/api/products'],
+  });
+
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ['/api/categories'],
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -40,107 +119,90 @@ export function SupportChat() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const userQuery = input;
     setInput("");
     setIsLoading(true);
 
-    try {
-      const response = (await apiRequest("POST", "/api/support/chat", {
-        message: input,
-        conversationHistory: messages.map((m) => ({
-          role: m.type === "user" ? "user" : "assistant",
-          content: m.text,
-        })),
-      })) as unknown as { reply: string };
-
+    // Simulate typing delay
+    setTimeout(() => {
+      const response = getSmartResponse(userQuery, products, categories);
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "bot",
-        text: response.reply || "I'm having trouble responding. Please try again!",
+        text: response,
       };
-
       setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 2).toString(),
-        type: "bot",
-        text: "Sorry, I couldn't process that. Please try again or reach out to us directly.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
       setIsLoading(false);
-    }
+    }, 800);
   };
 
   return (
     <>
-      {/* Chat Button - Highly Visible Floating with Strong Animation */}
-      <div className="fixed bottom-5 right-5 z-40 group">
+      {/* Chat Button - Smaller, positioned above mobile nav */}
+      <div className="fixed bottom-20 md:bottom-6 right-4 z-50">
         <Button
           size="icon"
-          className="rounded-full w-20 h-20 shadow-2xl hover-elevate bg-gradient-to-br from-[#1A3A52] to-[#0A1A2A] text-white border-2 border-[#C9A961] transition-all duration-300 font-semibold text-lg flex items-center justify-center"
+          className="rounded-full w-12 h-12 md:w-14 md:h-14 shadow-xl bg-[#1a2332] hover:bg-[#0f1419] text-white transition-all"
           onClick={() => setIsOpen(!isOpen)}
-          data-testid="button-support-chat"
         >
           {isOpen ? (
-            <X className="w-8 h-8" />
+            <X className="w-5 h-5 md:w-6 md:h-6" />
           ) : (
-            <div className="relative flex items-center justify-center">
-              <MessageCircle className="w-8 h-8 animate-bounce" />
-              <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 rounded-full animate-pulse ring-2 ring-white"></span>
+            <div className="relative">
+              <MessageCircle className="w-5 h-5 md:w-6 md:h-6" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full"></span>
             </div>
           )}
         </Button>
-        
-        {/* Tooltip Label */}
-        {!isOpen && (
-          <div className="absolute bottom-24 right-0 bg-[#1A3A52] text-white px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap shadow-lg animate-in fade-in duration-300 pointer-events-none">
-            Chat Support
-            <div className="absolute bottom-0 right-2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-[#1A3A52]"></div>
-          </div>
-        )}
       </div>
 
-      {/* Chat Window */}
+      {/* Chat Window - Better mobile handling */}
       {isOpen && (
         <div
-          className="fixed bottom-28 right-5 w-full sm:w-96 max-h-[32rem] rounded-2xl shadow-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col z-40 animate-in fade-in slide-in-from-bottom-4 duration-300"
-          data-testid="chat-window"
+          className="fixed z-50 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col
+          bottom-36 md:bottom-24 right-4 left-4 md:left-auto md:w-80 lg:w-96 
+          max-h-[60vh] md:max-h-[28rem]"
         >
-          {/* Header - Navy Blue & Gold */}
-          <div className="bg-gradient-to-r from-[#1A3A52] to-[#2A4A62] text-white p-5 rounded-t-2xl border-b-2 border-[#C9A961]/20">
-            <div className="flex items-center gap-2 mb-1">
-              <HeartHandshake className="w-5 h-5" />
-              <h2 className="font-serif font-bold text-lg tracking-tight">Prime Pickz Support</h2>
+          {/* Header */}
+          <div className="bg-[#1a2332] text-white p-4 rounded-t-2xl flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-base">PrimePickz Support</h2>
+                <p className="text-xs text-gray-300">Always here to help</p>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 hover:bg-white/10 rounded-full md:hidden"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <p className="text-xs text-white/80 font-medium">Dedicated concierge service • 24/7</p>
           </div>
 
-          {/* Messages - Light Background */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-slate-900">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50 min-h-0">
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
-                data-testid={`message-${msg.type}`}
+                className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-xs px-4 py-3 rounded-2xl text-sm leading-relaxed font-medium transition-all duration-200 ${
-                    msg.type === "user"
-                      ? "bg-[#1A3A52] text-white rounded-br-none shadow-lg font-semibold"
-                      : "bg-[#F5F5F5] text-[#1A3A52] rounded-bl-none border border-[#C9A961]/20"
-                  }`}
+                  className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm whitespace-pre-line ${msg.type === "user"
+                      ? "bg-[#1a2332] text-white rounded-br-sm"
+                      : "bg-white text-gray-800 rounded-bl-sm border border-gray-200"
+                    }`}
                 >
-                  <p>{msg.text}</p>
+                  {msg.text}
                 </div>
               </div>
             ))}
             {isLoading && (
-              <div className="flex justify-start animate-in fade-in duration-300">
-                <div className="bg-[#F5F5F5] px-4 py-3 rounded-2xl rounded-bl-none border border-[#C9A961]/20">
-                  <div className="flex gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#1A3A52] animate-bounce"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#1A3A52] animate-bounce" style={{ animationDelay: "0.15s" }}></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#1A3A52] animate-bounce" style={{ animationDelay: "0.3s" }}></div>
+              <div className="flex justify-start">
+                <div className="bg-white px-4 py-3 rounded-2xl border border-gray-200">
+                  <div className="flex gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
+                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0.15s" }}></div>
+                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0.3s" }}></div>
                   </div>
                 </div>
               </div>
@@ -148,27 +210,25 @@ export function SupportChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area - Light */}
-          <div className="border-t border-[#C9A961]/20 bg-white p-4 rounded-b-2xl dark:bg-slate-900 dark:border-slate-700">
+          {/* Input Area */}
+          <div className="border-t border-gray-200 bg-white p-3 rounded-b-2xl flex-shrink-0">
             <div className="flex gap-2">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder="Ask me anything..."
-                className="flex-1 px-4 py-3 border-2 border-[#C9A961]/30 rounded-xl text-sm focus:outline-none focus:border-[#1A3A52] focus:ring-2 focus:ring-[#1A3A52]/20 bg-white text-[#1A3A52] placeholder-[#999] font-medium transition-all duration-200 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400"
+                placeholder="Type a message..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-[#1a2332] bg-white"
                 disabled={isLoading}
-                data-testid="input-chat-message"
               />
               <Button
                 size="icon"
                 onClick={handleSendMessage}
                 disabled={isLoading || !input.trim()}
-                className="bg-[#1A3A52] text-white border-0 rounded-xl hover-elevate disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold"
-                data-testid="button-send-message"
+                className="bg-[#1a2332] text-white rounded-full w-9 h-9 flex-shrink-0"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4" />
               </Button>
             </div>
           </div>
