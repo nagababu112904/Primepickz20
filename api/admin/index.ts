@@ -129,8 +129,12 @@ async function handleAdminLogin(req: VercelRequest, res: VercelResponse) {
         });
     }
 
-    // Check against environment variable first (for initial setup)
-    if ((loginEmail === 'admin' || loginEmail === ADMIN_EMAIL) && password === ADMIN_PASSWORD) {
+    // Check against environment variable (flexible matching)
+    const isAdminUser = loginEmail === 'admin' ||
+        loginEmail === ADMIN_EMAIL ||
+        loginEmail?.toLowerCase() === ADMIN_EMAIL?.toLowerCase();
+
+    if (isAdminUser && password === ADMIN_PASSWORD) {
         const token = generateToken('admin', ADMIN_EMAIL, 'admin');
         return res.status(200).json({
             success: true,
