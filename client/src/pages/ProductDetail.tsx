@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import type { Product, CartItemWithProduct, Review } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { Header } from "@/components/marketplace/Header";
+import { Footer } from "@/components/marketplace/Footer";
+import { BottomNav } from "@/components/marketplace/BottomNav";
 
 interface ProductVariant {
   id: string;
@@ -126,19 +127,16 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <>
-        <Header
-          cartCount={cartItems?.length || 0}
-          wishlistCount={0}
-          onCartClick={() => setIsCartOpen(true)}
-          language={language}
-          onLanguageChange={setLanguage}
-        />
-        <div className="min-h-screen flex items-center justify-center">
-          <p className="text-muted-foreground">Product not found</p>
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-2xl shadow-sm text-center">
+            <p className="text-gray-500">Product not found</p>
+          </div>
         </div>
         <Footer />
-      </>
+        <BottomNav />
+      </div>
     );
   }
 
@@ -146,16 +144,10 @@ export default function ProductDetail() {
   const hasDiscount = discountPercentage > 0;
 
   return (
-    <>
-      <Header
-        cartCount={cartItems?.length || 0}
-        wishlistCount={0}
-        onCartClick={() => setIsCartOpen(true)}
-        language={language}
-        onLanguageChange={setLanguage}
-      />
-      <div className="min-h-screen bg-background">
-        <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-8">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
+      <Header />
+      <div className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8">
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
             {/* Product Image */}
             <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
@@ -454,6 +446,7 @@ export default function ProductDetail() {
         </div>
       </div>
       <Footer />
-    </>
+      <BottomNav />
+    </div>
   );
 }

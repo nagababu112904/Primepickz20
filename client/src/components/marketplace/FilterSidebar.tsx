@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Star, RotateCcw } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface FilterSidebarProps {
     onPriceChange?: (min: number, max: number) => void;
@@ -9,19 +8,9 @@ interface FilterSidebarProps {
     className?: string;
 }
 
-const BRANDS = [
-    { id: 'all', name: 'All Brands' },
-    { id: 'apple', name: 'Apple' },
-    { id: 'samsung', name: 'Samsung' },
-    { id: 'sony', name: 'Sony' },
-    { id: 'nike', name: 'Nike' },
-    { id: 'adidas', name: 'Adidas' },
-];
-
 export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }: FilterSidebarProps) {
     const [priceRange, setPriceRange] = useState([20, 1130]);
     const [selectedRating, setSelectedRating] = useState(4);
-    const [selectedBrands, setSelectedBrands] = useState<string[]>(['all']);
     const [deliveryOption, setDeliveryOption] = useState<'standard' | 'pickup'>('standard');
 
     const handlePriceChange = (values: number[]) => {
@@ -34,24 +23,9 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
         onRatingChange?.(rating);
     };
 
-    const toggleBrand = (brandId: string) => {
-        if (brandId === 'all') {
-            setSelectedBrands(['all']);
-        } else {
-            const newBrands = selectedBrands.filter(b => b !== 'all');
-            if (selectedBrands.includes(brandId)) {
-                const filtered = newBrands.filter(b => b !== brandId);
-                setSelectedBrands(filtered.length ? filtered : ['all']);
-            } else {
-                setSelectedBrands([...newBrands, brandId]);
-            }
-        }
-    };
-
     const resetFilters = () => {
         setPriceRange([20, 1130]);
         setSelectedRating(4);
-        setSelectedBrands(['all']);
     };
 
     return (
@@ -116,34 +90,6 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
                                     }`}
                             />
                         </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Brand */}
-            <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-bold text-gray-900">Brand</h3>
-                    <button
-                        onClick={() => setSelectedBrands(['all'])}
-                        className="text-sm text-gray-400 hover:text-[#7c3aed]"
-                    >
-                        Reset
-                    </button>
-                </div>
-                <div className="space-y-2">
-                    {BRANDS.map((brand) => (
-                        <label
-                            key={brand.id}
-                            className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg -mx-2"
-                        >
-                            <Checkbox
-                                checked={selectedBrands.includes(brand.id)}
-                                onCheckedChange={() => toggleBrand(brand.id)}
-                                className="border-gray-300 data-[state=checked]:bg-[#7c3aed] data-[state=checked]:border-[#7c3aed]"
-                            />
-                            <span className="text-sm text-gray-700">{brand.name}</span>
-                        </label>
                     ))}
                 </div>
             </div>

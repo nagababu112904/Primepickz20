@@ -1,9 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { ArrowLeft, Filter, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import type { Product, Category } from "@shared/schema";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -18,26 +16,34 @@ import {
 import { Header } from "@/components/marketplace/Header";
 import { BottomNav } from "@/components/marketplace/BottomNav";
 import { Footer } from "@/components/marketplace/Footer";
+import { FilterSidebar } from "@/components/marketplace/FilterSidebar";
+import { ProductCard } from "@/components/marketplace/ProductCard";
 
 export default function CategoryPage() {
   const [, params] = useRoute("/category/:slug");
   const slug = params?.slug || "";
   const [sortBy, setSortBy] = useState("featured");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
+  const [minRating, setMinRating] = useState(0);
   const { toast } = useToast();
-  const sessionId = "default-session";
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: allProducts } = useQuery<Product[]>({
+  const { data: allProducts, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
   });
 
   const category = categories?.find(cat => cat.slug === slug);
   const products = allProducts?.filter(p => {
     if (!category) return false;
-    return p.category === category.name;
+    const matchesCategory = p.category === category.name;
+    const price = parseFloat(p.price);
+    const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
+    const productRating = typeof p.rating === 'string' ? parseFloat(p.rating) : (p.rating || 0);
+    const matchesRating = productRating >= minRating;
+    return matchesCategory && matchesPrice && matchesRating;
   }) || [];
 
   // Sort products
@@ -54,40 +60,16 @@ export default function CategoryPage() {
     }
   });
 
-  const addToCartMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      return await apiRequest("POST", "/api/cart", {
-        productId,
-        quantity: 1,
-        sessionId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
-      toast({
-        title: "Added to cart",
-        description: "Product has been added to your cart",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to add product to cart. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   if (!category) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
         <Header />
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
+          <div className="text-center bg-white p-8 rounded-2xl shadow-sm">
             <h2 className="text-2xl font-bold mb-2">Category Not Found</h2>
             <p className="text-gray-600 mb-4">The category you're looking for doesn't exist.</p>
             <Link href="/">
-              <Button>
+              <Button className="bg-[#7c3aed] hover:bg-[#6d28d9]">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Home
               </Button>
@@ -101,111 +83,94 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
       <Header />
 
       {/* Category Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
           <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-4">
+            <Button variant="ghost" size="sm" className="mb-3 text-gray-600 hover:text-[#7c3aed]">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
           </Link>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">{category.name}</h1>
-              <p className="text-gray-600">{category.description}</p>
-              <p className="text-sm text-gray-500 mt-2">{products.length} products</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{category.name}</h1>
+              <p className="text-gray-500 text-sm mt-1">{sortedProducts.length} products</p>
             </div>
-
-            {/* Sort & Filter */}
-            <div className="flex items-center gap-2">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px]">
-                  <SlidersHorizontal className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="icon">
-                <Filter className="w-4 h-4" />
-              </Button>
-            </div>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-48 bg-white">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="featured">Featured</SelectItem>
+                <SelectItem value="price-low">Price: Low to High</SelectItem>
+                <SelectItem value="price-high">Price: High to Low</SelectItem>
+                <SelectItem value="rating">Top Rated</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
 
-      {/* Products Grid */}
-      <div className="max-w-7xl mx-auto px-4 py-8 flex-1">
-        {sortedProducts.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-gray-600 text-lg">No products available in this category yet.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {sortedProducts.map((product) => (
-              <div key={product.id}>
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col h-full">
-                  <Link href={`/product/${product.id}`}>
-                    <CardContent className="p-0">
-                      <div className="aspect-[4/5] bg-gray-100 relative overflow-hidden">
-                        <img
-                          src={product.imageUrl ?? ''}
-                          alt={product.name}
-                          loading="lazy"
-                          className="w-full h-full object-cover"
-                        />
-                        {product.badge && (
-                          <Badge className="absolute top-2 left-2 bg-[hsl(var(--primary))] text-white">
-                            {product.badge}
-                          </Badge>
-                        )}
-                        {product.discount && product.discount > 0 && (
-                          <Badge className="absolute top-2 right-2 bg-red-500 text-white">
-                            {product.discount}% OFF
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="p-3 h-24 flex flex-col justify-between">
-                        <h3 className="font-semibold line-clamp-2 text-sm">
-                          {product.name}
-                        </h3>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-lg font-bold text-[hsl(var(--primary))]">
-                            ${Number(product.price).toLocaleString()}
-                          </span>
-                          {product.originalPrice && (
-                            <span className="text-sm text-gray-500 line-through">
-                              ${Number(product.originalPrice).toLocaleString()}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Link>
-                  <CardFooter className="p-3 pt-0">
-                    <Button
-                      className="w-full"
-                      size="sm"
-                      onClick={() => addToCartMutation.mutate(product.id)}
-                      disabled={addToCartMutation.isPending}
-                    >
-                      {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
-                    </Button>
-                  </CardFooter>
-                </Card>
+      {/* Main Content */}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 lg:px-8 py-6">
+        <div className="flex gap-6">
+          {/* Sidebar */}
+          <aside className="hidden lg:block w-72 flex-shrink-0">
+            <div className="sticky top-24">
+              <FilterSidebar
+                onPriceChange={(min, max) => setPriceRange([min, max])}
+                onRatingChange={setMinRating}
+              />
+            </div>
+          </aside>
+
+          {/* Products Grid */}
+          <div className="flex-1">
+            {isLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
+                    <div className="aspect-square bg-gray-200 rounded-xl mb-4" />
+                    <div className="h-4 bg-gray-200 rounded mb-2" />
+                    <div className="h-4 bg-gray-200 rounded w-2/3" />
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : sortedProducts.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                {sortedProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    originalPrice={product.originalPrice || undefined}
+                    imageUrl={product.imageUrl || undefined}
+                    badge={product.badge || undefined}
+                    rating={typeof product.rating === 'string' ? parseFloat(product.rating) : (product.rating || 0)}
+                    reviewCount={product.reviewCount || 0}
+                    inStock={product.inStock ?? true}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-white rounded-2xl">
+                <div className="w-24 h-24 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-[#7c3aed]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No products found</h3>
+                <p className="text-gray-500">Try adjusting your filters</p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      </main>
 
       <Footer />
       <BottomNav />

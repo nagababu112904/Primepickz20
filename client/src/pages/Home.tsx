@@ -29,6 +29,9 @@ export default function Home() {
     return matchesPrice && matchesRating && matchesCategory;
   });
 
+  // Show filter only when a category is selected
+  const showFilter = activeCategory !== '';
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ede9fe]">
       {/* Header */}
@@ -43,22 +46,24 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 lg:px-8 py-6">
         <div className="flex gap-6">
-          {/* Sidebar - Hidden on mobile */}
-          <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-24">
-              <FilterSidebar
-                onPriceChange={(min, max) => setPriceRange([min, max])}
-                onRatingChange={setMinRating}
-              />
-            </div>
-          </aside>
+          {/* Sidebar - Only show when category is selected */}
+          {showFilter && (
+            <aside className="hidden lg:block w-72 flex-shrink-0">
+              <div className="sticky top-24">
+                <FilterSidebar
+                  onPriceChange={(min, max) => setPriceRange([min, max])}
+                  onRatingChange={setMinRating}
+                />
+              </div>
+            </aside>
+          )}
 
           {/* Products Grid */}
           <div className="flex-1 min-w-0">
             {isLoading ? (
               // Loading skeleton
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                {[...Array(6)].map((_, i) => (
+              <div className={`grid gap-4 md:gap-6 ${showFilter ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'}`}>
+                {[...Array(8)].map((_, i) => (
                   <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
                     <div className="aspect-square bg-gray-200 rounded-xl mb-4" />
                     <div className="h-4 bg-gray-200 rounded mb-2" />
@@ -67,7 +72,7 @@ export default function Home() {
                 ))}
               </div>
             ) : filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+              <div className={`grid gap-4 md:gap-6 ${showFilter ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'}`}>
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
