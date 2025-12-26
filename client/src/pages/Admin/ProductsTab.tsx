@@ -299,6 +299,30 @@ interface ProductFormProps {
     isLoading: boolean;
 }
 
+interface Variant {
+    id?: string;
+    size: string;
+    color: string;
+    colorHex: string;
+    price: string;
+    stock: number;
+    sku: string;
+}
+
+const COMMON_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One Size'];
+const COMMON_COLORS = [
+    { name: 'Black', hex: '#000000' },
+    { name: 'White', hex: '#FFFFFF' },
+    { name: 'Navy', hex: '#1E3A5F' },
+    { name: 'Red', hex: '#DC2626' },
+    { name: 'Blue', hex: '#2563EB' },
+    { name: 'Green', hex: '#16A34A' },
+    { name: 'Gray', hex: '#6B7280' },
+    { name: 'Pink', hex: '#EC4899' },
+    { name: 'Beige', hex: '#D4B896' },
+    { name: 'Brown', hex: '#92400E' },
+];
+
 function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFormProps) {
     const [formData, setFormData] = useState({
         name: initialData?.name || '',
@@ -310,11 +334,50 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
         stockCount: initialData?.stockCount || 0,
         amazonAsin: initialData?.amazonAsin || '',
         amazonSku: initialData?.amazonSku || '',
+        hasVariants: initialData?.hasVariants || false,
     });
+
+    const [variants, setVariants] = useState<Variant[]>([]);
+    const [showVariants, setShowVariants] = useState(formData.hasVariants);
+
+    const addVariant = () => {
+        setVariants([...variants, {
+            size: '',
+            color: '',
+            colorHex: '#000000',
+            price: formData.price || '',
+            stock: 0,
+            sku: '',
+        }]);
+    };
+
+    const updateVariant = (index: number, field: keyof Variant, value: string | number) => {
+        const updated = [...variants];
+        updated[index] = { ...updated[index], [field]: value };
+
+        // If color is selected from presets, update colorHex
+        if (field === 'color') {
+            const preset = COMMON_COLORS.find(c => c.name === value);
+            if (preset) {
+                updated[index].colorHex = preset.hex;
+            }
+        }
+
+        setVariants(updated);
+    };
+
+    const removeVariant = (index: number) => {
+        setVariants(variants.filter((_, i) => i !== index));
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+        onSubmit({
+            ...formData,
+            hasVariants: showVariants && variants.length > 0,
+            // @ts-ignore - variants will be handled by the parent
+            variants: showVariants ? variants : [],
+        });
     };
 
     return (
@@ -340,7 +403,7 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                 </div>
 
                 <div>
-                    <Label>Price *</Label>
+                    <Label>Base Price *</Label>
                     <Input
                         type="number"
                         step="0.01"
@@ -351,7 +414,7 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                 </div>
 
                 <div>
-                    <Label>Original Price</Label>
+                    <Label>Original Price (for discount)</Label>
                     <Input
                         type="number"
                         step="0.01"
@@ -378,11 +441,12 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                 </div>
 
                 <div>
-                    <Label>Stock Count</Label>
+                    <Label>Stock Count {showVariants ? '(auto from variants)' : ''}</Label>
                     <Input
                         type="number"
                         value={formData.stockCount}
                         onChange={(e) => setFormData({ ...formData, stockCount: parseInt(e.target.value) || 0 })}
+                        disabled={showVariants}
                     />
                 </div>
 
@@ -414,9 +478,130 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                 </div>
             </div>
 
+            {/* Variants Section */}
+            <div className="border-t pt-4 mt-4">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="hasVariants"
+                            checked={showVariants}
+                            onChange={(e) => setShowVariants(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300"
+                        />
+                        <Label htmlFor="hasVariants" className="cursor-pointer">
+                            This product has size/color variants
+                        </Label>
+                    </div>
+                    {showVariants && (
+                        <Button type="button" variant="outline" size="sm" onClick={addVariant}>
+                            <Plus className="w-4 h-4 mr-1" />
+                            Add Variant
+                        </Button>
+                    )}
+                </div>
+
+                {showVariants && variants.length > 0 && (
+                    <div className="space-y-3">
+                        {variants.map((variant, index) => (
+                            <div key={index} className="grid grid-cols-6 gap-2 p-3 bg-gray-50 rounded-lg items-end">
+                                <div>
+                                    <Label className="text-xs">Size</Label>
+                                    <Select
+                                        value={variant.size}
+                                        onValueChange={(v) => updateVariant(index, 'size', v)}
+                                    >
+                                        <SelectTrigger className="h-9">
+                                            <SelectValue placeholder="Size" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {COMMON_SIZES.map(s => (
+                                                <SelectItem key={s} value={s}>{s}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Color</Label>
+                                    <Select
+                                        value={variant.color}
+                                        onValueChange={(v) => updateVariant(index, 'color', v)}
+                                    >
+                                        <SelectTrigger className="h-9">
+                                            <SelectValue placeholder="Color" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {COMMON_COLORS.map(c => (
+                                                <SelectItem key={c.name} value={c.name}>
+                                                    <div className="flex items-center gap-2">
+                                                        <div
+                                                            className="w-4 h-4 rounded-full border"
+                                                            style={{ backgroundColor: c.hex }}
+                                                        />
+                                                        {c.name}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Price</Label>
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={variant.price}
+                                        onChange={(e) => updateVariant(index, 'price', e.target.value)}
+                                        className="h-9"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Stock</Label>
+                                    <Input
+                                        type="number"
+                                        value={variant.stock}
+                                        onChange={(e) => updateVariant(index, 'stock', parseInt(e.target.value) || 0)}
+                                        className="h-9"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-xs">SKU</Label>
+                                    <Input
+                                        value={variant.sku}
+                                        onChange={(e) => updateVariant(index, 'sku', e.target.value)}
+                                        placeholder="SKU-001"
+                                        className="h-9"
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-red-500 h-9"
+                                    onClick={() => removeVariant(index)}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        ))}
+                        <p className="text-xs text-gray-500 mt-2">
+                            Total variants: {variants.length} |
+                            Total stock: {variants.reduce((sum, v) => sum + (v.stock || 0), 0)} units
+                        </p>
+                    </div>
+                )}
+
+                {showVariants && variants.length === 0 && (
+                    <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-lg">
+                        No variants added yet. Click "Add Variant" to create size/color options.
+                    </div>
+                )}
+            </div>
+
             <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600" disabled={isLoading}>
                 {isLoading ? 'Saving...' : initialData ? 'Update Product' : 'Add Product'}
             </Button>
         </form>
     );
 }
+

@@ -8,11 +8,6 @@ import Stripe from 'stripe';
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-11-20.acacia',
-});
-
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://primepickz.org';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -28,6 +23,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    // Check for Stripe configuration
+    if (!process.env.STRIPE_SECRET_KEY) {
+        return res.status(503).json({
+            error: 'Payments not configured',
+            message: 'Stripe is not set up yet. Please add STRIPE_SECRET_KEY to environment variables.'
+        });
+    }
+
+    // Initialize Stripe
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
     try {
         const { items, customerEmail, shippingAddress, sessionId } = req.body;

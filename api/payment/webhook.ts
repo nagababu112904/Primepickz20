@@ -8,16 +8,19 @@ import Stripe from 'stripe';
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-11-20.acacia',
-});
-
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
+
+    // Check for Stripe configuration
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+        console.error('Stripe webhook: Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET');
+        return res.status(503).json({ error: 'Webhook not configured' });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     const sig = req.headers['stripe-signature'] as string;
 
