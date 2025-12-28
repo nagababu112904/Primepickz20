@@ -17,6 +17,7 @@ import { AnalyticsTab } from './AnalyticsTab';
 import { ReturnsTab } from './ReturnsTab';
 import { InventoryTab } from './InventoryTab';
 import { CategoriesTab } from './CategoriesTab';
+import { EmailTab } from './EmailTab';
 import { useToast } from '@/hooks/use-toast';
 
 // Auth helper
@@ -186,14 +187,7 @@ export default function AdminDashboard() {
             case 'analytics': return <AnalyticsTab />;
             case 'amazon-sync': return <AmazonSyncTab />;
             case 'returns': return <ReturnsTab />;
-            case 'email': return (
-                <Card>
-                    <CardHeader><CardTitle>Email Management</CardTitle></CardHeader>
-                    <CardContent>
-                        <p className="text-gray-500">Email templates and settings coming soon...</p>
-                    </CardContent>
-                </Card>
-            );
+            case 'email': return <EmailTab />;
             case 'help': return (
                 <Card>
                     <CardHeader><CardTitle>Help Center</CardTitle></CardHeader>

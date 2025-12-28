@@ -206,6 +206,23 @@ export const amazonSyncLogs = pgTable("amazon_sync_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Email Logs - for admin dashboard notifications
+export const emailLogs = pgTable("email_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: text("type").notNull(), // 'order_notification', 'shipping_update', 'return_request', etc.
+  orderId: varchar("order_id"),
+  orderNumber: text("order_number"),
+  customerEmail: text("customer_email"),
+  customerName: text("customer_name"),
+  subject: text("subject").notNull(),
+  items: jsonb("items"), // Order items as JSON
+  total: text("total"),
+  status: text("status").default("unread"), // 'unread', 'read'
+  metadata: jsonb("metadata"), // Additional data
+  sentAt: timestamp("sent_at").defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
 // Schemas for type safety
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true, createdAt: true, updatedAt: true, lastSyncedAt: true });
@@ -249,6 +266,7 @@ export type AmazonSyncLog = typeof amazonSyncLogs.$inferSelect;
 export type InsertSyncLog = z.infer<typeof insertSyncLogSchema>;
 export type ReturnRequest = typeof returnRequests.$inferSelect;
 export type InsertReturnRequest = z.infer<typeof insertReturnRequestSchema>;
+export type EmailLog = typeof emailLogs.$inferSelect;
 
 // Additional types for frontend
 export interface CartItemWithProduct extends CartItem {

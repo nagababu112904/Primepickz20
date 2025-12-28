@@ -4,7 +4,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, sql as drizzleSql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 import Stripe from 'stripe';
-import { sendOrderConfirmation, notifyAdminNewOrder } from '../../server/lib/email.js';
+import { sendOrderConfirmation, logOrderNotification } from '../../server/lib/email.js';
 
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
@@ -100,8 +100,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             // Send order confirmation to customer
                             await sendOrderConfirmation(emailOrder);
 
-                            // Notify admin of new order
-                            await notifyAdminNewOrder(emailOrder);
+                            // Log order notification for admin dashboard (instead of emailing admin)
+                            await logOrderNotification(emailOrder, db, schema.emailLogs);
                         }
                     }
 

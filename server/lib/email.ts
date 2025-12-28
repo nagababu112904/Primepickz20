@@ -222,7 +222,36 @@ export async function sendShippingUpdate(order: {
     }
 }
 
-// Admin Notification for New Order
+// Log Order Notification to Database (for Admin Dashboard Email Tab)
+// Instead of emailing admin, we store in DB so admin sees it in dashboard
+export async function logOrderNotification(order: OrderDetails, db: any, emailLogs: any) {
+    try {
+        await db.insert(emailLogs).values({
+            type: 'order_notification',
+            orderId: order.orderNumber, // We'll use orderNumber as reference
+            orderNumber: order.orderNumber,
+            customerEmail: order.customerEmail,
+            customerName: order.customerName,
+            subject: `🛒 New Order: ${order.orderNumber} - $${order.total}`,
+            items: order.items,
+            total: order.total,
+            status: 'unread',
+            metadata: {
+                subtotal: order.subtotal,
+                shipping: order.shipping,
+                shippingAddress: order.shippingAddress,
+            },
+        });
+
+        console.log('Order notification logged for admin dashboard:', order.orderNumber);
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to log order notification:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Legacy: Admin Notification via Email (kept for backwards compatibility)
 export async function notifyAdminNewOrder(order: OrderDetails) {
     const resend = getResend();
     if (!resend) return { success: false, error: 'Email service not configured' };
@@ -258,3 +287,4 @@ export async function notifyAdminNewOrder(order: OrderDetails) {
         return { success: false, error: error.message };
     }
 }
+

@@ -107,6 +107,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             case 'categories':
                 return handleCategories(req, res);
 
+            // Email notifications for admin dashboard
+            case 'emails':
+                return handleEmails(req, res);
+            case 'mark-email-read':
+                return markEmailRead(req, res);
+
             default:
                 return res.status(400).json({ error: 'Invalid action' });
         }
@@ -702,5 +708,65 @@ async function handleCategories(req: VercelRequest, res: VercelResponse) {
 
         default:
             return res.status(405).json({ error: 'Method not allowed' });
+    }
+}
+
+// Handle Email Notifications for Admin Dashboard
+async function handleEmails(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'GET') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { status } = req.query;
+
+    try {
+        let query = db.select().from(schema.emailLogs);
+
+        // Filter by status if provided
+        if (status && status !== 'all') {
+            query = query.where(eq(schema.emailLogs.status, status as string)) as any;
+        }
+
+        const emails = await query.orderBy(drizzleSql`${schema.emailLogs.sentAt} DESC`).limit(50);
+
+        // Get unread count
+        const unreadCount = await db.select({ count: drizzleSql`count(*)` })
+            .from(schema.emailLogs)
+            .where(eq(schema.emailLogs.status, 'unread'));
+
+        return res.status(200).json({
+            emails,
+            unreadCount: Number(unreadCount[0]?.count || 0)
+        });
+    } catch (error) {
+        console.error('Failed to fetch emails:', error);
+        return res.status(500).json({ error: 'Failed to fetch emails' });
+    }
+}
+
+// Mark Email as Read
+async function markEmailRead(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { id } = req.query;
+
+    if (!id) {
+        return res.status(400).json({ error: 'Email ID required' });
+    }
+
+    try {
+        await db.update(schema.emailLogs)
+            .set({
+                status: 'read',
+                readAt: new Date()
+            })
+            .where(eq(schema.emailLogs.id, id as string));
+
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Failed to mark email as read:', error);
+        return res.status(500).json({ error: 'Failed to update email' });
     }
 }
