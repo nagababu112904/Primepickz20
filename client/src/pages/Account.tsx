@@ -37,13 +37,13 @@ interface Order {
 
 export default function Account() {
     const { toast } = useToast();
-    const { user, isAuthenticated, logout } = useAuth();
+    const { user, isAuthenticated, isLoading, logout } = useAuth();
     const [activeTab, setActiveTab] = useState('profile');
 
     // Edit Profile State
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [profileData, setProfileData] = useState({
-        name: user?.name || 'Guest',
+        name: user?.displayName || 'Guest',
         email: user?.email || 'guest@primepickz.com',
         phone: '+1 (555) 123-4567',
     });
@@ -147,6 +147,23 @@ export default function Account() {
         toast({ title: 'Signed Out', description: 'You have been logged out successfully.' });
         window.location.href = '/';
     };
+
+    // Show loading while auth state is being determined
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
+                <Header />
+                <main className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a2332] mx-auto mb-4"></div>
+                        <p className="text-gray-500">Loading...</p>
+                    </div>
+                </main>
+                <Footer />
+                <BottomNav />
+            </div>
+        );
+    }
 
     // If not authenticated, show login prompt
     if (!isAuthenticated) {
@@ -297,8 +314,8 @@ export default function Account() {
                                                     <p className="text-sm text-gray-600">{order.date}</p>
                                                 </div>
                                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Delivered'
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-blue-100 text-blue-700'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-blue-100 text-blue-700'
                                                     }`}>
                                                     {order.status}
                                                 </span>
