@@ -30,12 +30,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
 
+        // Timeout fallback: if auth state takes too long (5 seconds), stop loading
+        const timeout = setTimeout(() => {
+            if (isLoading) {
+                console.warn('Auth state timeout - stopping loading spinner');
+                setIsLoading(false);
+            }
+        }, 5000);
+
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
+            clearTimeout(timeout);
             setUser(firebaseUser);
             setIsLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            clearTimeout(timeout);
+            unsubscribe();
+        };
     }, []);
 
     const logout = async () => {
