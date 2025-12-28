@@ -154,7 +154,7 @@ export function ProductsTab() {
                             />
                         </div>
                         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                            <SelectTrigger className="w-48">
+                            <SelectTrigger className="w-full md:w-48">
                                 <SelectValue placeholder="All Categories" />
                             </SelectTrigger>
                             <SelectContent>
@@ -165,7 +165,7 @@ export function ProductsTab() {
                             </SelectContent>
                         </Select>
                         <Select value={syncFilter} onValueChange={setSyncFilter}>
-                            <SelectTrigger className="w-48">
+                            <SelectTrigger className="w-full md:w-48">
                                 <SelectValue placeholder="All Sync Status" />
                             </SelectTrigger>
                             <SelectContent>

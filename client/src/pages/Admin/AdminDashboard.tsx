@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     LayoutDashboard, Package, ShoppingCart, RefreshCw, BarChart3, Settings, LogOut, Lock,
-    RotateCcw, Warehouse, FolderOpen, ChevronLeft, Search, Bell, Menu, Mail, HelpCircle
+    RotateCcw, Warehouse, FolderOpen, ChevronLeft, Search, Bell, Menu, Mail, HelpCircle, X
 } from 'lucide-react';
 import { DashboardTab } from './DashboardTab';
 import { ProductsTab } from './ProductsTab';
@@ -136,6 +136,7 @@ export default function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [activeTab, setActiveTab] = useState('dashboard');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -143,6 +144,17 @@ export default function AdminDashboard() {
         if (token) {
             setIsAuthenticated(true);
         }
+    }, []);
+
+    // Close mobile menu on window resize
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 768) {
+                setMobileMenuOpen(false);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     const handleLogin = (token: string) => {
@@ -153,6 +165,11 @@ export default function AdminDashboard() {
         clearAuthToken();
         setIsAuthenticated(false);
         toast({ title: 'Logged out successfully' });
+    };
+
+    const handleNavClick = (tabId: string) => {
+        setActiveTab(tabId);
+        setMobileMenuOpen(false); // Close mobile menu on navigation
     };
 
     if (!isAuthenticated) {
@@ -209,105 +226,139 @@ export default function AdminDashboard() {
         return acc;
     }, {} as Record<string, typeof MENU_ITEMS>);
 
-    return (
-        <div className="min-h-screen bg-[#f5f5f5] flex">
-            {/* Sidebar */}
-            <aside className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
-                {/* Logo */}
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                    {!sidebarCollapsed && (
-                        <div className="flex items-center gap-2">
-                            <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
-                            <span className="font-bold text-lg">
-                                <span className="text-[#1a365d]">Prime</span>
-                                <span className="text-[#d4a574]">Pickz</span>
-                            </span>
-                        </div>
+    const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => (
+        <>
+            {/* Logo */}
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+                    {(!sidebarCollapsed || isMobile) && (
+                        <span className="font-bold text-lg">
+                            <span className="text-[#1a365d]">Prime</span>
+                            <span className="text-[#d4a574]">Pickz</span>
+                        </span>
                     )}
+                </div>
+                {isMobile ? (
+                    <button
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-1.5 hover:bg-gray-100 rounded-md"
+                    >
+                        <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                ) : (
                     <button
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className="p-1.5 hover:bg-gray-100 rounded-md"
+                        className="p-1.5 hover:bg-gray-100 rounded-md hidden md:block"
                     >
                         <ChevronLeft className={`w-5 h-5 text-gray-500 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} />
                     </button>
-                </div>
-
-                {/* Search */}
-                {!sidebarCollapsed && (
-                    <div className="p-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                placeholder="Search"
-                                className="pl-9 bg-gray-50 border-gray-200"
-                            />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">⌘K</span>
-                        </div>
-                    </div>
                 )}
+            </div>
 
-                {/* Menu */}
-                <nav className="flex-1 overflow-y-auto p-2">
-                    {Object.entries(menuSections).map(([section, items]) => (
-                        <div key={section} className="mb-4">
-                            {!sidebarCollapsed && (
-                                <p className="px-3 py-2 text-xs font-medium text-gray-400 uppercase">{section}</p>
-                            )}
-                            {items.map((item) => {
-                                const Icon = item.icon;
-                                const isActive = activeTab === item.id;
-                                return (
-                                    <button
-                                        key={item.id}
-                                        onClick={() => setActiveTab(item.id)}
-                                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-colors ${isActive
-                                            ? 'bg-[#1a365d] text-white'
-                                            : 'text-gray-600 hover:bg-gray-100'
-                                            }`}
-                                        title={sidebarCollapsed ? item.label : undefined}
-                                    >
-                                        <Icon className="w-5 h-5 flex-shrink-0" />
-                                        {!sidebarCollapsed && <span className="text-sm font-medium">{item.label}</span>}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ))}
-                </nav>
-
-                {/* Logout */}
-                <div className="p-2 border-t border-gray-100">
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
-                        title={sidebarCollapsed ? 'Logout' : undefined}
-                    >
-                        <LogOut className="w-5 h-5 flex-shrink-0" />
-                        {!sidebarCollapsed && <span className="text-sm font-medium">Logout</span>}
-                    </button>
+            {/* Search */}
+            {(!sidebarCollapsed || isMobile) && (
+                <div className="p-4">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                            placeholder="Search"
+                            className="pl-9 bg-gray-50 border-gray-200"
+                        />
+                    </div>
                 </div>
+            )}
+
+            {/* Menu */}
+            <nav className="flex-1 overflow-y-auto p-2">
+                {Object.entries(menuSections).map(([section, items]) => (
+                    <div key={section} className="mb-4">
+                        {(!sidebarCollapsed || isMobile) && (
+                            <p className="px-3 py-2 text-xs font-medium text-gray-400 uppercase">{section}</p>
+                        )}
+                        {items.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = activeTab === item.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleNavClick(item.id)}
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-colors ${isActive
+                                        ? 'bg-[#1a365d] text-white'
+                                        : 'text-gray-600 hover:bg-gray-100'
+                                        }`}
+                                    title={sidebarCollapsed && !isMobile ? item.label : undefined}
+                                >
+                                    <Icon className="w-5 h-5 flex-shrink-0" />
+                                    {(!sidebarCollapsed || isMobile) && <span className="text-sm font-medium">{item.label}</span>}
+                                </button>
+                            );
+                        })}
+                    </div>
+                ))}
+            </nav>
+
+            {/* Logout */}
+            <div className="p-2 border-t border-gray-100">
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+                    title={sidebarCollapsed && !isMobile ? 'Logout' : undefined}
+                >
+                    <LogOut className="w-5 h-5 flex-shrink-0" />
+                    {(!sidebarCollapsed || isMobile) && <span className="text-sm font-medium">Logout</span>}
+                </button>
+            </div>
+        </>
+    );
+
+    return (
+        <div className="min-h-screen bg-[#f5f5f5] flex">
+            {/* Mobile Overlay */}
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* Mobile Sidebar */}
+            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transform transition-transform duration-300 md:hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <SidebarContent isMobile={true} />
+            </aside>
+
+            {/* Desktop Sidebar */}
+            <aside className={`hidden md:flex bg-white border-r border-gray-200 flex-col transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
+                <SidebarContent isMobile={false} />
             </aside>
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Top Header */}
-                <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                    <h1 className="text-xl font-bold text-gray-900">{getPageTitle()}</h1>
-                    <div className="flex items-center gap-4">
+                <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="p-2 hover:bg-gray-100 rounded-lg md:hidden"
+                        >
+                            <Menu className="w-5 h-5 text-gray-600" />
+                        </button>
+                        <h1 className="text-lg md:text-xl font-bold text-gray-900 truncate">{getPageTitle()}</h1>
+                    </div>
+                    <div className="flex items-center gap-2 md:gap-4">
                         <button className="p-2 hover:bg-gray-100 rounded-lg relative">
                             <Bell className="w-5 h-5 text-gray-600" />
                             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                         </button>
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 bg-[#1a365d] rounded-full flex items-center justify-center text-white font-medium text-sm">
-                                A
-                            </div>
+                        <div className="w-8 h-8 md:w-9 md:h-9 bg-[#1a365d] rounded-full flex items-center justify-center text-white font-medium text-sm">
+                            A
                         </div>
                     </div>
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 overflow-y-auto p-4 md:p-6">
                     {renderContent()}
                 </main>
             </div>
