@@ -101,7 +101,9 @@ export function AmazonSyncTab() {
                                     {status?.connected ? 'Amazon SP-API Connected' : 'Amazon SP-API Not Configured'}
                                 </p>
                                 <p className="text-sm text-gray-500">
-                                    {status?.lastSyncAt
+                                    {status?.message && !status?.connected ? (
+                                        <span className="text-red-500">{status.message}</span>
+                                    ) : status?.lastSyncAt
                                         ? `Last sync: ${new Date(status.lastSyncAt).toLocaleString()}`
                                         : 'No sync activity yet'}
                                 </p>
@@ -187,7 +189,7 @@ export function AmazonSyncTab() {
                                 <div key={log.id} className="flex items-start justify-between py-3 border-b last:border-0">
                                     <div className="flex items-start gap-3">
                                         <span className={`w-2 h-2 rounded-full mt-2 ${log.status === 'success' ? 'bg-green-500' :
-                                                log.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'
+                                            log.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'
                                             }`} />
                                         <div>
                                             <p className="font-medium text-gray-900">{log.syncType.toUpperCase()} SYNC - {log.message}</p>
