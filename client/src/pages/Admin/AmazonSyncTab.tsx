@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Package, Box, ShoppingCart, Settings } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RefreshCw, Package, Box, ShoppingCart, Settings, Download, Check, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { adminFetch } from './AdminDashboard';
 
@@ -23,8 +24,22 @@ interface SyncLog {
     createdAt: string;
 }
 
+interface AmazonProduct {
+    asin: string;
+    sku: string;
+    title: string;
+    description?: string;
+    price: number;
+    imageUrl: string;
+    stockCount: number;
+    category: string;
+    status: string;
+}
+
 export function AmazonSyncTab() {
     const { toast } = useToast();
+    const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+    const [showProducts, setShowProducts] = useState(false);
 
     const { data: status } = useQuery<SyncStatus>({
         queryKey: ['admin', 'amazon-status'],
@@ -41,6 +56,38 @@ export function AmazonSyncTab() {
             const res = await adminFetch('amazon-logs');
             if (!res.ok) throw new Error('Failed to fetch logs');
             return res.json();
+        },
+    });
+
+    const { data: amazonProducts, isLoading: loadingProducts, refetch: fetchProducts } = useQuery<{ products: AmazonProduct[]; message: string }>({
+        queryKey: ['admin', 'amazon-products'],
+        queryFn: async () => {
+            const res = await adminFetch('amazon-products');
+            if (!res.ok) throw new Error('Failed to fetch products');
+            return res.json();
+        },
+        enabled: showProducts,
+    });
+
+    const importMutation = useMutation({
+        mutationFn: async (products: AmazonProduct[]) => {
+            const res = await adminFetch('amazon-import', {
+                method: 'POST',
+                body: JSON.stringify({ products }),
+            });
+            if (!res.ok) throw new Error('Import failed');
+            return res.json();
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['admin'] });
+            setSelectedProducts(new Set());
+            toast({
+                title: `Import Complete!`,
+                description: `${data.imported} products imported successfully.`
+            });
+        },
+        onError: () => {
+            toast({ title: 'Import failed', variant: 'destructive' });
         },
     });
 
@@ -83,6 +130,39 @@ export function AmazonSyncTab() {
         },
     });
 
+    const toggleProductSelection = (asin: string) => {
+        const newSelected = new Set(selectedProducts);
+        if (newSelected.has(asin)) {
+            newSelected.delete(asin);
+        } else {
+            newSelected.add(asin);
+        }
+        setSelectedProducts(newSelected);
+    };
+
+    const selectAllProducts = () => {
+        if (amazonProducts?.products) {
+            setSelectedProducts(new Set(amazonProducts.products.map(p => p.asin)));
+        }
+    };
+
+    const deselectAllProducts = () => {
+        setSelectedProducts(new Set());
+    };
+
+    const importSelectedProducts = () => {
+        if (amazonProducts?.products) {
+            const productsToImport = amazonProducts.products.filter(p => selectedProducts.has(p.asin));
+            importMutation.mutate(productsToImport);
+        }
+    };
+
+    const importAllProducts = () => {
+        if (amazonProducts?.products) {
+            importMutation.mutate(amazonProducts.products);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -116,6 +196,109 @@ export function AmazonSyncTab() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Import Products from Amazon */}
+            {status?.connected && (
+                <Card className="bg-white">
+                    <CardHeader>
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg">Import Products from Amazon</CardTitle>
+                            <Button
+                                onClick={() => { setShowProducts(true); fetchProducts(); }}
+                                className="bg-blue-600 hover:bg-blue-700"
+                                disabled={loadingProducts}
+                            >
+                                <Download className="w-4 h-4 mr-2" />
+                                {loadingProducts ? 'Loading...' : 'Fetch Amazon Products'}
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {showProducts && amazonProducts?.products && (
+                            <div className="space-y-4">
+                                {/* Header with actions */}
+                                <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-sm font-medium">
+                                            {selectedProducts.size} of {amazonProducts.products.length} selected
+                                        </span>
+                                        <Button variant="link" size="sm" onClick={selectAllProducts}>
+                                            Select All
+                                        </Button>
+                                        <Button variant="link" size="sm" onClick={deselectAllProducts}>
+                                            Deselect All
+                                        </Button>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            onClick={importSelectedProducts}
+                                            disabled={selectedProducts.size === 0 || importMutation.isPending}
+                                            className="bg-green-600 hover:bg-green-700"
+                                        >
+                                            <Check className="w-4 h-4 mr-2" />
+                                            Import Selected ({selectedProducts.size})
+                                        </Button>
+                                        <Button
+                                            onClick={importAllProducts}
+                                            disabled={importMutation.isPending}
+                                            className="bg-orange-500 hover:bg-orange-600"
+                                        >
+                                            <Download className="w-4 h-4 mr-2" />
+                                            Import All ({amazonProducts.products.length})
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Product Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {amazonProducts.products.map((product) => (
+                                        <div
+                                            key={product.asin}
+                                            className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedProducts.has(product.asin)
+                                                    ? 'border-orange-500 bg-orange-50'
+                                                    : 'border-gray-200 hover:border-gray-300'
+                                                }`}
+                                            onClick={() => toggleProductSelection(product.asin)}
+                                        >
+                                            <div className="flex gap-3">
+                                                <Checkbox
+                                                    checked={selectedProducts.has(product.asin)}
+                                                    onCheckedChange={() => toggleProductSelection(product.asin)}
+                                                    className="mt-1"
+                                                />
+                                                <div className="flex-1">
+                                                    <img
+                                                        src={product.imageUrl}
+                                                        alt={product.title}
+                                                        className="w-full h-32 object-cover rounded-md mb-2"
+                                                    />
+                                                    <h4 className="font-medium text-sm line-clamp-2">{product.title}</h4>
+                                                    <div className="flex justify-between items-center mt-2">
+                                                        <span className="text-orange-600 font-bold">${product.price}</span>
+                                                        <span className="text-xs text-gray-500">{product.stockCount} in stock</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 mt-1">ASIN: {product.asin}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <p className="text-sm text-gray-500 text-center mt-4">
+                                    <AlertCircle className="w-4 h-4 inline mr-1" />
+                                    {amazonProducts.message}
+                                </p>
+                            </div>
+                        )}
+
+                        {!showProducts && (
+                            <p className="text-gray-500 text-center py-8">
+                                Click "Fetch Amazon Products" to view your Amazon catalog
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Sync Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -184,15 +367,15 @@ export function AmazonSyncTab() {
                 </CardHeader>
                 <CardContent>
                     {logs.length > 0 ? (
-                        <div className="space-y-4">
-                            {logs.map((log) => (
+                        <div className="space-y-4 max-h-64 overflow-y-auto">
+                            {logs.slice(0, 10).map((log) => (
                                 <div key={log.id} className="flex items-start justify-between py-3 border-b last:border-0">
                                     <div className="flex items-start gap-3">
                                         <span className={`w-2 h-2 rounded-full mt-2 ${log.status === 'success' ? 'bg-green-500' :
                                             log.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'
                                             }`} />
                                         <div>
-                                            <p className="font-medium text-gray-900">{log.syncType.toUpperCase()} SYNC - {log.message}</p>
+                                            <p className="font-medium text-gray-900">{log.message}</p>
                                             <p className="text-sm text-gray-600">
                                                 Status: <span className={log.status === 'success' ? 'text-green-600' : log.status === 'failed' ? 'text-red-600' : 'text-yellow-600'}>
                                                     {log.status}

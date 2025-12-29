@@ -100,6 +100,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return syncOrders(req, res);
             case 'amazon-logs':
                 return getSyncLogs(req, res);
+            case 'amazon-products':
+                return getAmazonProducts(req, res);
+            case 'amazon-import':
+                return importAmazonProducts(req, res);
 
             // Inventory management
             case 'inventory':
@@ -654,6 +658,181 @@ async function syncProducts(req: VercelRequest, res: VercelResponse) {
         syncedCount: results.length,
         failedCount: 0,
         message: `Successfully synced ${results.length} products`
+    });
+}
+
+// Amazon product catalog - sandbox mode returns sample products  
+async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
+    // Return sample Amazon products for sandbox/demo mode
+    const sampleProducts = [
+        {
+            asin: 'B0DGXH38VT',
+            sku: 'SKU-HEADPHONES-001',
+            title: 'Premium Wireless Bluetooth Headphones with Active Noise Cancellation',
+            description: 'High-quality wireless headphones with ANC, 40-hour battery life, premium sound quality',
+            price: 149.99,
+            imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
+            stockCount: 50,
+            category: 'Electronics',
+            status: 'active',
+        },
+        {
+            asin: 'B0DGXK72PQ',
+            sku: 'SKU-WATCH-002',
+            title: 'Smart Watch Pro - Fitness Tracker with Heart Rate Monitor',
+            description: 'Advanced smartwatch with GPS, heart rate, sleep tracking, and 7-day battery',
+            price: 199.99,
+            imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+            stockCount: 35,
+            category: 'Electronics',
+            status: 'active',
+        },
+        {
+            asin: 'B0DGXM45NR',
+            sku: 'SKU-POWERBANK-003',
+            title: 'Ultra Fast Portable Power Bank 20000mAh - USB-C PD',
+            description: '65W fast charging power bank, charges laptops and phones, compact design',
+            price: 49.99,
+            imageUrl: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400',
+            stockCount: 100,
+            category: 'Electronics',
+            status: 'active',
+        },
+        {
+            asin: 'B0DGXP28LS',
+            sku: 'SKU-LAMP-004',
+            title: 'Modern LED Desk Lamp with Wireless Charging Pad',
+            description: 'Touch control desk lamp with 5 brightness levels and built-in phone charger',
+            price: 59.99,
+            imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400',
+            stockCount: 75,
+            category: 'Home & Office',
+            status: 'active',
+        },
+        {
+            asin: 'B0DGXQ93MT',
+            sku: 'SKU-BOTTLE-005',
+            title: 'Insulated Stainless Steel Water Bottle - 32oz',
+            description: 'Double-wall vacuum insulated, keeps drinks cold 24hrs or hot 12hrs',
+            price: 34.99,
+            imageUrl: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400',
+            stockCount: 200,
+            category: 'Sports & Outdoors',
+            status: 'active',
+        },
+        {
+            asin: 'B0DGXR17NU',
+            sku: 'SKU-KEYBOARD-006',
+            title: 'Mechanical Gaming Keyboard RGB Backlit',
+            description: 'Hot-swappable switches, programmable keys, aluminum frame',
+            price: 89.99,
+            imageUrl: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400',
+            stockCount: 45,
+            category: 'Electronics',
+            status: 'active',
+        },
+        {
+            asin: 'B0DGXS82PV',
+            sku: 'SKU-MOUSE-007',
+            title: 'Wireless Ergonomic Gaming Mouse - 16000 DPI',
+            description: 'Lightweight gaming mouse with custom RGB, 70-hour battery life',
+            price: 69.99,
+            imageUrl: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400',
+            stockCount: 60,
+            category: 'Electronics',
+            status: 'active',
+        },
+        {
+            asin: 'B0DGXT47QW',
+            sku: 'SKU-EARBUDS-008',
+            title: 'True Wireless Earbuds with Active Noise Cancellation',
+            description: 'Premium sound quality, 8-hour battery, IPX5 water resistant',
+            price: 129.99,
+            imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400',
+            stockCount: 80,
+            category: 'Electronics',
+            status: 'active',
+        },
+    ];
+
+    return res.status(200).json({
+        success: true,
+        products: sampleProducts,
+        total: sampleProducts.length,
+        message: 'Sandbox Mode - Showing sample Amazon products'
+    });
+}
+
+// Import selected Amazon products to PrimePickz database
+async function importAmazonProducts(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { products } = req.body;
+
+    if (!products || !Array.isArray(products) || products.length === 0) {
+        return res.status(400).json({ error: 'No products provided for import' });
+    }
+
+    const importedProducts = [];
+    const errors = [];
+
+    for (const amazonProduct of products) {
+        try {
+            // Check if product already exists by ASIN
+            const existing = await db.select()
+                .from(schema.products)
+                .where(eq(schema.products.amazonAsin, amazonProduct.asin))
+                .limit(1);
+
+            if (existing.length > 0) {
+                errors.push({ asin: amazonProduct.asin, error: 'Product already exists' });
+                continue;
+            }
+
+            // Insert new product
+            const [newProduct] = await db.insert(schema.products).values({
+                name: amazonProduct.title,
+                description: amazonProduct.description || '',
+                price: String(amazonProduct.price || '0'),
+                category: amazonProduct.category || 'General',
+                imageUrl: amazonProduct.imageUrl || '',
+                stockCount: amazonProduct.stockCount || 0,
+                inStock: (amazonProduct.stockCount || 0) > 0,
+                amazonAsin: amazonProduct.asin,
+                amazonSku: amazonProduct.sku || '',
+                amazonSyncStatus: 'synced',
+                lastSyncedAt: new Date(),
+            }).returning();
+
+            // Log the import
+            await db.insert(schema.amazonSyncLogs).values({
+                productId: newProduct.id,
+                syncType: 'import',
+                status: 'success',
+                message: `IMPORTED from Amazon - ${amazonProduct.title}`,
+                errorDetails: null,
+            });
+
+            importedProducts.push({
+                id: newProduct.id,
+                asin: amazonProduct.asin,
+                name: amazonProduct.title,
+            });
+        } catch (err: any) {
+            console.error(`Error importing product ${amazonProduct.asin}:`, err);
+            errors.push({ asin: amazonProduct.asin, error: err.message });
+        }
+    }
+
+    return res.status(200).json({
+        success: true,
+        imported: importedProducts.length,
+        failed: errors.length,
+        products: importedProducts,
+        errors: errors.length > 0 ? errors : undefined,
+        message: `Imported ${importedProducts.length} products from Amazon`
     });
 }
 
