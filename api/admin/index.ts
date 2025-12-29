@@ -661,106 +661,185 @@ async function syncProducts(req: VercelRequest, res: VercelResponse) {
     });
 }
 
-// Amazon product catalog - sandbox mode returns sample products  
-async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
-    // Return sample Amazon products for sandbox/demo mode
-    const sampleProducts = [
-        {
-            asin: 'B0DGXH38VT',
-            sku: 'SKU-HEADPHONES-001',
-            title: 'Premium Wireless Bluetooth Headphones with Active Noise Cancellation',
-            description: 'High-quality wireless headphones with ANC, 40-hour battery life, premium sound quality',
-            price: 149.99,
-            imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
-            stockCount: 50,
-            category: 'Electronics',
-            status: 'active',
-        },
-        {
-            asin: 'B0DGXK72PQ',
-            sku: 'SKU-WATCH-002',
-            title: 'Smart Watch Pro - Fitness Tracker with Heart Rate Monitor',
-            description: 'Advanced smartwatch with GPS, heart rate, sleep tracking, and 7-day battery',
-            price: 199.99,
-            imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
-            stockCount: 35,
-            category: 'Electronics',
-            status: 'active',
-        },
-        {
-            asin: 'B0DGXM45NR',
-            sku: 'SKU-POWERBANK-003',
-            title: 'Ultra Fast Portable Power Bank 20000mAh - USB-C PD',
-            description: '65W fast charging power bank, charges laptops and phones, compact design',
-            price: 49.99,
-            imageUrl: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400',
-            stockCount: 100,
-            category: 'Electronics',
-            status: 'active',
-        },
-        {
-            asin: 'B0DGXP28LS',
-            sku: 'SKU-LAMP-004',
-            title: 'Modern LED Desk Lamp with Wireless Charging Pad',
-            description: 'Touch control desk lamp with 5 brightness levels and built-in phone charger',
-            price: 59.99,
-            imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400',
-            stockCount: 75,
-            category: 'Home & Office',
-            status: 'active',
-        },
-        {
-            asin: 'B0DGXQ93MT',
-            sku: 'SKU-BOTTLE-005',
-            title: 'Insulated Stainless Steel Water Bottle - 32oz',
-            description: 'Double-wall vacuum insulated, keeps drinks cold 24hrs or hot 12hrs',
-            price: 34.99,
-            imageUrl: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400',
-            stockCount: 200,
-            category: 'Sports & Outdoors',
-            status: 'active',
-        },
-        {
-            asin: 'B0DGXR17NU',
-            sku: 'SKU-KEYBOARD-006',
-            title: 'Mechanical Gaming Keyboard RGB Backlit',
-            description: 'Hot-swappable switches, programmable keys, aluminum frame',
-            price: 89.99,
-            imageUrl: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400',
-            stockCount: 45,
-            category: 'Electronics',
-            status: 'active',
-        },
-        {
-            asin: 'B0DGXS82PV',
-            sku: 'SKU-MOUSE-007',
-            title: 'Wireless Ergonomic Gaming Mouse - 16000 DPI',
-            description: 'Lightweight gaming mouse with custom RGB, 70-hour battery life',
-            price: 69.99,
-            imageUrl: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400',
-            stockCount: 60,
-            category: 'Electronics',
-            status: 'active',
-        },
-        {
-            asin: 'B0DGXT47QW',
-            sku: 'SKU-EARBUDS-008',
-            title: 'True Wireless Earbuds with Active Noise Cancellation',
-            description: 'Premium sound quality, 8-hour battery, IPX5 water resistant',
-            price: 129.99,
-            imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400',
-            stockCount: 80,
-            category: 'Electronics',
-            status: 'active',
-        },
-    ];
+// Amazon SP-API Configuration
+const AMAZON_REFRESH_TOKEN = process.env.AMAZON_REFRESH_TOKEN || '';
+const AMAZON_CLIENT_ID = process.env.AMAZON_CLIENT_ID || '';
+const AMAZON_CLIENT_SECRET = process.env.AMAZON_CLIENT_SECRET || '';
+const AMAZON_SELLER_ID = process.env.AMAZON_SELLER_ID || '';
+const AMAZON_MARKETPLACE_ID = process.env.AMAZON_MARKETPLACE_ID || 'ATVPDKIKX0DER';
 
-    return res.status(200).json({
-        success: true,
-        products: sampleProducts,
-        total: sampleProducts.length,
-        message: 'Sandbox Mode - Showing sample Amazon products'
+// LWA Token cache
+let cachedAccessToken: string | null = null;
+let tokenExpiresAt: number = 0;
+
+// Exchange refresh token for access token
+async function getSpApiAccessToken(): Promise<string> {
+    // Return cached token if still valid (with 1 min buffer)
+    if (cachedAccessToken && Date.now() < tokenExpiresAt - 60000) {
+        return cachedAccessToken;
+    }
+
+    console.log('Exchanging refresh token for access token...');
+
+    const response = await fetch('https://api.amazon.com/auth/o2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: AMAZON_REFRESH_TOKEN,
+            client_id: AMAZON_CLIENT_ID,
+            client_secret: AMAZON_CLIENT_SECRET,
+        }),
     });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('LWA Token exchange failed:', response.status, errorText);
+        throw new Error(`Token exchange failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    cachedAccessToken = data.access_token;
+    tokenExpiresAt = Date.now() + (data.expires_in * 1000);
+
+    console.log('Access token obtained successfully');
+    return data.access_token;
+}
+
+// Fetch products from Amazon SP-API
+async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
+    try {
+        // Get access token
+        const accessToken = await getSpApiAccessToken();
+
+        // Try to get inventory summaries first (FBA inventory)
+        const inventoryUrl = `https://sellingpartnerapi-na.amazon.com/fba/inventory/v1/summaries?details=true&granularityType=Marketplace&granularityId=${AMAZON_MARKETPLACE_ID}&marketplaceIds=${AMAZON_MARKETPLACE_ID}`;
+
+        console.log('Fetching inventory from SP-API...');
+
+        const inventoryResponse = await fetch(inventoryUrl, {
+            method: 'GET',
+            headers: {
+                'x-amz-access-token': accessToken,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        let products: any[] = [];
+        let message = '';
+
+        if (inventoryResponse.ok) {
+            const inventoryData = await inventoryResponse.json();
+            console.log('Inventory API response:', JSON.stringify(inventoryData).substring(0, 500));
+
+            const items = inventoryData.payload?.inventorySummaries || [];
+
+            // Transform inventory items to product format
+            for (const item of items) {
+                // Get detailed product info from Catalog API
+                let productDetails: any = {};
+                try {
+                    const catalogUrl = `https://sellingpartnerapi-na.amazon.com/catalog/2022-04-01/items/${item.asin}?marketplaceIds=${AMAZON_MARKETPLACE_ID}&includedData=summaries,images`;
+                    const catalogResponse = await fetch(catalogUrl, {
+                        method: 'GET',
+                        headers: {
+                            'x-amz-access-token': accessToken,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    if (catalogResponse.ok) {
+                        productDetails = await catalogResponse.json();
+                    }
+                } catch (e) {
+                    console.log(`Could not fetch catalog details for ${item.asin}`);
+                }
+
+                const summary = productDetails.summaries?.[0] || {};
+                const images = productDetails.images?.[0]?.images || [];
+                const primaryImage = images.find((img: any) => img.variant === 'MAIN') || images[0];
+
+                products.push({
+                    asin: item.asin || '',
+                    sku: item.sellerSku || '',
+                    title: item.productName || summary.itemName || 'Unknown Product',
+                    description: summary.browseClassification?.displayName || '',
+                    price: 0, // Price not available from inventory API
+                    imageUrl: primaryImage?.link || '',
+                    stockCount: item.totalQuantity || 0,
+                    category: summary.browseClassification?.displayName || 'General',
+                    status: item.totalQuantity > 0 ? 'active' : 'inactive',
+                    fnSku: item.fnSku || '',
+                });
+            }
+
+            message = `Found ${products.length} products from Amazon FBA inventory`;
+        } else {
+            const errorText = await inventoryResponse.text();
+            console.log('Inventory API returned:', inventoryResponse.status, errorText);
+
+            // Try Listings API instead
+            const listingsUrl = `https://sellingpartnerapi-na.amazon.com/listings/2021-08-01/items/${AMAZON_SELLER_ID}?marketplaceIds=${AMAZON_MARKETPLACE_ID}&pageSize=50`;
+
+            console.log('Trying Listings API...');
+            const listingsResponse = await fetch(listingsUrl, {
+                method: 'GET',
+                headers: {
+                    'x-amz-access-token': accessToken,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (listingsResponse.ok) {
+                const listingsData = await listingsResponse.json();
+                console.log('Listings API response:', JSON.stringify(listingsData).substring(0, 500));
+
+                // Handle listings response
+                products = (listingsData.listings || []).map((item: any) => ({
+                    asin: item.asin || '',
+                    sku: item.sku || '',
+                    title: item.summaries?.[0]?.itemName || 'Unknown Product',
+                    description: item.summaries?.[0]?.productType || '',
+                    price: 0,
+                    imageUrl: item.summaries?.[0]?.mainImage?.link || '',
+                    stockCount: 0,
+                    category: 'General',
+                    status: item.summaries?.[0]?.status || 'active',
+                }));
+
+                message = `Found ${products.length} listings from Amazon`;
+            } else {
+                const listingsError = await listingsResponse.text();
+                console.log('Listings API returned:', listingsResponse.status, listingsError);
+                message = `API returned ${inventoryResponse.status}. Your sandbox app may not have access to real inventory. Complete identity verification in Amazon Developer Central to access production data.`;
+            }
+        }
+
+        // If no products found, provide guidance
+        if (products.length === 0) {
+            return res.status(200).json({
+                success: true,
+                products: [],
+                total: 0,
+                message: message || 'No products found. Make sure you have products listed on Amazon Seller Central.',
+                note: 'If using a sandbox app, you need to complete identity verification and create a production app to access real products.'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            products,
+            total: products.length,
+            message
+        });
+
+    } catch (error: any) {
+        console.error('Error fetching Amazon products:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to fetch Amazon products',
+            message: 'Make sure your Amazon SP-API credentials are correct and you have completed seller verification.'
+        });
+    }
 }
 
 // Import selected Amazon products to PrimePickz database
