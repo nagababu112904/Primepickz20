@@ -537,14 +537,28 @@ async function getAmazonStatus(req: VercelRequest, res: VercelResponse) {
     const refreshToken = process.env.AMAZON_REFRESH_TOKEN;
     const marketplaceId = process.env.AMAZON_MARKETPLACE_ID;
 
+    // Debug logging for Vercel logs
+    console.log('Amazon SP-API Status Check:', {
+        hasSellerId: !!sellerId,
+        hasClientId: !!clientId,
+        hasClientSecret: !!clientSecret,
+        hasRefreshToken: !!refreshToken,
+        hasMarketplaceId: !!marketplaceId
+    });
+
     const isConfigured = !!(sellerId && clientId && clientSecret && refreshToken);
 
-    // Get last successful sync
-    const lastLog = await db.select()
-        .from(schema.amazonSyncLogs)
-        .where(drizzleSql`status = 'success'`)
-        .orderBy(drizzleSql`created_at DESC`)
-        .limit(1);
+    // Get last successful sync with error handling
+    let lastLog: any[] = [];
+    try {
+        lastLog = await db.select()
+            .from(schema.amazonSyncLogs)
+            .where(drizzleSql`status = 'success'`)
+            .orderBy(drizzleSql`created_at DESC`)
+            .limit(1);
+    } catch (dbError) {
+        console.error('Error fetching amazonSyncLogs:', dbError);
+    }
 
     // Build status message
     let message = 'Amazon SP-API Not Configured';
@@ -556,7 +570,9 @@ async function getAmazonStatus(req: VercelRequest, res: VercelResponse) {
         if (!clientId) missing.push('AMAZON_CLIENT_ID');
         if (!clientSecret) missing.push('AMAZON_CLIENT_SECRET');
         if (!refreshToken) missing.push('AMAZON_REFRESH_TOKEN');
-        message = `Missing env vars: ${missing.join(', ')}`;
+        message = missing.length > 0
+            ? `Missing env vars: ${missing.join(', ')}`
+            : 'All env vars present but check failed';
     }
 
     return res.status(200).json({
@@ -564,7 +580,13 @@ async function getAmazonStatus(req: VercelRequest, res: VercelResponse) {
         lastSyncAt: lastLog[0]?.createdAt || null,
         message,
         marketplaceId: marketplaceId || 'ATVPDKIKX0DER',
-        sellerId: sellerId ? `${sellerId.substring(0, 4)}...` : null
+        sellerId: sellerId ? `${sellerId.substring(0, 4)}...` : null,
+        debug: {
+            hasSellerId: !!sellerId,
+            hasClientId: !!clientId,
+            hasClientSecret: !!clientSecret,
+            hasRefreshToken: !!refreshToken
+        }
     });
 }
 
