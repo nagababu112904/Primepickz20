@@ -14,11 +14,14 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'primepickz2024';
 
 // Check JWT token for admin access
 function checkAdminAuth(req: VercelRequest): { authorized: boolean; userId?: string; error?: string } {
-    const token = extractToken(req.headers.authorization);
+    const authHeader = req.headers.authorization;
+    console.log('Admin Auth Check - Authorization header present:', !!authHeader);
+
+    const token = extractToken(authHeader);
+    console.log('Admin Auth Check - Token extracted:', !!token);
 
     if (!token) {
         // Fallback to Basic Auth for backwards compatibility
-        const authHeader = req.headers.authorization;
         if (authHeader?.startsWith('Basic ')) {
             const base64Credentials = authHeader.split(' ')[1];
             const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
@@ -27,10 +30,13 @@ function checkAdminAuth(req: VercelRequest): { authorized: boolean; userId?: str
                 return { authorized: true, userId: 'admin' };
             }
         }
+        console.log('Admin Auth Check - No token, returning unauthorized');
         return { authorized: false, error: 'No token provided' };
     }
 
     const payload = verifyToken(token);
+    console.log('Admin Auth Check - Token verification result:', !!payload, payload?.role);
+
     if (!payload) {
         return { authorized: false, error: 'Invalid or expired token' };
     }
