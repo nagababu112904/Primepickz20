@@ -394,6 +394,45 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
         reader.readAsDataURL(file);
     };
 
+    // Video upload state
+    const [videoUploadMode, setVideoUploadMode] = useState<'url' | 'file'>('url');
+    const [videoPreview, setVideoPreview] = useState<string>(formData.videoUrl || '');
+    const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+
+    // Handle video file upload
+    const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('video/')) {
+            alert('Please select a video file');
+            return;
+        }
+
+        // Max size 50MB
+        if (file.size > 50 * 1024 * 1024) {
+            alert('Video size must be less than 50MB');
+            return;
+        }
+
+        setIsUploadingVideo(true);
+
+        // Convert to base64 data URL
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64 = reader.result as string;
+            setVideoPreview(base64);
+            setFormData({ ...formData, videoUrl: base64 });
+            setIsUploadingVideo(false);
+        };
+        reader.onerror = () => {
+            alert('Failed to read video file');
+            setIsUploadingVideo(false);
+        };
+        reader.readAsDataURL(file);
+    };
+
     const addVariant = () => {
         setVariants([...variants, {
             size: '',
@@ -512,8 +551,8 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                             <button
                                 type="button"
                                 className={`px-3 py-1 text-sm rounded-md transition-colors ${imageUploadMode === 'url'
-                                        ? 'bg-white shadow-sm text-gray-900'
-                                        : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white shadow-sm text-gray-900'
+                                    : 'text-gray-600 hover:text-gray-900'
                                     }`}
                                 onClick={() => setImageUploadMode('url')}
                             >
@@ -522,8 +561,8 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                             <button
                                 type="button"
                                 className={`px-3 py-1 text-sm rounded-md transition-colors ${imageUploadMode === 'file'
-                                        ? 'bg-white shadow-sm text-gray-900'
-                                        : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white shadow-sm text-gray-900'
+                                    : 'text-gray-600 hover:text-gray-900'
                                     }`}
                                 onClick={() => setImageUploadMode('file')}
                             >
@@ -588,15 +627,93 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                     )}
                 </div>
 
-                {/* Video URL Section */}
-                <div className="col-span-2">
-                    <Label>Product Video URL (Optional)</Label>
-                    <Input
-                        value={formData.videoUrl}
-                        onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                        placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
-                    />
-                    <p className="text-xs text-gray-500 mt-1">YouTube, Vimeo, or direct video URL</p>
+                {/* Video Upload Section */}
+                <div className="col-span-2 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <Label>Product Video (Optional)</Label>
+                        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                            <button
+                                type="button"
+                                className={`px-3 py-1 text-sm rounded-md transition-colors ${videoUploadMode === 'url'
+                                        ? 'bg-white shadow-sm text-gray-900'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                                onClick={() => setVideoUploadMode('url')}
+                            >
+                                URL
+                            </button>
+                            <button
+                                type="button"
+                                className={`px-3 py-1 text-sm rounded-md transition-colors ${videoUploadMode === 'file'
+                                        ? 'bg-white shadow-sm text-gray-900'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                                onClick={() => setVideoUploadMode('file')}
+                            >
+                                Upload File
+                            </button>
+                        </div>
+                    </div>
+
+                    {videoUploadMode === 'url' ? (
+                        <div>
+                            <Input
+                                value={formData.videoUrl.startsWith('data:') ? '' : formData.videoUrl}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, videoUrl: e.target.value });
+                                    setVideoPreview(e.target.value);
+                                }}
+                                placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                            />
+                            <p className="text-xs text-gray-500 mt-1">YouTube, Vimeo, or direct video URL</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                                <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                                    <Upload className="w-5 h-5 text-gray-400" />
+                                    <span className="text-gray-600">
+                                        {isUploadingVideo ? 'Uploading...' : 'Click to upload video'}
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="video/*"
+                                        onChange={handleVideoFileChange}
+                                        className="hidden"
+                                        disabled={isUploadingVideo}
+                                    />
+                                </label>
+                            </div>
+                            <p className="text-xs text-gray-500">MP4, WEBM up to 50MB</p>
+                        </div>
+                    )}
+
+                    {/* Video Preview */}
+                    {videoPreview && (
+                        <div className="relative inline-block">
+                            {videoPreview.startsWith('data:video') ? (
+                                <video
+                                    src={videoPreview}
+                                    controls
+                                    className="w-48 h-32 rounded-lg border object-cover"
+                                />
+                            ) : (
+                                <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
+                                    <span className="text-sm text-gray-600 max-w-xs truncate">{videoPreview}</span>
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setVideoPreview('');
+                                    setFormData({ ...formData, videoUrl: '' });
+                                }}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div>
