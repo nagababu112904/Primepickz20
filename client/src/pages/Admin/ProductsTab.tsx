@@ -345,6 +345,7 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
         originalPrice: initialData?.originalPrice || '',
         category: initialData?.category || '',
         imageUrl: initialData?.imageUrl || '',
+        videoUrl: (initialData as any)?.videoUrl || '',
         stockCount: initialData?.stockCount || 0,
         amazonAsin: initialData?.amazonAsin || '',
         amazonSku: initialData?.amazonSku || '',
@@ -353,6 +354,45 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
 
     const [variants, setVariants] = useState<Variant[]>([]);
     const [showVariants, setShowVariants] = useState(formData.hasVariants);
+
+    // Image upload state
+    const [imageUploadMode, setImageUploadMode] = useState<'url' | 'file'>('url');
+    const [imagePreview, setImagePreview] = useState<string>(formData.imageUrl || '');
+    const [isUploading, setIsUploading] = useState(false);
+
+    // Handle image file upload
+    const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+
+        // Max size 5MB
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size must be less than 5MB');
+            return;
+        }
+
+        setIsUploading(true);
+
+        // Convert to base64 data URL
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64 = reader.result as string;
+            setImagePreview(base64);
+            setFormData({ ...formData, imageUrl: base64 });
+            setIsUploading(false);
+        };
+        reader.onerror = () => {
+            alert('Failed to read image file');
+            setIsUploading(false);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const addVariant = () => {
         setVariants([...variants, {
@@ -464,14 +504,99 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                     />
                 </div>
 
+                {/* Image Upload Section */}
+                <div className="col-span-2 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <Label>Product Image *</Label>
+                        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                            <button
+                                type="button"
+                                className={`px-3 py-1 text-sm rounded-md transition-colors ${imageUploadMode === 'url'
+                                        ? 'bg-white shadow-sm text-gray-900'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                                onClick={() => setImageUploadMode('url')}
+                            >
+                                URL
+                            </button>
+                            <button
+                                type="button"
+                                className={`px-3 py-1 text-sm rounded-md transition-colors ${imageUploadMode === 'file'
+                                        ? 'bg-white shadow-sm text-gray-900'
+                                        : 'text-gray-600 hover:text-gray-900'
+                                    }`}
+                                onClick={() => setImageUploadMode('file')}
+                            >
+                                Upload File
+                            </button>
+                        </div>
+                    </div>
+
+                    {imageUploadMode === 'url' ? (
+                        <Input
+                            value={formData.imageUrl.startsWith('data:') ? '' : formData.imageUrl}
+                            onChange={(e) => {
+                                setFormData({ ...formData, imageUrl: e.target.value });
+                                setImagePreview(e.target.value);
+                            }}
+                            placeholder="https://example.com/image.jpg"
+                            required={!formData.imageUrl}
+                        />
+                    ) : (
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                                <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                                    <Upload className="w-5 h-5 text-gray-400" />
+                                    <span className="text-gray-600">
+                                        {isUploading ? 'Uploading...' : 'Click to upload image'}
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageFileChange}
+                                        className="hidden"
+                                        disabled={isUploading}
+                                    />
+                                </label>
+                            </div>
+                            <p className="text-xs text-gray-500">PNG, JPG, WEBP up to 5MB</p>
+                        </div>
+                    )}
+
+                    {/* Image Preview */}
+                    {imagePreview && (
+                        <div className="relative inline-block">
+                            <img
+                                src={imagePreview}
+                                alt="Preview"
+                                className="w-32 h-32 object-cover rounded-lg border"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setImagePreview('');
+                                    setFormData({ ...formData, imageUrl: '' });
+                                }}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Video URL Section */}
                 <div className="col-span-2">
-                    <Label>Image URL *</Label>
+                    <Label>Product Video URL (Optional)</Label>
                     <Input
-                        value={formData.imageUrl}
-                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                        required
-                        placeholder="https://..."
+                        value={formData.videoUrl}
+                        onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                        placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
                     />
+                    <p className="text-xs text-gray-500 mt-1">YouTube, Vimeo, or direct video URL</p>
                 </div>
 
                 <div>

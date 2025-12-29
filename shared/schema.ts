@@ -49,6 +49,7 @@ export const products = pgTable("products", {
   stockCount: integer("stock_count").default(0),
   tags: text("tags").array(),
   badge: text("badge"),
+  videoUrl: text("video_url"), // Product video URL (YouTube, Vimeo, etc.)
   freeShipping: boolean("free_shipping").default(false),
   hasVariants: boolean("has_variants").default(false),
   // Amazon SP-API fields
