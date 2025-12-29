@@ -59,14 +59,18 @@ export function AmazonSyncTab() {
         },
     });
 
-    const { data: amazonProducts, isLoading: loadingProducts, refetch: fetchProducts } = useQuery<{ products: AmazonProduct[]; message: string }>({
+    const { data: amazonProducts, isLoading: loadingProducts, refetch: fetchProducts, error: fetchError, isError: hasFetchError } = useQuery<{ products: AmazonProduct[]; message: string; note?: string; error?: string }>({
         queryKey: ['admin', 'amazon-products'],
         queryFn: async () => {
             const res = await adminFetch('amazon-products');
-            if (!res.ok) throw new Error('Failed to fetch products');
-            return res.json();
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || data.message || 'Failed to fetch products');
+            }
+            return data;
         },
         enabled: showProducts,
+        retry: false,
     });
 
     const importMutation = useMutation({
@@ -222,10 +226,10 @@ export function AmazonSyncTab() {
                                         <span className="text-sm font-medium">
                                             {selectedProducts.size} of {amazonProducts.products.length} selected
                                         </span>
-                                        <Button variant="link" size="sm" onClick={selectAllProducts}>
+                                        <Button variant="ghost" size="sm" onClick={selectAllProducts}>
                                             Select All
                                         </Button>
-                                        <Button variant="link" size="sm" onClick={deselectAllProducts}>
+                                        <Button variant="ghost" size="sm" onClick={deselectAllProducts}>
                                             Deselect All
                                         </Button>
                                     </div>
@@ -255,8 +259,8 @@ export function AmazonSyncTab() {
                                         <div
                                             key={product.asin}
                                             className={`border rounded-lg p-4 cursor-pointer transition-all ${selectedProducts.has(product.asin)
-                                                    ? 'border-orange-500 bg-orange-50'
-                                                    : 'border-gray-200 hover:border-gray-300'
+                                                ? 'border-orange-500 bg-orange-50'
+                                                : 'border-gray-200 hover:border-gray-300'
                                                 }`}
                                             onClick={() => toggleProductSelection(product.asin)}
                                         >
@@ -288,6 +292,53 @@ export function AmazonSyncTab() {
                                     <AlertCircle className="w-4 h-4 inline mr-1" />
                                     {amazonProducts.message}
                                 </p>
+                            </div>
+                        )}
+
+                        {/* Error State */}
+                        {showProducts && hasFetchError && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                                <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                                <h4 className="font-medium text-red-700 mb-2">Failed to Fetch Products</h4>
+                                <p className="text-sm text-red-600">
+                                    {(fetchError as Error)?.message || 'Unknown error occurred'}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-3">
+                                    Tip: Sandbox apps cannot access real seller data. Complete identity verification and create a Production app in Amazon Developer Central.
+                                </p>
+                                <Button
+                                    onClick={() => fetchProducts()}
+                                    variant="outline"
+                                    className="mt-4"
+                                >
+                                    <RefreshCw className="w-4 h-4 mr-2" />
+                                    Try Again
+                                </Button>
+                            </div>
+                        )}
+
+                        {/* Loading State */}
+                        {showProducts && loadingProducts && (
+                            <div className="text-center py-8">
+                                <RefreshCw className="w-8 h-8 text-orange-500 mx-auto mb-3 animate-spin" />
+                                <p className="text-gray-500">Fetching products from Amazon...</p>
+                                <p className="text-xs text-gray-400 mt-2">This may take a moment</p>
+                            </div>
+                        )}
+
+                        {/* Empty Products State */}
+                        {showProducts && !loadingProducts && !hasFetchError && amazonProducts?.products?.length === 0 && (
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                                <Package className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                                <h4 className="font-medium text-yellow-700 mb-2">No Products Found</h4>
+                                <p className="text-sm text-yellow-600">
+                                    {amazonProducts?.message || 'No products returned from Amazon API'}
+                                </p>
+                                {amazonProducts?.note && (
+                                    <p className="text-xs text-gray-500 mt-3">
+                                        {amazonProducts.note}
+                                    </p>
+                                )}
                             </div>
                         )}
 
