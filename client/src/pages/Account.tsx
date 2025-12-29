@@ -148,24 +148,8 @@ export default function Account() {
         window.location.href = '/';
     };
 
-    // Show loading while auth state is being determined
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
-                <Header />
-                <main className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a2332] mx-auto mb-4"></div>
-                        <p className="text-gray-500">Loading...</p>
-                    </div>
-                </main>
-                <Footer />
-                <BottomNav />
-            </div>
-        );
-    }
-
-    // If not authenticated, show login prompt
+    // If not authenticated (or still loading), show login prompt immediately
+    // No loading spinner - just show the login prompt right away for better UX
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
