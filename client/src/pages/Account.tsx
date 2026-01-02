@@ -43,10 +43,21 @@ export default function Account() {
     // Edit Profile State
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [profileData, setProfileData] = useState({
-        name: user?.displayName || 'Guest',
-        email: user?.email || 'guest@primepickz.com',
-        phone: '+1 (555) 123-4567',
+        name: '',
+        email: '',
+        phone: '',
     });
+
+    // Sync profile data with user when user changes
+    React.useEffect(() => {
+        if (user) {
+            setProfileData({
+                name: user.displayName || user.email?.split('@')[0] || 'User',
+                email: user.email || '',
+                phone: user.phoneNumber || '',
+            });
+        }
+    }, [user]);
 
     // Address State
     const [addresses, setAddresses] = useState<Address[]>([]);
@@ -72,30 +83,36 @@ export default function Account() {
         queryKey: ['/api/products'],
     });
 
-    // Mock orders - in production, fetch from API
-    const orders: Order[] = [
-        {
-            id: '001',
-            date: '2024-01-15',
-            total: '299.99',
-            status: 'Delivered',
-            items: 2,
-            products: [
-                { name: 'Wireless Earbuds Pro', quantity: 1, price: '199.99' },
-                { name: 'Phone Case', quantity: 1, price: '100.00' },
-            ],
+    // Fetch user's orders from API
+    const { data: ordersData, isLoading: ordersLoading } = useQuery<{ id: number; createdAt: string; total: string; status: string; items: any[] }[]>({
+        queryKey: ['/api/orders', user?.uid],
+        queryFn: async () => {
+            if (!user?.email) return [];
+            const res = await fetch(`/api/orders?email=${encodeURIComponent(user.email)}`);
+            if (!res.ok) return [];
+            return res.json();
         },
-        {
-            id: '002',
-            date: '2024-01-10',
-            total: '89.99',
-            status: 'In Transit',
-            items: 1,
-            products: [
-                { name: 'Smart Watch Band', quantity: 1, price: '89.99' },
-            ],
-        },
-    ];
+        enabled: !!user?.email,
+    });
+
+    // Transform orders data to display format
+    const orders: Order[] = (ordersData || []).map((order) => ({
+        id: String(order.id),
+        date: new Date(order.createdAt).toISOString().split('T')[0],
+        total: order.total,
+        status: order.status || 'Processing',
+        items: order.items?.length || 0,
+        products: order.items?.map((item: any) => ({
+            name: item.name || 'Product',
+            quantity: item.quantity || 1,
+            price: item.price || '0.00',
+        })) || [],
+    }));
+
+    // Get member since date from Firebase user
+    const memberSince = user?.metadata?.creationTime
+        ? new Date(user.metadata.creationTime).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        : 'N/A';
 
     // Profile handlers
     const handleSaveProfile = () => {
@@ -284,13 +301,15 @@ export default function Account() {
                                             <label className="text-sm font-medium text-gray-500">Email</label>
                                             <p className="text-lg">{profileData.email}</p>
                                         </div>
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">Phone</label>
-                                            <p className="text-lg">{profileData.phone}</p>
-                                        </div>
+                                        {profileData.phone && (
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-500">Phone</label>
+                                                <p className="text-lg">{profileData.phone}</p>
+                                            </div>
+                                        )}
                                         <div>
                                             <label className="text-sm font-medium text-gray-500">Member Since</label>
-                                            <p className="text-lg">January 2024</p>
+                                            <p className="text-lg">{memberSince}</p>
                                         </div>
                                     </>
                                 )}
@@ -305,71 +324,84 @@ export default function Account() {
                                 <CardTitle>Order History</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-4">
-                                    {orders.map((order) => (
-                                        <div key={order.id} className="border rounded-lg p-4">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <p className="font-semibold">Order #{order.id}</p>
-                                                    <p className="text-sm text-gray-600">{order.date}</p>
-                                                </div>
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Delivered'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-blue-100 text-blue-700'
-                                                    }`}>
-                                                    {order.status}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center mt-3">
-                                                <p className="text-sm text-gray-600">{order.items} item(s)</p>
-                                                <p className="font-bold text-[#1a2332]">${order.total}</p>
-                                            </div>
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => setViewingOrder(order)}>
-                                                        <Eye className="w-4 h-4 mr-2" />
-                                                        View Details
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>Order #{order.id} Details</DialogTitle>
-                                                    </DialogHeader>
-                                                    <div className="space-y-4">
-                                                        <div className="flex justify-between">
-                                                            <span className="text-gray-500">Status:</span>
-                                                            <span className={`font-medium ${order.status === 'Delivered' ? 'text-green-600' : 'text-blue-600'}`}>
-                                                                {order.status}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex justify-between">
-                                                            <span className="text-gray-500">Date:</span>
-                                                            <span>{order.date}</span>
-                                                        </div>
-                                                        <div className="border-t pt-4">
-                                                            <p className="font-medium mb-2">Items:</p>
-                                                            {order.products?.map((item, i) => (
-                                                                <div key={i} className="flex justify-between py-2 border-b last:border-0">
-                                                                    <span>{item.name} x{item.quantity}</span>
-                                                                    <span>${item.price}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                        <div className="flex justify-between font-bold text-lg pt-2">
-                                                            <span>Total:</span>
-                                                            <span>${order.total}</span>
-                                                        </div>
-                                                        <Link href="/track-order">
-                                                            <Button className="w-full bg-[#1a2332] hover:bg-[#0f1419]">
-                                                                Track Order
-                                                            </Button>
-                                                        </Link>
+                                {ordersLoading ? (
+                                    <div className="text-center py-8">
+                                        <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                                        <p className="text-gray-500">Loading your orders...</p>
+                                    </div>
+                                ) : orders.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                        <p className="text-gray-500 mb-2">No orders yet</p>
+                                        <p className="text-sm text-gray-400">When you place an order, it will appear here.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {orders.map((order) => (
+                                            <div key={order.id} className="border rounded-lg p-4">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <p className="font-semibold">Order #{order.id}</p>
+                                                        <p className="text-sm text-gray-600">{order.date}</p>
                                                     </div>
-                                                </DialogContent>
-                                            </Dialog>
-                                        </div>
-                                    ))}
-                                </div>
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Delivered'
+                                                        ? 'bg-green-100 text-green-700'
+                                                        : 'bg-blue-100 text-blue-700'
+                                                        }`}>
+                                                        {order.status}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center mt-3">
+                                                    <p className="text-sm text-gray-600">{order.items} item(s)</p>
+                                                    <p className="font-bold text-[#1a2332]">${order.total}</p>
+                                                </div>
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => setViewingOrder(order)}>
+                                                            <Eye className="w-4 h-4 mr-2" />
+                                                            View Details
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle>Order #{order.id} Details</DialogTitle>
+                                                        </DialogHeader>
+                                                        <div className="space-y-4">
+                                                            <div className="flex justify-between">
+                                                                <span className="text-gray-500">Status:</span>
+                                                                <span className={`font-medium ${order.status === 'Delivered' ? 'text-green-600' : 'text-blue-600'}`}>
+                                                                    {order.status}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-gray-500">Date:</span>
+                                                                <span>{order.date}</span>
+                                                            </div>
+                                                            <div className="border-t pt-4">
+                                                                <p className="font-medium mb-2">Items:</p>
+                                                                {order.products?.map((item, i) => (
+                                                                    <div key={i} className="flex justify-between py-2 border-b last:border-0">
+                                                                        <span>{item.name} x{item.quantity}</span>
+                                                                        <span>${item.price}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <div className="flex justify-between font-bold text-lg pt-2">
+                                                                <span>Total:</span>
+                                                                <span>${order.total}</span>
+                                                            </div>
+                                                            <Link href="/track-order">
+                                                                <Button className="w-full bg-[#1a2332] hover:bg-[#0f1419]">
+                                                                    Track Order
+                                                                </Button>
+                                                            </Link>
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>
