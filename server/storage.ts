@@ -779,9 +779,11 @@ export class MemStorage implements IStorage {
     }
 
     const id = randomUUID();
+    const sessionId = item.sessionId || 'default-session';
     const newItem: CartItem = {
       ...item,
       id,
+      sessionId,
       quantity: item.quantity ?? 1,
     };
     this.cartItems.set(id, newItem);
@@ -1120,11 +1122,14 @@ export class DBStorage implements IStorage {
   }
 
   async addToCart(item: InsertCartItem): Promise<CartItem> {
+    // Ensure sessionId has a default value
+    const sessionId = item.sessionId || 'default-session';
+
     // Check if item already exists in cart
     const existing = await db.select().from(schema.cartItems)
       .where(and(
         eq(schema.cartItems.productId, item.productId),
-        eq(schema.cartItems.sessionId, item.sessionId)
+        eq(schema.cartItems.sessionId, sessionId)
       ));
 
     if (existing.length > 0) {
@@ -1138,7 +1143,10 @@ export class DBStorage implements IStorage {
       return updated[0];
     }
 
-    const results = await db.insert(schema.cartItems).values(item).returning();
+    const results = await db.insert(schema.cartItems).values({
+      ...item,
+      sessionId,
+    }).returning();
     return results[0];
   }
 
