@@ -1,11 +1,30 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Logo } from './Logo';
 import { Search, ShoppingCart, User, Menu, X, Heart, Package } from 'lucide-react';
 import { Link } from 'wouter';
 import { Input } from '@/components/ui/input';
+import type { CartItemWithProduct } from '@shared/schema';
 
 export function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Fetch cart count with localStorage sessionId
+    const { data: cartItems = [] } = useQuery<CartItemWithProduct[]>({
+        queryKey: ['/api/cart'],
+        queryFn: async () => {
+            let sessionId = localStorage.getItem('cartSessionId');
+            if (!sessionId) {
+                sessionId = crypto.randomUUID();
+                localStorage.setItem('cartSessionId', sessionId);
+            }
+            const res = await fetch(`/api/cart?sessionId=${sessionId}`);
+            if (!res.ok) return [];
+            return res.json();
+        },
+    });
+
+    const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
     return (
         <>
@@ -52,8 +71,8 @@ export function Header() {
                         <Link href="/checkout" className="flex items-center gap-2 text-[#1a2332] hover:text-[#0f1419]">
                             <div className="relative">
                                 <ShoppingCart className="w-5 h-5" />
-                                <span className="absolute -top-2 -right-2 bg-[#1a2332] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                                    0
+                                <span className={`absolute -top-2 -right-2 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold ${cartCount > 0 ? 'bg-[#d4a574]' : 'bg-[#1a2332]'}`}>
+                                    {cartCount > 9 ? '9+' : cartCount}
                                 </span>
                             </div>
                             <span className="hidden md:inline text-sm font-medium">Cart</span>
