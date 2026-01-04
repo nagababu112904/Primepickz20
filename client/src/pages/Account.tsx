@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link } from 'wouter';
+import { queryClient, apiRequest } from '@/lib/queryClient';
 import { Header } from '@/components/marketplace/Header';
 import { BottomNav } from '@/components/marketplace/BottomNav';
 import { Footer } from '@/components/marketplace/Footer';
@@ -113,6 +114,36 @@ export default function Account() {
     const memberSince = user?.metadata?.creationTime
         ? new Date(user.metadata.creationTime).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         : 'N/A';
+
+    // Add to Cart mutation for wishlist
+    const addToCartMutation = useMutation({
+        mutationFn: (productId: string) => {
+            let sessionId = localStorage.getItem('cartSessionId');
+            if (!sessionId) {
+                sessionId = crypto.randomUUID();
+                localStorage.setItem('cartSessionId', sessionId);
+            }
+            return apiRequest("POST", "/api/cart", {
+                productId,
+                quantity: 1,
+                sessionId
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+            toast({
+                title: "Added to cart",
+                description: "Item has been added to your cart",
+            });
+        },
+        onError: () => {
+            toast({
+                title: "Error",
+                description: "Failed to add item to cart",
+                variant: "destructive",
+            });
+        },
+    });
 
     // Profile handlers
     const handleSaveProfile = () => {
@@ -425,8 +456,13 @@ export default function Account() {
                                             </div>
                                             <h4 className="text-sm font-medium line-clamp-2 mb-2">{product.name}</h4>
                                             <p className="text-sm font-bold text-[#1a2332]">${product.price}</p>
-                                            <Button size="sm" className="w-full mt-2 bg-[#1a2332] hover:bg-[#0f1419]">
-                                                Add to Cart
+                                            <Button
+                                                size="sm"
+                                                className="w-full mt-2 bg-[#1a2332] hover:bg-[#0f1419]"
+                                                onClick={() => addToCartMutation.mutate(product.id)}
+                                                disabled={addToCartMutation.isPending}
+                                            >
+                                                {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
                                             </Button>
                                         </div>
                                     ))}

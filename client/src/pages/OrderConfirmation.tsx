@@ -10,7 +10,10 @@ import { BottomNav } from '@/components/marketplace/BottomNav';
 export default function OrderConfirmation() {
     const search = useSearch();
     const params = new URLSearchParams(search);
-    const orderId = params.get('order_id') || params.get('session_id') || 'ORD-' + Date.now();
+    // Check all possible param names for order number
+    const orderNumber = params.get('order') || params.get('order_id') || params.get('orderNumber');
+    const sessionId = params.get('session_id');
+    const orderId = orderNumber || (sessionId ? `Session: ${sessionId.substring(0, 8)}...` : 'Processing...');
 
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
