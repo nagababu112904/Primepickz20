@@ -246,10 +246,29 @@ export function ProductsTab() {
                                     className="w-24 h-24 object-contain rounded"
                                 />
                             )}
-                            <div className="flex-1">
+                            <div className="flex-1 space-y-2">
                                 <h4 className="font-semibold text-gray-900">{asinProduct.name}</h4>
                                 <p className="text-sm text-gray-500">ASIN: {asinProduct.asin}</p>
-                                <p className="text-sm text-gray-500">Category: {asinProduct.category}</p>
+
+                                {/* Editable Category Dropdown */}
+                                <div className="flex items-center gap-2">
+                                    <Label className="text-sm text-gray-500 w-20">Category:</Label>
+                                    <Select
+                                        value={asinProduct.category || 'General'}
+                                        onValueChange={(val) => setAsinProduct({ ...asinProduct, category: val })}
+                                    >
+                                        <SelectTrigger className="w-48 h-8 text-sm">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categories.map((cat) => (
+                                                <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                            ))}
+                                            <SelectItem value="General">General</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
                                 <p className="text-lg font-bold text-green-600 mt-1">
                                     ${parseFloat(asinProduct.price || 0).toFixed(2)}
                                 </p>
