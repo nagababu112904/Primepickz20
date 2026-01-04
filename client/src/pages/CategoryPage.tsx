@@ -1,11 +1,9 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Product, Category } from "@shared/schema";
 import { useState } from "react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -16,16 +14,12 @@ import {
 import { Header } from "@/components/marketplace/Header";
 import { BottomNav } from "@/components/marketplace/BottomNav";
 import { Footer } from "@/components/marketplace/Footer";
-import { FilterSidebar } from "@/components/marketplace/FilterSidebar";
 import { ProductCard } from "@/components/marketplace/ProductCard";
 
 export default function CategoryPage() {
   const [, params] = useRoute("/category/:slug");
   const slug = params?.slug || "";
   const [sortBy, setSortBy] = useState("featured");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
-  const [minRating, setMinRating] = useState(0);
-  const { toast } = useToast();
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -68,14 +62,10 @@ export default function CategoryPage() {
     return false;
   };
 
+  // Simple filter - just match category, no price/rating filtering
   const products = allProducts?.filter(p => {
     if (!category) return false;
-    const matchesCategory = matchesAnyCategory(p.category, category);
-    const price = parseFloat(p.price);
-    const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
-    const productRating = typeof p.rating === 'string' ? parseFloat(p.rating) : (p.rating || 0);
-    const matchesRating = productRating >= minRating;
-    return matchesCategory && matchesPrice && matchesRating;
+    return matchesAnyCategory(p.category, category);
   }) || [];
 
   // Sort products
@@ -147,61 +137,46 @@ export default function CategoryPage() {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - No Sidebar */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 lg:px-8 py-6">
-        <div className="flex gap-6">
-          {/* Sidebar */}
-          <aside className="hidden lg:block w-72 flex-shrink-0">
-            <div className="sticky top-24">
-              <FilterSidebar
-                onPriceChange={(min, max) => setPriceRange([min, max])}
-                onRatingChange={setMinRating}
-              />
-            </div>
-          </aside>
-
-          {/* Products Grid */}
-          <div className="flex-1">
-            {isLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
-                    <div className="aspect-square bg-gray-200 rounded-xl mb-4" />
-                    <div className="h-4 bg-gray-200 rounded mb-2" />
-                    <div className="h-4 bg-gray-200 rounded w-2/3" />
-                  </div>
-                ))}
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
+                <div className="aspect-square bg-gray-200 rounded-xl mb-4" />
+                <div className="h-4 bg-gray-200 rounded mb-2" />
+                <div className="h-4 bg-gray-200 rounded w-2/3" />
               </div>
-            ) : sortedProducts.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-                {sortedProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    name={product.name}
-                    price={product.price}
-                    originalPrice={product.originalPrice || undefined}
-                    imageUrl={product.imageUrl || undefined}
-                    badge={product.badge || undefined}
-                    rating={typeof product.rating === 'string' ? parseFloat(product.rating) : (product.rating || 0)}
-                    reviewCount={product.reviewCount || 0}
-                    inStock={product.inStock ?? true}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16 bg-white rounded-2xl">
-                <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                  <svg className="w-12 h-12 text-[#1a2332]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No products found</h3>
-                <p className="text-gray-500">Try adjusting your filters</p>
-              </div>
-            )}
+            ))}
           </div>
-        </div>
+        ) : sortedProducts.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {sortedProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                price={product.price}
+                originalPrice={product.originalPrice || undefined}
+                imageUrl={product.imageUrl || undefined}
+                badge={product.badge || undefined}
+                rating={typeof product.rating === 'string' ? parseFloat(product.rating) : (product.rating || 0)}
+                reviewCount={product.reviewCount || 0}
+                inStock={product.inStock ?? true}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-white rounded-2xl">
+            <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+              <svg className="w-12 h-12 text-[#1a2332]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No products found</h3>
+            <p className="text-gray-500">Check back later for new arrivals</p>
+          </div>
+        )}
       </main>
 
       <Footer />

@@ -84,6 +84,52 @@ export default function Account() {
         queryKey: ['/api/products'],
     });
 
+    // Fetch user-specific wishlist from API
+    interface WishlistItem {
+        id: string;
+        productId: string;
+        userId: string;
+        product?: Product;
+    }
+
+    const { data: wishlistItems = [], isLoading: wishlistLoading } = useQuery<WishlistItem[]>({
+        queryKey: ['/api/wishlist', user?.uid],
+        queryFn: async () => {
+            if (!user?.uid) return [];
+            const res = await fetch('/api/wishlist', {
+                credentials: 'include',
+            });
+            if (!res.ok) return [];
+            return res.json();
+        },
+        enabled: isAuthenticated && !!user?.uid,
+    });
+
+    // Get wishlist products with full product details
+    const wishlistProducts = wishlistItems.map((item: WishlistItem) => {
+        return item.product || products.find(p => p.id === item.productId);
+    }).filter((p): p is Product => p !== undefined);
+
+    // Remove from wishlist mutation
+    const removeFromWishlistMutation = useMutation({
+        mutationFn: (productId: string) =>
+            apiRequest("DELETE", `/api/wishlist/${productId}`, undefined),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['/api/wishlist'] });
+            toast({
+                title: "Removed from wishlist",
+                description: "Item has been removed from your wishlist",
+            });
+        },
+        onError: () => {
+            toast({
+                title: "Error",
+                description: "Failed to remove item from wishlist",
+                variant: "destructive",
+            });
+        },
+    });
+
     // Fetch user's orders from API
     const { data: ordersData, isLoading: ordersLoading } = useQuery<{ id: number; createdAt: string; total: string; status: string; items: any[] }[]>({
         queryKey: ['/api/orders', user?.uid],
@@ -441,34 +487,58 @@ export default function Account() {
                     <TabsContent value="wishlist">
                         <Card>
                             <CardHeader>
-                                <CardTitle>My Wishlist</CardTitle>
+                                <CardTitle>My Wishlist ({wishlistProducts.length} items)</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {products.slice(0, 4).map((product) => (
-                                        <div key={product.id} className="border rounded-lg p-3">
-                                            <div className="aspect-square bg-gray-100 rounded mb-2 overflow-hidden">
-                                                <img
-                                                    src={product.imageUrl ?? ''}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                            <h4 className="text-sm font-medium line-clamp-2 mb-2">{product.name}</h4>
-                                            <p className="text-sm font-bold text-[#1a2332]">${product.price}</p>
-                                            <Button
-                                                size="sm"
-                                                className="w-full mt-2 bg-[#1a2332] hover:bg-[#0f1419]"
-                                                onClick={() => addToCartMutation.mutate(product.id)}
-                                                disabled={addToCartMutation.isPending}
-                                            >
-                                                {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+                                {wishlistLoading ? (
+                                    <div className="text-center py-8">
+                                        <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                                        <p className="text-gray-500">Loading your wishlist...</p>
+                                    </div>
+                                ) : wishlistProducts.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <Heart className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                        <p className="text-gray-500 mb-2">Your wishlist is empty</p>
+                                        <p className="text-sm text-gray-400">Browse products and click the heart icon to save them here.</p>
+                                        <Link href="/">
+                                            <Button className="mt-4 bg-[#1a2332] hover:bg-[#0f1419]">
+                                                Browse Products
                                             </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                                {products.length === 0 && (
-                                    <p className="text-center text-gray-600 py-8">Your wishlist is empty</p>
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {wishlistProducts.map((product) => (
+                                            <div key={product.id} className="border rounded-lg p-3 relative">
+                                                <button
+                                                    onClick={() => removeFromWishlistMutation.mutate(product.id)}
+                                                    className="absolute top-2 right-2 p-1 bg-white rounded-full shadow hover:bg-red-50"
+                                                    title="Remove from wishlist"
+                                                >
+                                                    <X className="w-4 h-4 text-red-500" />
+                                                </button>
+                                                <Link href={`/product/${product.id}`}>
+                                                    <div className="aspect-square bg-gray-100 rounded mb-2 overflow-hidden">
+                                                        <img
+                                                            src={product.imageUrl ?? ''}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                    <h4 className="text-sm font-medium line-clamp-2 mb-2">{product.name}</h4>
+                                                </Link>
+                                                <p className="text-sm font-bold text-[#1a2332]">${product.price}</p>
+                                                <Button
+                                                    size="sm"
+                                                    className="w-full mt-2 bg-[#1a2332] hover:bg-[#0f1419]"
+                                                    onClick={() => addToCartMutation.mutate(product.id)}
+                                                    disabled={addToCartMutation.isPending}
+                                                >
+                                                    {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
                             </CardContent>
                         </Card>
