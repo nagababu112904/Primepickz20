@@ -9,8 +9,8 @@ interface FilterSidebarProps {
 }
 
 export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }: FilterSidebarProps) {
-    const [priceRange, setPriceRange] = useState([20, 1130]);
-    const [selectedRating, setSelectedRating] = useState(4);
+    const [priceRange, setPriceRange] = useState([0, 2000]);
+    const [selectedRating, setSelectedRating] = useState(0);
     const [deliveryOption, setDeliveryOption] = useState<'standard' | 'pickup'>('standard');
 
     const handlePriceChange = (values: number[]) => {
@@ -24,8 +24,10 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
     };
 
     const resetFilters = () => {
-        setPriceRange([20, 1130]);
-        setSelectedRating(4);
+        setPriceRange([0, 2000]);
+        setSelectedRating(0);
+        onPriceChange?.(0, 2000);
+        onRatingChange?.(0);
     };
 
     return (
@@ -85,8 +87,8 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
                         >
                             <Star
                                 className={`w-6 h-6 transition-colors ${star <= selectedRating
-                                        ? 'text-yellow-400 fill-yellow-400'
-                                        : 'text-gray-300'
+                                    ? 'text-yellow-400 fill-yellow-400'
+                                    : 'text-gray-300'
                                     }`}
                             />
                         </button>
@@ -101,8 +103,8 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
                     <button
                         onClick={() => setDeliveryOption('standard')}
                         className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${deliveryOption === 'standard'
-                                ? 'bg-[#1a2332] text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-[#1a2332] text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >
                         Standard
@@ -110,8 +112,8 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
                     <button
                         onClick={() => setDeliveryOption('pickup')}
                         className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${deliveryOption === 'pickup'
-                                ? 'bg-[#1a2332] text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-[#1a2332] text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                     >
                         Pick Up
