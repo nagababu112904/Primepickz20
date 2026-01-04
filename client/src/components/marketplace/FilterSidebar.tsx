@@ -19,8 +19,10 @@ export function FilterSidebar({ onPriceChange, onRatingChange, className = '' }:
     };
 
     const handleRatingChange = (rating: number) => {
-        setSelectedRating(rating);
-        onRatingChange?.(rating);
+        // Toggle off if clicking the same rating (reset to show all)
+        const newRating = rating === selectedRating ? 0 : rating;
+        setSelectedRating(newRating);
+        onRatingChange?.(newRating);
     };
 
     const resetFilters = () => {
