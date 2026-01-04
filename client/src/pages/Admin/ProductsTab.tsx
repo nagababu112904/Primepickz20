@@ -34,6 +34,11 @@ export function ProductsTab() {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const { toast } = useToast();
 
+    // ASIN Import State
+    const [asinInput, setAsinInput] = useState('');
+    const [isFetchingAsin, setIsFetchingAsin] = useState(false);
+    const [asinProduct, setAsinProduct] = useState<any>(null);
+
     const { data: products = [], isLoading } = useQuery<Product[]>({
         queryKey: ['admin', 'products'],
         queryFn: async () => {
@@ -98,6 +103,61 @@ export function ProductsTab() {
         },
     });
 
+    // Fetch product by ASIN from Amazon
+    const handleFetchByAsin = async () => {
+        if (!asinInput.trim()) {
+            toast({ title: 'Please enter an ASIN', variant: 'destructive' });
+            return;
+        }
+
+        setIsFetchingAsin(true);
+        setAsinProduct(null);
+
+        try {
+            const res = await adminFetch(`fetch-by-asin&asin=${asinInput.trim().toUpperCase()}`);
+            const data = await res.json();
+
+            if (!res.ok) {
+                toast({
+                    title: data.error || 'Failed to fetch product',
+                    description: data.message,
+                    variant: 'destructive'
+                });
+                return;
+            }
+
+            setAsinProduct(data.product);
+            toast({ title: 'Product found!', description: data.product.name });
+        } catch (error) {
+            toast({ title: 'Failed to fetch product', variant: 'destructive' });
+        } finally {
+            setIsFetchingAsin(false);
+        }
+    };
+
+    // Add the fetched ASIN product to our catalog
+    const handleAddAsinProduct = async () => {
+        if (!asinProduct) return;
+
+        try {
+            await addProductMutation.mutateAsync({
+                name: asinProduct.name,
+                description: asinProduct.description || asinProduct.name,
+                price: asinProduct.price || '0',
+                imageUrl: asinProduct.imageUrl || '',
+                category: asinProduct.category || 'General',
+                stockCount: asinProduct.stockCount || 10,
+                inStock: true,
+                amazonAsin: asinProduct.asin,
+            });
+
+            setAsinProduct(null);
+            setAsinInput('');
+        } catch (error) {
+            // Error handled by mutation
+        }
+    };
+
     // Filter products
     const filteredProducts = products.filter((product) => {
         const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -139,6 +199,93 @@ export function ProductsTab() {
                     </Dialog>
                 </div>
             </div>
+
+            {/* ASIN Import Section */}
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-200">
+                <CardContent className="p-4">
+                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                        <div className="flex-shrink-0">
+                            <h3 className="font-semibold text-blue-900">🔍 Import by ASIN</h3>
+                            <p className="text-sm text-gray-600">Enter an Amazon ASIN to auto-fetch product details</p>
+                        </div>
+                        <div className="flex-1 flex gap-2">
+                            <Input
+                                placeholder="e.g., B08N5WRWNW"
+                                value={asinInput}
+                                onChange={(e) => setAsinInput(e.target.value.toUpperCase())}
+                                className="flex-1 uppercase bg-white"
+                                maxLength={10}
+                            />
+                            <Button
+                                onClick={handleFetchByAsin}
+                                disabled={isFetchingAsin || !asinInput.trim()}
+                                className="bg-blue-600 hover:bg-blue-700"
+                            >
+                                {isFetchingAsin ? (
+                                    <>
+                                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                        Fetching...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Search className="w-4 h-4 mr-2" />
+                                        Fetch Product
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* ASIN Product Preview */}
+                    {asinProduct && (
+                        <div className="mt-4 p-4 bg-white rounded-lg border flex flex-col md:flex-row gap-4">
+                            {asinProduct.imageUrl && (
+                                <img
+                                    src={asinProduct.imageUrl}
+                                    alt={asinProduct.name}
+                                    className="w-24 h-24 object-contain rounded"
+                                />
+                            )}
+                            <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900">{asinProduct.name}</h4>
+                                <p className="text-sm text-gray-500">ASIN: {asinProduct.asin}</p>
+                                <p className="text-sm text-gray-500">Category: {asinProduct.category}</p>
+                                <p className="text-lg font-bold text-green-600 mt-1">
+                                    ${parseFloat(asinProduct.price || 0).toFixed(2)}
+                                </p>
+                            </div>
+                            <div className="flex gap-2 items-start">
+                                <Button
+                                    onClick={handleAddAsinProduct}
+                                    disabled={addProductMutation.isPending}
+                                    className="bg-green-600 hover:bg-green-700"
+                                >
+                                    {addProductMutation.isPending ? (
+                                        <>
+                                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                            Adding...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Add to Catalog
+                                        </>
+                                    )}
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setAsinProduct(null);
+                                        setAsinInput('');
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Filters */}
             <Card className="bg-white">
@@ -635,8 +782,8 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                             <button
                                 type="button"
                                 className={`px-3 py-1 text-sm rounded-md transition-colors ${videoUploadMode === 'url'
-                                        ? 'bg-white shadow-sm text-gray-900'
-                                        : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white shadow-sm text-gray-900'
+                                    : 'text-gray-600 hover:text-gray-900'
                                     }`}
                                 onClick={() => setVideoUploadMode('url')}
                             >
@@ -645,8 +792,8 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                             <button
                                 type="button"
                                 className={`px-3 py-1 text-sm rounded-md transition-colors ${videoUploadMode === 'file'
-                                        ? 'bg-white shadow-sm text-gray-900'
-                                        : 'text-gray-600 hover:text-gray-900'
+                                    ? 'bg-white shadow-sm text-gray-900'
+                                    : 'text-gray-600 hover:text-gray-900'
                                     }`}
                                 onClick={() => setVideoUploadMode('file')}
                             >

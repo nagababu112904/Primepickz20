@@ -123,6 +123,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             case 'mark-email-read':
                 return markEmailRead(req, res);
 
+            // Fetch product by ASIN from Amazon
+            case 'fetch-by-asin':
+                return fetchProductByAsin(req, res);
+
             default:
                 return res.status(400).json({ error: 'Invalid action' });
         }
@@ -1192,5 +1196,124 @@ async function markEmailRead(req: VercelRequest, res: VercelResponse) {
     } catch (error) {
         console.error('Failed to mark email as read:', error);
         return res.status(500).json({ error: 'Failed to update email' });
+    }
+}
+
+// Fetch product by ASIN from Amazon Catalog API
+async function fetchProductByAsin(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'GET' && req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const asin = req.query.asin as string || req.body?.asin;
+
+    if (!asin) {
+        return res.status(400).json({ error: 'ASIN is required' });
+    }
+
+    // Validate ASIN format (10 alphanumeric characters)
+    const asinRegex = /^[A-Z0-9]{10}$/i;
+    if (!asinRegex.test(asin)) {
+        return res.status(400).json({ error: 'Invalid ASIN format. ASIN should be 10 alphanumeric characters.' });
+    }
+
+    try {
+        // Check SP-API credentials
+        if (!AMAZON_CLIENT_ID || !AMAZON_CLIENT_SECRET || !AMAZON_REFRESH_TOKEN) {
+            return res.status(503).json({
+                error: 'Amazon API not configured',
+                message: 'Please set up Amazon SP-API credentials in environment variables.'
+            });
+        }
+
+        // Get access token
+        const accessToken = await getSpApiAccessToken();
+
+        // Fetch product from Catalog Items API
+        const catalogUrl = `https://sellingpartnerapi-na.amazon.com/catalog/2022-04-01/items/${asin}?marketplaceIds=${AMAZON_MARKETPLACE_ID}&includedData=summaries,images,productTypes,attributes`;
+
+        console.log(`Fetching product by ASIN: ${asin}`);
+
+        const catalogResponse = await fetch(catalogUrl, {
+            method: 'GET',
+            headers: {
+                'x-amz-access-token': accessToken,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!catalogResponse.ok) {
+            const errorText = await catalogResponse.text();
+            console.error(`Catalog API error for ${asin}:`, catalogResponse.status, errorText);
+
+            if (catalogResponse.status === 404) {
+                return res.status(404).json({
+                    error: 'Product not found',
+                    message: `No product found with ASIN: ${asin}. Please verify the ASIN is correct.`
+                });
+            }
+
+            return res.status(catalogResponse.status).json({
+                error: 'Failed to fetch product from Amazon',
+                message: errorText
+            });
+        }
+
+        const catalogData = await catalogResponse.json();
+        console.log('Catalog API response:', JSON.stringify(catalogData).substring(0, 500));
+
+        // Extract product details
+        const summary = catalogData.summaries?.[0] || {};
+        const images = catalogData.images?.[0]?.images || [];
+        const mainImage = images.find((img: any) => img.variant === 'MAIN') || images[0];
+
+        // Fetch price from Pricing API
+        let price = 0;
+        try {
+            const pricingUrl = `https://sellingpartnerapi-na.amazon.com/products/pricing/v0/price?MarketplaceId=${AMAZON_MARKETPLACE_ID}&Asins=${asin}&ItemType=Asin`;
+            const pricingResponse = await fetch(pricingUrl, {
+                method: 'GET',
+                headers: {
+                    'x-amz-access-token': accessToken,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (pricingResponse.ok) {
+                const pricingData = await pricingResponse.json();
+                const priceInfo = pricingData.payload?.[0];
+                price = priceInfo?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice?.Amount ||
+                    priceInfo?.Product?.Offers?.[0]?.RegularPrice?.Amount || 0;
+            }
+        } catch (e) {
+            console.log(`Could not fetch price for ASIN ${asin}:`, e);
+        }
+
+        // Prepare product data
+        const productData = {
+            asin: asin.toUpperCase(),
+            name: summary.itemName || catalogData.asin || 'Unknown Product',
+            description: summary.productDescription || summary.itemName || '',
+            price: price.toString(),
+            imageUrl: mainImage?.link || '',
+            category: summary.browseClassification?.displayName || 'General',
+            stockCount: 10, // Default stock
+            inStock: true,
+            brand: summary.brand || '',
+            productType: catalogData.productTypes?.[0]?.productType || '',
+        };
+
+        return res.status(200).json({
+            success: true,
+            product: productData,
+            message: `Product found: ${productData.name}`
+        });
+
+    } catch (error: any) {
+        console.error('Error fetching product by ASIN:', error);
+        return res.status(500).json({
+            error: 'Failed to fetch product',
+            message: error.message || 'An unexpected error occurred'
+        });
     }
 }
