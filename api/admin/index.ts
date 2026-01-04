@@ -738,6 +738,8 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
             for (const item of items) {
                 // Get detailed product info from Catalog API
                 let productDetails: any = {};
+                let productPrice = 0;
+
                 try {
                     const catalogUrl = `https://sellingpartnerapi-na.amazon.com/catalog/2022-04-01/items/${item.asin}?marketplaceIds=${AMAZON_MARKETPLACE_ID}&includedData=summaries,images`;
                     const catalogResponse = await fetch(catalogUrl, {
@@ -754,6 +756,30 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
                     console.log(`Could not fetch catalog details for ${item.asin}`);
                 }
 
+                // Get price from Pricing API
+                try {
+                    const pricingUrl = `https://sellingpartnerapi-na.amazon.com/products/pricing/v0/price?MarketplaceId=${AMAZON_MARKETPLACE_ID}&Asins=${item.asin}&ItemType=Asin`;
+                    const pricingResponse = await fetch(pricingUrl, {
+                        method: 'GET',
+                        headers: {
+                            'x-amz-access-token': accessToken,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    if (pricingResponse.ok) {
+                        const pricingData = await pricingResponse.json();
+                        const priceInfo = pricingData.payload?.[0];
+                        // Try to get the listing price or landed price
+                        productPrice = priceInfo?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice?.Amount ||
+                            priceInfo?.Product?.Offers?.[0]?.BuyingPrice?.LandedPrice?.Amount ||
+                            priceInfo?.Product?.Offers?.[0]?.RegularPrice?.Amount ||
+                            0;
+                        console.log(`Price for ${item.asin}: $${productPrice}`);
+                    }
+                } catch (e) {
+                    console.log(`Could not fetch price for ${item.asin}`);
+                }
+
                 const summary = productDetails.summaries?.[0] || {};
                 const images = productDetails.images?.[0]?.images || [];
                 const primaryImage = images.find((img: any) => img.variant === 'MAIN') || images[0];
@@ -763,7 +789,7 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
                     sku: item.sellerSku || '',
                     title: item.productName || summary.itemName || 'Unknown Product',
                     description: summary.browseClassification?.displayName || '',
-                    price: 0, // Price not available from inventory API
+                    price: productPrice,
                     imageUrl: primaryImage?.link || '',
                     stockCount: item.totalQuantity || 0,
                     category: summary.browseClassification?.displayName || 'General',

@@ -231,7 +231,9 @@ export const insertProductVariantSchema = createInsertSchema(productVariants).om
 export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
 export const insertDealSchema = createInsertSchema(deals).omit({ id: true });
 export const insertReviewSchema = createInsertSchema(reviews).omit({ id: true, createdAt: true });
-export const insertCartItemSchema = createInsertSchema(cartItems).omit({ id: true });
+export const insertCartItemSchema = createInsertSchema(cartItems).omit({ id: true }).extend({
+  sessionId: z.string().optional(),
+});
 export const insertWishlistItemSchema = createInsertSchema(wishlistItems).omit({ id: true, createdAt: true });
 export const insertAddressSchema = createInsertSchema(addresses).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertOrderSchema = createInsertSchema(orders).omit({ id: true, createdAt: true, updatedAt: true });

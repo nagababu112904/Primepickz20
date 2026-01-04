@@ -93,13 +93,25 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     try {
-      await apiRequest("POST", "/api/cart", { productId: product!.id, quantity });
+      // Get or create session ID for cart persistence
+      let sessionId = localStorage.getItem('cartSessionId');
+      if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem('cartSessionId', sessionId);
+      }
+
+      await apiRequest("POST", "/api/cart", {
+        productId: product!.id,
+        quantity,
+        sessionId
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       toast({
         title: "Added to cart!",
         description: `${product!.name} has been added to your cart.`,
       });
     } catch (error) {
+      console.error('Add to cart error:', error);
       toast({
         title: "Error",
         description: "Failed to add item to cart",

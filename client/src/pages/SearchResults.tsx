@@ -28,7 +28,14 @@ export default function SearchResults() {
   const [sortBy, setSortBy] = useState("featured");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { toast } = useToast();
-  const sessionId = "default-session";
+  const sessionId = (() => {
+    let id = localStorage.getItem('cartSessionId');
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem('cartSessionId', id);
+    }
+    return id;
+  })();
 
   const { data: allProducts = [] } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -50,8 +57,7 @@ export default function SearchResults() {
     return (
       product.name.toLowerCase().includes(searchLower) ||
       product.description?.toLowerCase().includes(searchLower) ||
-      product.category?.toLowerCase().includes(searchLower) ||
-      product.variants?.some(v => v.toLowerCase().includes(searchLower))
+      product.category?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -118,7 +124,7 @@ export default function SearchResults() {
         wishlistCount={0}
         onCartClick={() => setIsCartOpen(true)}
         language="en"
-        onLanguageChange={() => {}}
+        onLanguageChange={() => { }}
       />
       {/* Search Header */}
       <div className="bg-card border-b">
@@ -138,7 +144,7 @@ export default function SearchResults() {
                 {sortedProducts.length} {sortedProducts.length === 1 ? "product" : "products"} found
               </p>
             </div>
-            
+
             {/* Sort */}
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[180px]" data-testid="select-sort">
@@ -201,15 +207,6 @@ export default function SearchResults() {
                         </span>
                       )}
                     </div>
-                    
-                    {/* Variants */}
-                    {product.variants && product.variants.length > 0 && (
-                      <div className="mb-2">
-                        <p className="text-xs text-muted-foreground">
-                          Available in: {product.variants.join(", ")}
-                        </p>
-                      </div>
-                    )}
 
                     <div className="flex items-center gap-1 text-xs">
                       <span className="text-yellow-500">★</span>
@@ -219,9 +216,9 @@ export default function SearchResults() {
                   </div>
                 </CardContent>
                 <CardFooter className="p-4 pt-0 gap-2">
-                  <Button 
-                    className="flex-1" 
-                    size="sm" 
+                  <Button
+                    className="flex-1"
+                    size="sm"
                     onClick={() => addToCartMutation.mutate(product.id)}
                     disabled={addToCartMutation.isPending}
                     data-testid={`button-add-cart-${product.id}`}
@@ -251,6 +248,6 @@ export default function SearchResults() {
         onRemoveItem={(itemId) => removeItemMutation.mutate(itemId)}
         onCheckout={() => window.location.href = "/checkout"}
       />
-    </div>
+    </div >
   );
 }

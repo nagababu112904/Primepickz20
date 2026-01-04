@@ -43,12 +43,18 @@ export default function Wishlist() {
   });
 
   const addToCartMutation = useMutation({
-    mutationFn: (productId: string) =>
-      apiRequest("POST", "/api/cart", {
+    mutationFn: (productId: string) => {
+      let sessionId = localStorage.getItem('cartSessionId');
+      if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem('cartSessionId', sessionId);
+      }
+      return apiRequest("POST", "/api/cart", {
         productId,
         quantity: 1,
-        sessionId: "default-session"
-      }),
+        sessionId
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
       toast({
