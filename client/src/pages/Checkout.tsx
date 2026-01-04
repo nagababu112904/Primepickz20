@@ -25,13 +25,23 @@ const US_STATES = [
 
 export default function Checkout() {
   const [, setLocation] = useLocation();
-  const sessionId = "default-session";
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: cartItems = [], isLoading } = useQuery<CartItemWithProduct[]>({
+  // Get sessionId from localStorage for cart persistence
+  const getSessionId = () => {
+    let sessionId = localStorage.getItem('cartSessionId');
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      localStorage.setItem('cartSessionId', sessionId);
+    }
+    return sessionId;
+  };
+
+  const { data: cartItems = [], isLoading, refetch } = useQuery<CartItemWithProduct[]>({
     queryKey: ["/api/cart"],
     queryFn: async () => {
+      const sessionId = getSessionId();
       const response = await fetch(`/api/cart?sessionId=${sessionId}`);
       if (!response.ok) throw new Error("Failed to fetch cart");
       return response.json();

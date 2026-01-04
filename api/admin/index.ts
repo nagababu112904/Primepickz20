@@ -799,6 +799,75 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
             }
 
             message = `Found ${products.length} products from Amazon FBA inventory`;
+
+            // ALSO try to fetch additional MFN products from Seller Listings Report
+            // This catches products like "Migrated" status items not in FBA
+            try {
+                console.log('Also fetching from Seller Listings for MFN products...');
+                const getListingsUrl = `https://sellingpartnerapi-na.amazon.com/sellers/v1/marketplaceParticipations`;
+                const listingsReportUrl = `https://sellingpartnerapi-na.amazon.com/listings/2021-08-01/items/${AMAZON_SELLER_ID}?marketplaceIds=${AMAZON_MARKETPLACE_ID}&pageSize=100&includedData=summaries,attributes,issues`;
+
+                const listingsResponse = await fetch(listingsReportUrl, {
+                    method: 'GET',
+                    headers: {
+                        'x-amz-access-token': accessToken,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (listingsResponse.ok) {
+                    const listingsData = await listingsResponse.json();
+                    console.log('Seller Listings response:', JSON.stringify(listingsData).substring(0, 500));
+
+                    // Get ASINs we already have from FBA
+                    const existingAsins = new Set(products.map(p => p.asin));
+
+                    // Add MFN products not in FBA inventory
+                    const listings = listingsData.listings || listingsData.items || [];
+                    for (const item of listings) {
+                        const asin = item.asin || item.summaries?.[0]?.asin;
+                        if (asin && !existingAsins.has(asin)) {
+                            let productPrice = 0;
+                            // Try to get price
+                            try {
+                                const pricingUrl = `https://sellingpartnerapi-na.amazon.com/products/pricing/v0/price?MarketplaceId=${AMAZON_MARKETPLACE_ID}&Asins=${asin}&ItemType=Asin`;
+                                const pricingResponse = await fetch(pricingUrl, {
+                                    method: 'GET',
+                                    headers: {
+                                        'x-amz-access-token': accessToken,
+                                        'Content-Type': 'application/json',
+                                    },
+                                });
+                                if (pricingResponse.ok) {
+                                    const pricingData = await pricingResponse.json();
+                                    const priceInfo = pricingData.payload?.[0];
+                                    productPrice = priceInfo?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice?.Amount || 0;
+                                }
+                            } catch (e) {
+                                console.log(`Could not fetch price for MFN ${asin}`);
+                            }
+
+                            products.push({
+                                asin: asin,
+                                sku: item.sku || item.sellerSku || '',
+                                title: item.summaries?.[0]?.itemName || item.productName || 'Unknown Product',
+                                description: item.summaries?.[0]?.productType || '',
+                                price: productPrice,
+                                imageUrl: item.summaries?.[0]?.mainImage?.link || '',
+                                stockCount: 0, // MFN doesn't have inventory in FBA
+                                category: item.summaries?.[0]?.classification?.displayName || 'General',
+                                status: 'active',
+                                fnSku: '',
+                                fulfillmentType: 'MFN'
+                            });
+                            existingAsins.add(asin);
+                        }
+                    }
+                    message = `Found ${products.length} products (FBA + MFN)`;
+                }
+            } catch (e) {
+                console.log('Could not fetch additional MFN products:', e);
+            }
         } else {
             const errorText = await inventoryResponse.text();
             console.log('Inventory API returned:', inventoryResponse.status, errorText);

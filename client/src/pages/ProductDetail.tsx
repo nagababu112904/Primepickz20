@@ -40,7 +40,12 @@ export default function ProductDetail() {
   const { data: cartItems = [] } = useQuery<CartItemWithProduct[]>({
     queryKey: ["/api/cart"],
     queryFn: async () => {
-      const response = await fetch("/api/cart?sessionId=default-session");
+      let sessionId = localStorage.getItem('cartSessionId');
+      if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem('cartSessionId', sessionId);
+      }
+      const response = await fetch(`/api/cart?sessionId=${sessionId}`);
       if (!response.ok) throw new Error("Failed to fetch cart");
       return response.json();
     },

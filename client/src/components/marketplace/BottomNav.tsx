@@ -11,7 +11,12 @@ export function BottomNav() {
     const { data: cartItems = [] } = useQuery<CartItemWithProduct[]>({
         queryKey: ['/api/cart'],
         queryFn: async () => {
-            const res = await fetch('/api/cart?sessionId=default-session');
+            let sessionId = localStorage.getItem('cartSessionId');
+            if (!sessionId) {
+                sessionId = crypto.randomUUID();
+                localStorage.setItem('cartSessionId', sessionId);
+            }
+            const res = await fetch(`/api/cart?sessionId=${sessionId}`);
             if (!res.ok) return [];
             return res.json();
         },
@@ -39,8 +44,8 @@ export function BottomNav() {
                         key={path}
                         href={path}
                         className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${isActive(path)
-                                ? 'text-[#1a2332]'
-                                : 'text-gray-400'
+                            ? 'text-[#1a2332]'
+                            : 'text-gray-400'
                             }`}
                     >
                         <div className="relative">
