@@ -36,9 +36,41 @@ export default function CategoryPage() {
   });
 
   const category = categories?.find(cat => cat.slug === slug);
+
+  // Helper function for flexible category matching
+  const matchesAnyCategory = (productCategory: string | null | undefined, targetCategory: Category | undefined): boolean => {
+    if (!targetCategory || !productCategory) return false;
+
+    const productCat = productCategory.toLowerCase().trim();
+    const targetName = targetCategory.name.toLowerCase().trim();
+    const targetSlug = targetCategory.slug.toLowerCase().trim();
+
+    // Exact match
+    if (productCat === targetName) return true;
+
+    // Slug match (e.g., "home-kitchen" matches)
+    if (productCat === targetSlug) return true;
+    if (productCat.replace(/[\s&]/g, '-') === targetSlug) return true;
+
+    // Handle & vs "and" variations
+    const normalizedProduct = productCat.replace(/\s*&\s*/g, ' and ').replace(/\s+/g, ' ');
+    const normalizedTarget = targetName.replace(/\s*&\s*/g, ' and ').replace(/\s+/g, ' ');
+    if (normalizedProduct === normalizedTarget) return true;
+
+    // Partial match (e.g., "Kitchen" matches "Home & Kitchen")
+    if (targetName.includes(productCat) || productCat.includes(targetName)) return true;
+
+    // Word-based match (e.g., "Home", "Kitchen" in target)
+    const targetWords = targetName.split(/[\s&]+/).filter(w => w.length > 2);
+    const productWords = productCat.split(/[\s&]+/).filter(w => w.length > 2);
+    if (productWords.some(pw => targetWords.includes(pw))) return true;
+
+    return false;
+  };
+
   const products = allProducts?.filter(p => {
     if (!category) return false;
-    const matchesCategory = p.category === category.name;
+    const matchesCategory = matchesAnyCategory(p.category, category);
     const price = parseFloat(p.price);
     const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
     const productRating = typeof p.rating === 'string' ? parseFloat(p.rating) : (p.rating || 0);
