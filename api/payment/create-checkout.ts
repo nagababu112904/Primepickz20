@@ -87,15 +87,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         let addressId = shippingAddress.id;
 
         if (!addressId) {
+            // Map frontend field names to database field names
+            const fullName = shippingAddress.fullName ||
+                `${shippingAddress.firstName || ''} ${shippingAddress.lastName || ''}`.trim();
+            const addressLine1 = shippingAddress.addressLine1 || shippingAddress.address || '';
+            const addressLine2 = shippingAddress.addressLine2 || shippingAddress.apartment || '';
+            const city = shippingAddress.city || '';
+            const state = shippingAddress.state || '';
+            const pincode = shippingAddress.pincode || shippingAddress.zipCode || '';
+            const phone = shippingAddress.phone || '';
+
             const newAddress = await db.insert(schema.addresses).values({
                 userId: sessionId || 'guest',
-                fullName: shippingAddress.fullName,
-                phone: shippingAddress.phone,
-                addressLine1: shippingAddress.addressLine1,
-                addressLine2: shippingAddress.addressLine2 || '',
-                city: shippingAddress.city,
-                state: shippingAddress.state,
-                pincode: shippingAddress.pincode || shippingAddress.zipCode,
+                fullName: fullName,
+                phone: phone,
+                addressLine1: addressLine1,
+                addressLine2: addressLine2,
+                city: city,
+                state: state,
+                pincode: pincode,
             }).returning();
             addressId = newAddress[0].id;
         }
