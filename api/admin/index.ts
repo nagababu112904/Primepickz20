@@ -148,6 +148,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             case 'meta-catalog-remove-dead-letter':
                 return removeFromMetaCatalogDeadLetter(req, res);
 
+            // WhatsApp/AiSensy integration
+            case 'whatsapp-send-order':
+                return sendWhatsAppOrderNotification(req, res);
+            case 'whatsapp-send-product':
+                return sendWhatsAppProductMessage(req, res);
+            case 'whatsapp-status':
+                return getWhatsAppStatus(req, res);
+
             default:
                 return res.status(400).json({ error: 'Invalid action' });
         }
@@ -1562,4 +1570,138 @@ async function removeFromMetaCatalogDeadLetter(req: VercelRequest, res: VercelRe
 
     // In production, you would remove from the dead letter queue table
     return res.status(200).json({ success: true, message: 'Removed from queue' });
+}
+
+// WhatsApp / AiSensy integration
+const AISENSY_API_KEY = process.env.AISENSY_API_KEY || '';
+const AISENSY_BASE_URL = 'https://backend.aisensy.com/campaign/t1/api/v2';
+
+async function getWhatsAppStatus(req: VercelRequest, res: VercelResponse) {
+    const isConfigured = !!AISENSY_API_KEY;
+    return res.status(200).json({
+        connected: isConfigured,
+        provider: 'AiSensy',
+        features: ['order_notifications', 'product_messages', 'campaigns']
+    });
+}
+
+async function sendWhatsAppOrderNotification(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    if (!AISENSY_API_KEY) {
+        return res.status(400).json({ error: 'AiSensy API key not configured' });
+    }
+
+    const { orderId, customerPhone, customerName, orderTotal, orderItems } = req.body;
+
+    if (!orderId || !customerPhone) {
+        return res.status(400).json({ error: 'Order ID and customer phone required' });
+    }
+
+    try {
+        // Format phone number (remove spaces, add country code if needed)
+        let phone = customerPhone.replace(/\s/g, '').replace(/-/g, '');
+        if (!phone.startsWith('+')) {
+            phone = '+1' + phone; // Default to US
+        }
+
+        // Create order message
+        const message = `🎉 Thank you for your order, ${customerName || 'Customer'}!
+
+📦 Order #${orderId}
+💰 Total: $${orderTotal}
+
+Your order has been confirmed and will be shipped soon.
+
+View your order: https://www.primepickz.org/orders/${orderId}
+
+Thank you for shopping with PrimePickz! 🛒`;
+
+        const response = await fetch(`${AISENSY_BASE_URL}/sendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AISENSY_API_KEY}`
+            },
+            body: JSON.stringify({
+                apiKey: AISENSY_API_KEY,
+                destination: phone.replace('+', ''),
+                message: message,
+                userName: 'Primepickz'
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            return res.status(200).json({ success: true, messageId: data.messageId || data.id });
+        } else {
+            console.error('AiSensy error:', data);
+            return res.status(400).json({ error: 'Failed to send WhatsApp message', details: data });
+        }
+    } catch (error: any) {
+        console.error('WhatsApp send error:', error);
+        return res.status(500).json({ error: 'Failed to send message', message: error.message });
+    }
+}
+
+async function sendWhatsAppProductMessage(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    if (!AISENSY_API_KEY) {
+        return res.status(400).json({ error: 'AiSensy API key not configured' });
+    }
+
+    const { productId, customerPhone, productName, productPrice, productImage, productUrl } = req.body;
+
+    if (!productId || !customerPhone) {
+        return res.status(400).json({ error: 'Product ID and customer phone required' });
+    }
+
+    try {
+        let phone = customerPhone.replace(/\s/g, '').replace(/-/g, '');
+        if (!phone.startsWith('+')) {
+            phone = '+1' + phone;
+        }
+
+        const message = `🛍️ Check out this product from PrimePickz!
+
+*${productName}*
+💰 Price: $${productPrice}
+
+🔗 Buy now: ${productUrl || `https://www.primepickz.org/product/${productId}`}
+
+Shop more at PrimePickz! ✨`;
+
+        const response = await fetch(`${AISENSY_BASE_URL}/sendMessage`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AISENSY_API_KEY}`
+            },
+            body: JSON.stringify({
+                apiKey: AISENSY_API_KEY,
+                destination: phone.replace('+', ''),
+                message: message,
+                userName: 'Primepickz',
+                media: productImage ? { url: productImage, type: 'image' } : undefined
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            return res.status(200).json({ success: true, messageId: data.messageId || data.id });
+        } else {
+            console.error('AiSensy error:', data);
+            return res.status(400).json({ error: 'Failed to send product message', details: data });
+        }
+    } catch (error: any) {
+        console.error('WhatsApp product send error:', error);
+        return res.status(500).json({ error: 'Failed to send message', message: error.message });
+    }
 }
