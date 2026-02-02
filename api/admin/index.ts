@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, sql as drizzleSql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 import { verifyToken, extractToken, checkRateLimit, hashPassword, verifyPassword, generateToken } from '../../server/lib/auth.js';
+import { syncProduct } from '../../server/lib/catalog-sync-processor.js';
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
@@ -296,6 +297,11 @@ async function handleProducts(req: VercelRequest, res: VercelResponse) {
                 message: `Product "${body.name}" created - pending Amazon sync`,
             });
 
+            // Trigger Meta Catalog sync (async, don't wait)
+            syncProduct(newProduct[0].id, 'CREATE').catch(err => {
+                console.error('[Meta Sync] Failed to sync new product:', err);
+            });
+
             return res.status(201).json(newProduct[0]);
         }
 
@@ -342,6 +348,11 @@ async function handleProducts(req: VercelRequest, res: VercelResponse) {
                 return res.status(404).json({ error: 'Product not found' });
             }
 
+            // Trigger Meta Catalog sync (async, don't wait)
+            syncProduct(id, 'UPDATE').catch(err => {
+                console.error('[Meta Sync] Failed to sync updated product:', err);
+            });
+
             return res.status(200).json(updatedProduct[0]);
         }
 
@@ -359,6 +370,11 @@ async function handleProducts(req: VercelRequest, res: VercelResponse) {
             if (!deleted.length) {
                 return res.status(404).json({ error: 'Product not found' });
             }
+
+            // Trigger Meta Catalog deletion (async, don't wait)
+            syncProduct(id, 'DELETE').catch(err => {
+                console.error('[Meta Sync] Failed to delete product from Meta:', err);
+            });
 
             return res.status(200).json({ success: true });
         }

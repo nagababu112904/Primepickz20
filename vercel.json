@@ -1,6 +1,12 @@
 {
   "buildCommand": "npm run build:frontend",
   "outputDirectory": "dist/public",
+  "crons": [
+    {
+      "path": "/api/cron/reconciliation",
+      "schedule": "0 2 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
