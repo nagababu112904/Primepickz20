@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     LayoutDashboard, Package, ShoppingCart, RefreshCw, BarChart3, Settings, LogOut, Lock,
-    RotateCcw, Warehouse, FolderOpen, ChevronLeft, Search, Bell, Menu, Mail, HelpCircle, X
+    RotateCcw, Warehouse, FolderOpen, ChevronLeft, Search, Bell, Menu, Mail, HelpCircle, X, Cloud
 } from 'lucide-react';
 import { DashboardTab } from './DashboardTab';
 import { ProductsTab } from './ProductsTab';
@@ -18,6 +18,7 @@ import { ReturnsTab } from './ReturnsTab';
 import { InventoryTab } from './InventoryTab';
 import { CategoriesTab } from './CategoriesTab';
 import { EmailTab } from './EmailTab';
+import { MetaCatalogTab } from './MetaCatalogTab';
 import { useToast } from '@/hooks/use-toast';
 
 // Auth helper
@@ -47,6 +48,7 @@ const MENU_ITEMS = [
     { id: 'categories', label: 'Categories', icon: FolderOpen, section: 'Menu' },
     { id: 'analytics', label: 'Report & Analytics', icon: BarChart3, section: 'Menu' },
     { id: 'amazon-sync', label: 'Amazon Sync', icon: RefreshCw, section: 'Tools' },
+    { id: 'meta-catalog', label: 'Meta Catalog', icon: Cloud, section: 'Tools' },
     { id: 'returns', label: 'Returns', icon: RotateCcw, section: 'Tools' },
     { id: 'email', label: 'Email', icon: Mail, section: 'Tools' },
     { id: 'settings', label: 'Settings', icon: Settings, section: 'Settings' },
@@ -186,6 +188,7 @@ export default function AdminDashboard() {
             case 'categories': return <CategoriesTab />;
             case 'analytics': return <AnalyticsTab />;
             case 'amazon-sync': return <AmazonSyncTab />;
+            case 'meta-catalog': return <MetaCatalogTab />;
             case 'returns': return <ReturnsTab />;
             case 'email': return <EmailTab />;
             case 'help': return (

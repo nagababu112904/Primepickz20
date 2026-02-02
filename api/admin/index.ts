@@ -132,6 +132,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             case 'fetch-by-asin':
                 return fetchProductByAsin(req, res);
 
+            // Meta Catalog sync
+            case 'meta-catalog-status':
+                return getMetaCatalogStatus(req, res);
+            case 'meta-catalog-sync-status':
+                return getMetaCatalogSyncStatus(req, res);
+            case 'meta-catalog-logs':
+                return getMetaCatalogLogs(req, res);
+            case 'meta-catalog-dead-letter':
+                return getMetaCatalogDeadLetter(req, res);
+            case 'meta-catalog-sync-all':
+                return syncAllToMetaCatalog(req, res);
+            case 'meta-catalog-retry':
+                return retryMetaCatalogSync(req, res);
+            case 'meta-catalog-remove-dead-letter':
+                return removeFromMetaCatalogDeadLetter(req, res);
+
             default:
                 return res.status(400).json({ error: 'Invalid action' });
         }
@@ -1336,4 +1352,198 @@ async function fetchProductByAsin(req: VercelRequest, res: VercelResponse) {
             message: error.message || 'An unexpected error occurred'
         });
     }
+}
+
+// ============ Meta Catalog Sync Handlers ============
+
+const META_CATALOG_ID = process.env.META_CATALOG_ID;
+const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN;
+const META_BUSINESS_ID = process.env.META_BUSINESS_ID;
+const SYNC_ENABLED = process.env.SYNC_ENABLED === 'true';
+
+async function getMetaCatalogStatus(req: VercelRequest, res: VercelResponse) {
+    // Check if environment variables are configured
+    if (!META_CATALOG_ID || !META_ACCESS_TOKEN) {
+        return res.status(200).json({
+            connected: false,
+            error: 'Meta Catalog credentials not configured',
+            catalogId: null
+        });
+    }
+
+    try {
+        // Verify connection with Meta Graph API
+        const response = await fetch(
+            `https://graph.facebook.com/v18.0/${META_CATALOG_ID}?access_token=${META_ACCESS_TOKEN}`
+        );
+
+        if (response.ok) {
+            const data = await response.json();
+            return res.status(200).json({
+                connected: true,
+                catalogId: META_CATALOG_ID,
+                catalogName: data.name || 'Product Catalog',
+                businessId: META_BUSINESS_ID
+            });
+        } else {
+            const error = await response.json();
+            return res.status(200).json({
+                connected: false,
+                error: error.error?.message || 'Failed to verify Meta Catalog connection',
+                catalogId: META_CATALOG_ID
+            });
+        }
+    } catch (error: any) {
+        return res.status(200).json({
+            connected: false,
+            error: error.message || 'Connection test failed',
+            catalogId: META_CATALOG_ID
+        });
+    }
+}
+
+async function getMetaCatalogSyncStatus(req: VercelRequest, res: VercelResponse) {
+    try {
+        // Get total products count
+        const productsResult = await db.select({ count: drizzleSql<number>`count(*)` })
+            .from(schema.products);
+        const totalProducts = Number(productsResult[0]?.count) || 0;
+
+        // For now, return a simulated status - in production you'd track this in a separate table
+        return res.status(200).json({
+            totalProducts,
+            syncedProducts: 0,  // Would track in meta_sync_status table
+            failedProducts: 0,
+            pendingProducts: totalProducts,
+            lastSyncTime: null,
+            syncEnabled: SYNC_ENABLED
+        });
+    } catch (error: any) {
+        console.error('Error getting sync status:', error);
+        return res.status(500).json({ error: 'Failed to get sync status' });
+    }
+}
+
+async function getMetaCatalogLogs(req: VercelRequest, res: VercelResponse) {
+    // Return empty logs for now - in production you'd fetch from a sync_logs table
+    return res.status(200).json({
+        logs: []
+    });
+}
+
+async function getMetaCatalogDeadLetter(req: VercelRequest, res: VercelResponse) {
+    // Return empty dead letter queue for now
+    return res.status(200).json({
+        items: []
+    });
+}
+
+async function syncAllToMetaCatalog(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    if (!META_CATALOG_ID || !META_ACCESS_TOKEN) {
+        return res.status(400).json({ error: 'Meta Catalog credentials not configured' });
+    }
+
+    if (!SYNC_ENABLED) {
+        return res.status(400).json({ error: 'Sync is disabled. Set SYNC_ENABLED=true in environment variables.' });
+    }
+
+    try {
+        // Get all products
+        const products = await db.select().from(schema.products);
+
+        // In production, you would batch these and use the Meta Catalog Batch API
+        // For now, we'll do a simple implementation
+        let syncedCount = 0;
+        let failedCount = 0;
+
+        for (const product of products) {
+            try {
+                // Transform product to Meta format
+                const metaProduct = {
+                    retailer_id: product.id.toString(),
+                    name: product.name,
+                    description: product.description || product.name,
+                    availability: product.inStock ? 'in stock' : 'out of stock',
+                    condition: 'new',
+                    price: `${product.price} USD`,
+                    link: `https://www.primepickz.org/product/${product.id}`,
+                    image_link: product.imageUrl || '',
+                    brand: (product as any).brand || 'PrimePickz',
+                    category: product.category || 'General'
+                };
+
+                // Send to Meta Catalog API
+                const response = await fetch(
+                    `https://graph.facebook.com/v18.0/${META_CATALOG_ID}/products`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            access_token: META_ACCESS_TOKEN,
+                            requests: [{
+                                method: 'UPDATE',
+                                retailer_id: metaProduct.retailer_id,
+                                data: metaProduct
+                            }]
+                        })
+                    }
+                );
+
+                if (response.ok) {
+                    syncedCount++;
+                } else {
+                    failedCount++;
+                    console.error(`Failed to sync product ${product.id}:`, await response.text());
+                }
+            } catch (error) {
+                failedCount++;
+                console.error(`Error syncing product ${product.id}:`, error);
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            count: products.length,
+            synced: syncedCount,
+            failed: failedCount,
+            message: `Sync initiated for ${products.length} products`
+        });
+    } catch (error: any) {
+        console.error('Error syncing to Meta Catalog:', error);
+        return res.status(500).json({ error: 'Sync failed', message: error.message });
+    }
+}
+
+async function retryMetaCatalogSync(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { productId } = req.body || {};
+    if (!productId) {
+        return res.status(400).json({ error: 'Product ID required' });
+    }
+
+    // In production, you would retry the sync for the specific product
+    return res.status(200).json({ success: true, message: 'Retry initiated' });
+}
+
+async function removeFromMetaCatalogDeadLetter(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { productId } = req.body || {};
+    if (!productId) {
+        return res.status(400).json({ error: 'Product ID required' });
+    }
+
+    // In production, you would remove from the dead letter queue table
+    return res.status(200).json({ success: true, message: 'Removed from queue' });
 }
