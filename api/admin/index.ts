@@ -1460,15 +1460,14 @@ async function syncAllToMetaCatalog(req: VercelRequest, res: VercelResponse) {
             method: 'CREATE',
             retailer_id: product.id.toString(),
             data: {
-                id: product.id.toString(),
-                title: product.name,
+                name: product.name,
                 description: product.description || product.name,
                 availability: product.inStock ? 'in stock' : 'out of stock',
                 condition: 'new',
                 price: Math.round(Number(product.price) * 100),
                 currency: 'USD',
-                link: `https://www.primepickz.org/product/${product.id}`,
-                image_link: product.imageUrl || 'https://www.primepickz.org/placeholder.png',
+                url: `https://www.primepickz.org/product/${product.id}`,
+                image_url: product.imageUrl || 'https://www.primepickz.org/placeholder.png',
                 brand: (product as any).brand || 'PrimePickz'
             }
         }));
