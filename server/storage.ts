@@ -926,6 +926,7 @@ export class MemStorage implements IStorage {
     const newOrder: Order = {
       id: orderId,
       ...order,
+      email: order.email ?? null,
       status: order.status ?? "pending",
       paymentMethod: order.paymentMethod ?? null,
       paymentStatus: order.paymentStatus ?? null,
