@@ -1455,68 +1455,62 @@ async function syncAllToMetaCatalog(req: VercelRequest, res: VercelResponse) {
         // Get all products
         const products = await db.select().from(schema.products);
 
-        // In production, you would batch these and use the Meta Catalog Batch API
-        // For now, we'll do a simple implementation
-        let syncedCount = 0;
-        let failedCount = 0;
-
-        for (const product of products) {
-            try {
-                // Transform product to Meta format
-                const metaProduct = {
-                    id: product.id.toString(),
-                    title: product.name,
-                    description: product.description || product.name,
-                    availability: product.inStock ? 'in stock' : 'out of stock',
-                    condition: 'new',
-                    price: `${product.price} USD`,
-                    link: `https://www.primepickz.org/product/${product.id}`,
-                    image_link: product.imageUrl || 'https://www.primepickz.org/placeholder.png',
-                    brand: (product as any).brand || 'PrimePickz'
-                };
-
-                // Use the correct Meta Catalog Batch API endpoint
-                const params = new URLSearchParams();
-                params.append('access_token', META_ACCESS_TOKEN!);
-                params.append('requests', JSON.stringify([{
-                    method: 'CREATE',
-                    retailer_id: metaProduct.id,
-                    data: metaProduct
-                }]));
-
-                const response = await fetch(
-                    `https://graph.facebook.com/v18.0/${META_CATALOG_ID}/batch`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: params.toString()
-                    }
-                );
-
-                const result = await response.json();
-
-                if (response.ok && !result.error) {
-                    syncedCount++;
-                    console.log(`Synced product ${product.id}:`, result);
-                } else {
-                    failedCount++;
-                    console.error(`Failed to sync product ${product.id}:`, JSON.stringify(result));
-                }
-            } catch (error) {
-                failedCount++;
-                console.error(`Error syncing product ${product.id}:`, error);
+        // Build batch request with ALL products in ONE call (to avoid rate limits)
+        const batchRequests = products.map(product => ({
+            method: 'CREATE',
+            retailer_id: product.id.toString(),
+            data: {
+                id: product.id.toString(),
+                title: product.name,
+                description: product.description || product.name,
+                availability: product.inStock ? 'in stock' : 'out of stock',
+                condition: 'new',
+                price: `${product.price} USD`,
+                link: `https://www.primepickz.org/product/${product.id}`,
+                image_link: product.imageUrl || 'https://www.primepickz.org/placeholder.png',
+                brand: (product as any).brand || 'PrimePickz'
             }
-        }
+        }));
 
-        return res.status(200).json({
-            success: true,
-            count: products.length,
-            synced: syncedCount,
-            failed: failedCount,
-            message: `Sync initiated for ${products.length} products`
-        });
+        // Single batch API call for all products
+        const params = new URLSearchParams();
+        params.append('access_token', META_ACCESS_TOKEN!);
+        params.append('requests', JSON.stringify(batchRequests));
+
+        const response = await fetch(
+            `https://graph.facebook.com/v18.0/${META_CATALOG_ID}/batch`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: params.toString()
+            }
+        );
+
+        const result = await response.json();
+        console.log('Batch sync result:', JSON.stringify(result));
+
+        if (response.ok && !result.error) {
+            const handles = result.handles || [];
+            return res.status(200).json({
+                success: true,
+                count: products.length,
+                synced: handles.length,
+                failed: products.length - handles.length,
+                message: `Synced ${handles.length} products to Meta Catalog`
+            });
+        } else {
+            console.error('Batch sync failed:', JSON.stringify(result));
+            return res.status(200).json({
+                success: false,
+                count: products.length,
+                synced: 0,
+                failed: products.length,
+                error: result.error?.message || 'Sync failed',
+                message: 'Sync failed - check logs'
+            });
+        }
     } catch (error: any) {
         console.error('Error syncing to Meta Catalog:', error);
         return res.status(500).json({ error: 'Sync failed', message: error.message });
