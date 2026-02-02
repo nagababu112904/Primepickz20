@@ -1,7 +1,7 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, Check, MapPin, Calendar, AlertCircle } from "lucide-react";
+import { Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, Check, MapPin, Calendar, AlertCircle, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Product, CartItemWithProduct, Review } from "@shared/schema";
@@ -367,6 +367,20 @@ export default function ProductDetail() {
                   data-testid="button-add-to-wishlist"
                 >
                   <Heart className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-12 gap-2 bg-green-50 border-green-500 text-green-700 hover:bg-green-100 hover:text-green-800"
+                  onClick={() => {
+                    const message = encodeURIComponent(
+                      `Hi! I'm interested in buying:\n\n*${product.name}*\nPrice: $${currentPrice}\n\nProduct link: https://www.primepickz.org/product/${product.id}`
+                    );
+                    window.open(`https://wa.me/15558190868?text=${message}`, '_blank');
+                  }}
+                  data-testid="button-buy-whatsapp"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  WhatsApp
                 </Button>
               </div>
 
