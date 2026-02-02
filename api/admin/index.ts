@@ -1465,7 +1465,8 @@ async function syncAllToMetaCatalog(req: VercelRequest, res: VercelResponse) {
                 description: product.description || product.name,
                 availability: product.inStock ? 'in stock' : 'out of stock',
                 condition: 'new',
-                price: `${product.price} USD`,
+                price: Math.round(Number(product.price) * 100),
+                currency: 'USD',
                 link: `https://www.primepickz.org/product/${product.id}`,
                 image_link: product.imageUrl || 'https://www.primepickz.org/placeholder.png',
                 brand: (product as any).brand || 'PrimePickz'
