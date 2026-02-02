@@ -175,6 +175,7 @@ export const addresses = pgTable("addresses", {
 export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
+  email: varchar("email", { length: 255 }), // Customer email for order lookup
   orderNumber: text("order_number").notNull().unique(),
   status: text("status").notNull().default("pending"),
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),

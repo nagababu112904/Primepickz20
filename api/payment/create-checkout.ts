@@ -113,6 +113,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Create the order
         const newOrder = await db.insert(schema.orders).values({
             userId: sessionId || 'guest',
+            email: customerEmail?.toLowerCase(),
             orderNumber,
             status: 'pending',
             totalAmount: totalAmount.toFixed(2),

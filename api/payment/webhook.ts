@@ -67,11 +67,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const orderNumber = session.metadata?.orderNumber;
 
                 if (orderId) {
-                    // Update order status
+                    // Update order status and save email from Stripe
                     await db.update(schema.orders)
                         .set({
                             status: 'confirmed',
                             paymentStatus: 'paid',
+                            email: session.customer_email?.toLowerCase(),
                             paymentMethod: `stripe:${session.id}`,
                             updatedAt: new Date(),
                         })
@@ -115,11 +116,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                                 total: ((session.amount_total || 0) / 100).toFixed(2),
                             };
 
+                            console.log('Attempting to send order confirmation email to:', emailOrder.customerEmail);
+
                             // Send order confirmation to customer
-                            await sendOrderConfirmation(emailOrder);
+                            const emailResult = await sendOrderConfirmation(emailOrder);
+                            console.log('Email send result:', JSON.stringify(emailResult));
+
+                            if (!emailResult.success) {
+                                console.error('Failed to send confirmation email:', emailResult.error);
+                            }
 
                             // Log order notification for admin dashboard (instead of emailing admin)
-                            await logOrderNotification(emailOrder, db, schema.emailLogs);
+                            const logResult = await logOrderNotification(emailOrder, db, schema.emailLogs);
+                            console.log('Admin notification log result:', JSON.stringify(logResult));
                         }
                     }
 
