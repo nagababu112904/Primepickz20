@@ -4,7 +4,11 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, sql as drizzleSql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 import { verifyToken, extractToken, checkRateLimit, hashPassword, verifyPassword, generateToken } from '../../server/lib/auth.js';
-import { syncProduct } from '../../server/lib/catalog-sync-processor.js';
+
+// Placeholder for Meta catalog sync (feature removed)
+const syncProduct = async (productId: string, action: string) => {
+    console.log(`[Meta Sync Disabled] Would sync product ${productId} with action ${action}`);
+};
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });

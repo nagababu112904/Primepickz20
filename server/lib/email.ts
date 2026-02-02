@@ -9,7 +9,9 @@ const getResend = () => {
     return new Resend(process.env.RESEND_API_KEY);
 };
 
-const FROM_EMAIL = 'PrimePickz <noreply@primepickz.org>';
+// Use Resend's onboarding domain (works without DNS verification)
+// Change to 'noreply@primepickz.org' after adding DNS records in Resend
+const FROM_EMAIL = 'PrimePickz <onboarding@resend.dev>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@primepickz.org';
 
 interface OrderDetails {
