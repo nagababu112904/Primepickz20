@@ -1404,19 +1404,38 @@ async function getMetaCatalogStatus(req: VercelRequest, res: VercelResponse) {
 
 async function getMetaCatalogSyncStatus(req: VercelRequest, res: VercelResponse) {
     try {
-        // Get total products count
+        // Get total products count from local DB
         const productsResult = await db.select({ count: drizzleSql<number>`count(*)` })
             .from(schema.products);
         const totalProducts = Number(productsResult[0]?.count) || 0;
 
-        // For now, return a simulated status - in production you'd track this in a separate table
+        // Fetch products from Meta Catalog to get actual synced count
+        let syncedProducts = 0;
+        let metaProducts: any[] = [];
+
+        if (META_CATALOG_ID && META_ACCESS_TOKEN) {
+            try {
+                const response = await fetch(
+                    `https://graph.facebook.com/v18.0/${META_CATALOG_ID}/products?fields=id,name,price,availability,image_url,retailer_id&limit=100&access_token=${META_ACCESS_TOKEN}`
+                );
+                if (response.ok) {
+                    const data = await response.json();
+                    metaProducts = data.data || [];
+                    syncedProducts = metaProducts.length;
+                }
+            } catch (e) {
+                console.error('Failed to fetch Meta products:', e);
+            }
+        }
+
         return res.status(200).json({
             totalProducts,
-            syncedProducts: 0,  // Would track in meta_sync_status table
+            syncedProducts,
             failedProducts: 0,
-            pendingProducts: totalProducts,
-            lastSyncTime: null,
-            syncEnabled: SYNC_ENABLED
+            pendingProducts: Math.max(0, totalProducts - syncedProducts),
+            lastSyncTime: new Date().toISOString(),
+            syncEnabled: SYNC_ENABLED,
+            metaProducts  // Send the actual products from Meta
         });
     } catch (error: any) {
         console.error('Error getting sync status:', error);

@@ -16,6 +16,16 @@ interface SyncStatus {
     failedProducts: number;
     pendingProducts: number;
     lastSyncTime: string | null;
+    metaProducts?: MetaProduct[];
+}
+
+interface MetaProduct {
+    id: string;
+    name: string;
+    price: string;
+    availability: string;
+    image_url: string;
+    retailer_id: string;
 }
 
 interface SyncLog {
@@ -294,6 +304,58 @@ export function MetaCatalogTab() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Synced Products from Meta */}
+            {syncStatus?.metaProducts && syncStatus.metaProducts.length > 0 && (
+                <Card>
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center gap-2">
+                            <Package className="w-5 h-5 text-green-500" />
+                            <CardTitle className="text-lg">Synced Products ({syncStatus.metaProducts.length})</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="text-left p-3 font-medium">Image</th>
+                                        <th className="text-left p-3 font-medium">Product Name</th>
+                                        <th className="text-left p-3 font-medium">Price</th>
+                                        <th className="text-left p-3 font-medium">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {syncStatus.metaProducts.map((product) => (
+                                        <tr key={product.id} className="hover:bg-gray-50">
+                                            <td className="p-3">
+                                                {product.image_url ? (
+                                                    <img
+                                                        src={product.image_url}
+                                                        alt={product.name}
+                                                        className="w-12 h-12 object-cover rounded"
+                                                    />
+                                                ) : (
+                                                    <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                                                        <Package className="w-6 h-6 text-gray-400" />
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="p-3 font-medium">{product.name}</td>
+                                            <td className="p-3">{product.price || 'N/A'}</td>
+                                            <td className="p-3">
+                                                <Badge variant={product.availability === 'in stock' ? 'default' : 'secondary'}>
+                                                    {product.availability || 'Unknown'}
+                                                </Badge>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Dead Letter Queue */}
             {(deadLetterItems?.length || 0) > 0 && (
