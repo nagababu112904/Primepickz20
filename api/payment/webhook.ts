@@ -5,10 +5,27 @@ import { eq, sql as drizzleSql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 import Stripe from 'stripe';
 import { sendOrderConfirmation, logOrderNotification } from '../../server/lib/email.js';
-import { buffer } from 'micro';
+import { Readable } from 'stream';
 
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
+
+// Helper to get raw body from Vercel request
+async function getRawBody(req: VercelRequest): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+        const chunks: Buffer[] = [];
+
+        req.on('data', (chunk: Buffer) => {
+            chunks.push(chunk);
+        });
+
+        req.on('end', () => {
+            resolve(Buffer.concat(chunks));
+        });
+
+        req.on('error', reject);
+    });
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
@@ -33,8 +50,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let event: Stripe.Event;
 
     try {
-        // Get raw body buffer for signature verification (required for Vercel)
-        const rawBody = await buffer(req);
+        // Get raw body for signature verification
+        const rawBody = await getRawBody(req);
         event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
     } catch (err: any) {
         console.error('Webhook signature verification failed:', err.message);
