@@ -1464,42 +1464,45 @@ async function syncAllToMetaCatalog(req: VercelRequest, res: VercelResponse) {
             try {
                 // Transform product to Meta format
                 const metaProduct = {
-                    retailer_id: product.id.toString(),
-                    name: product.name,
+                    id: product.id.toString(),
+                    title: product.name,
                     description: product.description || product.name,
                     availability: product.inStock ? 'in stock' : 'out of stock',
                     condition: 'new',
                     price: `${product.price} USD`,
                     link: `https://www.primepickz.org/product/${product.id}`,
-                    image_link: product.imageUrl || '',
-                    brand: (product as any).brand || 'PrimePickz',
-                    category: product.category || 'General'
+                    image_link: product.imageUrl || 'https://www.primepickz.org/placeholder.png',
+                    brand: (product as any).brand || 'PrimePickz'
                 };
 
-                // Send to Meta Catalog API
+                // Use the correct Meta Catalog Batch API endpoint
+                const params = new URLSearchParams();
+                params.append('access_token', META_ACCESS_TOKEN!);
+                params.append('requests', JSON.stringify([{
+                    method: 'CREATE',
+                    retailer_id: metaProduct.id,
+                    data: metaProduct
+                }]));
+
                 const response = await fetch(
-                    `https://graph.facebook.com/v18.0/${META_CATALOG_ID}/products`,
+                    `https://graph.facebook.com/v18.0/${META_CATALOG_ID}/batch`,
                     {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: JSON.stringify({
-                            access_token: META_ACCESS_TOKEN,
-                            requests: [{
-                                method: 'UPDATE',
-                                retailer_id: metaProduct.retailer_id,
-                                data: metaProduct
-                            }]
-                        })
+                        body: params.toString()
                     }
                 );
 
-                if (response.ok) {
+                const result = await response.json();
+
+                if (response.ok && !result.error) {
                     syncedCount++;
+                    console.log(`Synced product ${product.id}:`, result);
                 } else {
                     failedCount++;
-                    console.error(`Failed to sync product ${product.id}:`, await response.text());
+                    console.error(`Failed to sync product ${product.id}:`, JSON.stringify(result));
                 }
             } catch (error) {
                 failedCount++;
