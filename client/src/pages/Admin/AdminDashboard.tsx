@@ -18,7 +18,6 @@ import { ReturnsTab } from './ReturnsTab';
 import { InventoryTab } from './InventoryTab';
 import { CategoriesTab } from './CategoriesTab';
 import { EmailTab } from './EmailTab';
-import { CatalogSyncTab } from './CatalogSyncTab';
 import { useToast } from '@/hooks/use-toast';
 
 // Auth helper
@@ -48,7 +47,6 @@ const MENU_ITEMS = [
     { id: 'categories', label: 'Categories', icon: FolderOpen, section: 'Menu' },
     { id: 'analytics', label: 'Report & Analytics', icon: BarChart3, section: 'Menu' },
     { id: 'amazon-sync', label: 'Amazon Sync', icon: RefreshCw, section: 'Tools' },
-    { id: 'catalog-sync', label: 'Meta Catalog', icon: RefreshCw, section: 'Tools' },
     { id: 'returns', label: 'Returns', icon: RotateCcw, section: 'Tools' },
     { id: 'email', label: 'Email', icon: Mail, section: 'Tools' },
     { id: 'settings', label: 'Settings', icon: Settings, section: 'Settings' },
@@ -188,7 +186,6 @@ export default function AdminDashboard() {
             case 'categories': return <CategoriesTab />;
             case 'analytics': return <AnalyticsTab />;
             case 'amazon-sync': return <AmazonSyncTab />;
-            case 'catalog-sync': return <CatalogSyncTab />;
             case 'returns': return <ReturnsTab />;
             case 'email': return <EmailTab />;
             case 'help': return (
