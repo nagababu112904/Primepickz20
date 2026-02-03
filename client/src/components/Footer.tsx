@@ -45,7 +45,7 @@ export function Footer() {
               Prime <span className="text-foreground">Pickz</span>
             </h2>
             <p className="text-muted-foreground mb-6 max-w-md">
-              Your premier destination for fashion and lifestyle. Discover the latest trends in contemporary wear.
+              Your destination for natural products and toys. Shop organic foods, eco-friendly bottles, and kids' toys for healthy living.
             </p>
 
             {/* Newsletter Subscription */}
@@ -196,7 +196,7 @@ export function Footer() {
         <div className="max-w-screen-2xl mx-auto px-4 md:px-6 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground text-center md:text-left">
-              © 2025 Prime Pickz. All rights reserved.
+              © 2025 PrimePickz. All rights reserved.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               {policies.map((link, index) => (

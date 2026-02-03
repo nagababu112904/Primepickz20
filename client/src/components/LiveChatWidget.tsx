@@ -14,7 +14,7 @@ export function LiveChatWidget() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      text: "Hello! Welcome to Prime Pickz. How can we help you today?",
+      text: "Hello! Welcome to PrimePickz. How can we help you today?",
       isUser: false,
       timestamp: new Date(),
     }
@@ -29,7 +29,7 @@ export function LiveChatWidget() {
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, userMessage]);
-      
+
       // Auto-reply
       setTimeout(() => {
         const reply = generateReply(message);
@@ -40,14 +40,14 @@ export function LiveChatWidget() {
         };
         setMessages(prev => [...prev, botMessage]);
       }, 800);
-      
+
       setMessage("");
     }
   };
 
   const generateReply = (msg: string): string => {
     const lowerMsg = msg.toLowerCase();
-    
+
     if (lowerMsg.includes("track") || lowerMsg.includes("order")) {
       return "You can track your order from your account page. Please login and go to 'My Orders' section.";
     }
@@ -66,7 +66,7 @@ export function LiveChatWidget() {
     if (lowerMsg.includes("hi") || lowerMsg.includes("hello")) {
       return "Hello! How can I assist you today?";
     }
-    
+
     return "Thank you for your message! Our support team will get back to you shortly. Is there anything else I can help you with?";
   };
 
@@ -102,15 +102,13 @@ export function LiveChatWidget() {
           <div className="flex-1 p-4 space-y-3 max-h-80 overflow-y-auto" data-testid="chat-messages">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex gap-2 ${msg.isUser ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold ${
-                  msg.isUser ? 'bg-primary text-primary-foreground' : 'bg-primary/10'
-                }`}>
+                <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold ${msg.isUser ? 'bg-primary text-primary-foreground' : 'bg-primary/10'
+                  }`}>
                   {msg.isUser ? 'U' : 'PP'}
                 </div>
                 <div className="flex-1">
-                  <div className={`rounded-lg p-3 text-sm ${
-                    msg.isUser ? 'bg-primary text-primary-foreground ml-8' : 'bg-muted mr-8'
-                  }`}>
+                  <div className={`rounded-lg p-3 text-sm ${msg.isUser ? 'bg-primary text-primary-foreground ml-8' : 'bg-muted mr-8'
+                    }`}>
                     {msg.text}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">

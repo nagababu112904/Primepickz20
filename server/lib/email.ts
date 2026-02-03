@@ -87,7 +87,7 @@ export async function sendOrderConfirmation(order: OrderDetails) {
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #1a365d 0%, #2d4a7c 100%); padding: 32px; text-align: center;">
             <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Order Confirmed!</h1>
-            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">Thank you for shopping with Prime Pickz</p>
+            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">Thank you for shopping with PrimePickz</p>
         </div>
 
         <!-- Content -->
@@ -141,7 +141,7 @@ export async function sendOrderConfirmation(order: OrderDetails) {
                 Questions? Contact us at <a href="mailto:support@primepickz.org" style="color: #d97706;">support@primepickz.org</a>
             </p>
             <p style="margin: 12px 0 0 0; color: #999; font-size: 12px;">
-                © 2024 Prime Pickz. All rights reserved.
+                © 2024 PrimePickz. All rights reserved.
             </p>
         </div>
     </div>
@@ -210,7 +210,7 @@ export async function sendShippingUpdate(order: {
         ` : ''}
 
         <p style="color: #999; font-size: 12px; text-align: center; margin-top: 32px;">
-            © 2024 Prime Pickz
+            © 2024 PrimePickz
         </p>
     </div>
 </body>
