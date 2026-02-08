@@ -9,10 +9,8 @@ const getResend = () => {
     return new Resend(process.env.RESEND_API_KEY);
 };
 
-// TEMPORARY: Using Resend's test domain until primepickz.org SPF is fully verified
-// Note: onboarding@resend.dev can ONLY send to the Resend account owner email
-// Change back to 'noreply@primepickz.org' once domain shows "Verified" status
-const FROM_EMAIL = 'PrimePickz <onboarding@resend.dev>';
+// Using verified primepickz.org domain (DKIM verified)
+const FROM_EMAIL = 'PrimePickz <noreply@primepickz.org>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@primepickz.org';
 
 interface OrderDetails {
