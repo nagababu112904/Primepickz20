@@ -4,12 +4,12 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, sql as drizzleSql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 import Stripe from 'stripe';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
 
-// INLINE SMTP Email Function for Vercel serverless compatibility
+// Using Resend HTTP API (works on Vercel serverless, SMTP is blocked)
 async function sendOrderConfirmationEmail(order: {
     orderNumber: string;
     customerEmail: string;
@@ -17,23 +17,12 @@ async function sendOrderConfirmationEmail(order: {
     items: Array<{ name: string; quantity: number; price: string }>;
     total: string;
 }) {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.error('SMTP not configured. SMTP_USER:', !!process.env.SMTP_USER, 'SMTP_PASS:', !!process.env.SMTP_PASS);
-        return { success: false, error: 'SMTP not configured' };
+    if (!process.env.RESEND_API_KEY) {
+        console.error('RESEND_API_KEY not configured');
+        return { success: false, error: 'Email service not configured' };
     }
 
-    console.log('Creating SMTP transporter for:', process.env.SMTP_USER);
-
-    const transporter = nodemailer.createTransport({
-        host: 'mail.privateemail.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-        tls: { rejectUnauthorized: false }
-    });
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     const itemsHtml = order.items.map(item => `
         <tr>
@@ -43,9 +32,9 @@ async function sendOrderConfirmationEmail(order: {
     `).join('');
 
     try {
-        console.log('Sending email to:', order.customerEmail);
-        const info = await transporter.sendMail({
-            from: process.env.SMTP_USER,
+        console.log('Sending email via Resend to:', order.customerEmail);
+        const { data, error } = await resend.emails.send({
+            from: 'PrimePickz <sales@primepickz.org>',
             to: order.customerEmail,
             subject: `Order Confirmed - ${order.orderNumber}`,
             html: `
@@ -61,13 +50,21 @@ async function sendOrderConfirmationEmail(order: {
                         </tr>
                     </table>
                     <p>Thank you for shopping with PrimePickz!</p>
+                    <p style="color: #666; font-size: 14px;">Questions? Reply to this email or contact sales@primepickz.org</p>
                 </div>
             `,
+            replyTo: 'sales@primepickz.org',
         });
-        console.log('Email sent successfully:', info.messageId);
-        return { success: true, emailId: info.messageId };
+
+        if (error) {
+            console.error('Resend Error:', error);
+            return { success: false, error: error.message };
+        }
+
+        console.log('Email sent successfully via Resend:', data?.id);
+        return { success: true, emailId: data?.id };
     } catch (error: any) {
-        console.error('SMTP Error:', error.message, error.code);
+        console.error('Resend Error:', error.message);
         return { success: false, error: error.message };
     }
 }
