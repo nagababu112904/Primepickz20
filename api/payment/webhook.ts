@@ -4,11 +4,95 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { eq, sql as drizzleSql } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
 import Stripe from 'stripe';
-import { sendOrderConfirmation, logOrderNotification } from '../../server/lib/email.js';
-import { Readable } from 'stream';
+import nodemailer from 'nodemailer';
 
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
+
+// INLINE SMTP Email Function for Vercel serverless compatibility
+async function sendOrderConfirmationEmail(order: {
+    orderNumber: string;
+    customerEmail: string;
+    customerName: string;
+    items: Array<{ name: string; quantity: number; price: string }>;
+    total: string;
+}) {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.error('SMTP not configured. SMTP_USER:', !!process.env.SMTP_USER, 'SMTP_PASS:', !!process.env.SMTP_PASS);
+        return { success: false, error: 'SMTP not configured' };
+    }
+
+    console.log('Creating SMTP transporter for:', process.env.SMTP_USER);
+
+    const transporter = nodemailer.createTransport({
+        host: 'mail.privateemail.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+        tls: { rejectUnauthorized: false }
+    });
+
+    const itemsHtml = order.items.map(item => `
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.name} x ${item.quantity}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${item.price}</td>
+        </tr>
+    `).join('');
+
+    try {
+        console.log('Sending email to:', order.customerEmail);
+        const info = await transporter.sendMail({
+            from: process.env.SMTP_USER,
+            to: order.customerEmail,
+            subject: `Order Confirmed - ${order.orderNumber}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h1 style="color: #1a365d;">🎉 Order Confirmed!</h1>
+                    <p>Hi ${order.customerName},</p>
+                    <p>Your order <strong>${order.orderNumber}</strong> has been confirmed.</p>
+                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        ${itemsHtml}
+                        <tr>
+                            <td style="padding: 12px 8px; font-weight: bold;">Total</td>
+                            <td style="padding: 12px 8px; text-align: right; font-weight: bold; color: #1a365d;">$${order.total}</td>
+                        </tr>
+                    </table>
+                    <p>Thank you for shopping with PrimePickz!</p>
+                </div>
+            `,
+        });
+        console.log('Email sent successfully:', info.messageId);
+        return { success: true, emailId: info.messageId };
+    } catch (error: any) {
+        console.error('SMTP Error:', error.message, error.code);
+        return { success: false, error: error.message };
+    }
+}
+
+// Log Order Notification to Database
+async function logOrderNotification(order: any) {
+    try {
+        await db.insert(schema.emailLogs).values({
+            type: 'order_notification',
+            orderId: order.orderNumber,
+            orderNumber: order.orderNumber,
+            customerEmail: order.customerEmail,
+            customerName: order.customerName,
+            subject: `🛒 New Order: ${order.orderNumber} - $${order.total}`,
+            items: order.items,
+            total: order.total,
+            status: 'unread',
+            metadata: { subtotal: order.subtotal, shipping: order.shipping },
+        });
+        return { success: true };
+    } catch (error: any) {
+        console.error('Failed to log order:', error);
+        return { success: false, error: error.message };
+    }
+}
 
 // Helper to get raw body from Vercel request
 async function getRawBody(req: VercelRequest): Promise<Buffer> {
@@ -119,7 +203,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             console.log('Attempting to send order confirmation email to:', emailOrder.customerEmail);
 
                             // Send order confirmation to customer
-                            const emailResult = await sendOrderConfirmation(emailOrder);
+                            const emailResult = await sendOrderConfirmationEmail(emailOrder);
                             console.log('Email send result:', JSON.stringify(emailResult));
 
                             if (!emailResult.success) {
@@ -127,7 +211,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             }
 
                             // Log order notification for admin dashboard (instead of emailing admin)
-                            const logResult = await logOrderNotification(emailOrder, db, schema.emailLogs);
+                            const logResult = await logOrderNotification(emailOrder);
                             console.log('Admin notification log result:', JSON.stringify(logResult));
                         }
                     }
