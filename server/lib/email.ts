@@ -10,8 +10,8 @@ const getResend = () => {
 };
 
 // Using verified primepickz.org domain (DKIM verified)
-const FROM_EMAIL = 'PrimePickz <noreply@primepickz.org>';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@primepickz.org';
+const FROM_EMAIL = 'PrimePickz <sales@primepickz.org>';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@primepickz.org';
 
 interface OrderDetails {
     orderNumber: string;
