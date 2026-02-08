@@ -3,22 +3,27 @@ import nodemailer from 'nodemailer';
 // SMTP Configuration for Namecheap Private Email
 const getTransporter = () => {
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn('SMTP credentials not configured');
+        console.warn('SMTP credentials not configured. SMTP_USER:', !!process.env.SMTP_USER, 'SMTP_PASS:', !!process.env.SMTP_PASS);
         return null;
     }
 
+    console.log('Creating SMTP transporter for:', process.env.SMTP_USER);
+
     return nodemailer.createTransport({
         host: 'mail.privateemail.com',
-        port: 465,
-        secure: true, // SSL
+        port: 587,
+        secure: false, // Use TLS
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
         },
+        tls: {
+            rejectUnauthorized: false
+        }
     });
 };
 
-const FROM_EMAIL = 'PrimePickz <sales@primepickz.org>';
+const FROM_EMAIL = process.env.SMTP_USER || 'sales@primepickz.org';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@primepickz.org';
 
 interface OrderDetails {
