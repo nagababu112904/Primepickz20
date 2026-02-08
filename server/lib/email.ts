@@ -1,15 +1,23 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-// Initialize Resend client
-const getResend = () => {
-    if (!process.env.RESEND_API_KEY) {
-        console.warn('RESEND_API_KEY not configured');
+// SMTP Configuration for Namecheap Private Email
+const getTransporter = () => {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        console.warn('SMTP credentials not configured');
         return null;
     }
-    return new Resend(process.env.RESEND_API_KEY);
+
+    return nodemailer.createTransport({
+        host: 'mail.privateemail.com',
+        port: 465,
+        secure: true, // SSL
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+    });
 };
 
-// Using verified primepickz.org domain (DKIM verified)
 const FROM_EMAIL = 'PrimePickz <sales@primepickz.org>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sales@primepickz.org';
 
@@ -38,9 +46,9 @@ interface OrderDetails {
 
 // Order Confirmation Email
 export async function sendOrderConfirmation(order: OrderDetails) {
-    const resend = getResend();
-    if (!resend) {
-        console.log('Email skipped: Resend not configured');
+    const transporter = getTransporter();
+    if (!transporter) {
+        console.log('Email skipped: SMTP not configured');
         return { success: false, error: 'Email service not configured' };
     }
 
@@ -69,7 +77,7 @@ export async function sendOrderConfirmation(order: OrderDetails) {
     ` : '';
 
     try {
-        const { data, error } = await resend.emails.send({
+        const info = await transporter.sendMail({
             from: FROM_EMAIL,
             to: order.customerEmail,
             subject: `Order Confirmed - ${order.orderNumber}`,
@@ -136,7 +144,7 @@ export async function sendOrderConfirmation(order: OrderDetails) {
         <!-- Footer -->
         <div style="background: #f9f9f9; padding: 24px; text-align: center; border-top: 1px solid #eee;">
             <p style="margin: 0; color: #666; font-size: 14px;">
-                Questions? Contact us at <a href="mailto:support@primepickz.org" style="color: #d97706;">support@primepickz.org</a>
+                Questions? Contact us at <a href="mailto:sales@primepickz.org" style="color: #d97706;">sales@primepickz.org</a>
             </p>
             <p style="margin: 12px 0 0 0; color: #999; font-size: 12px;">
                 © 2024 PrimePickz. All rights reserved.
@@ -148,13 +156,8 @@ export async function sendOrderConfirmation(order: OrderDetails) {
             `,
         });
 
-        if (error) {
-            console.error('Failed to send order confirmation:', error);
-            return { success: false, error: error.message };
-        }
-
-        console.log('Order confirmation sent:', data?.id);
-        return { success: true, emailId: data?.id };
+        console.log('Order confirmation sent:', info.messageId);
+        return { success: true, emailId: info.messageId };
     } catch (error: any) {
         console.error('Email send error:', error);
         return { success: false, error: error.message };
@@ -170,11 +173,11 @@ export async function sendShippingUpdate(order: {
     carrier?: string;
     trackingUrl?: string;
 }) {
-    const resend = getResend();
-    if (!resend) return { success: false, error: 'Email service not configured' };
+    const transporter = getTransporter();
+    if (!transporter) return { success: false, error: 'Email service not configured' };
 
     try {
-        const { data, error } = await resend.emails.send({
+        const info = await transporter.sendMail({
             from: FROM_EMAIL,
             to: order.customerEmail,
             subject: `Your Order Has Shipped! - ${order.orderNumber}`,
@@ -216,20 +219,18 @@ export async function sendShippingUpdate(order: {
             `,
         });
 
-        if (error) return { success: false, error: error.message };
-        return { success: true, emailId: data?.id };
+        return { success: true, emailId: info.messageId };
     } catch (error: any) {
         return { success: false, error: error.message };
     }
 }
 
 // Log Order Notification to Database (for Admin Dashboard Email Tab)
-// Instead of emailing admin, we store in DB so admin sees it in dashboard
 export async function logOrderNotification(order: OrderDetails, db: any, emailLogs: any) {
     try {
         await db.insert(emailLogs).values({
             type: 'order_notification',
-            orderId: order.orderNumber, // We'll use orderNumber as reference
+            orderId: order.orderNumber,
             orderNumber: order.orderNumber,
             customerEmail: order.customerEmail,
             customerName: order.customerName,
@@ -252,13 +253,13 @@ export async function logOrderNotification(order: OrderDetails, db: any, emailLo
     }
 }
 
-// Legacy: Admin Notification via Email (kept for backwards compatibility)
+// Admin Notification via Email
 export async function notifyAdminNewOrder(order: OrderDetails) {
-    const resend = getResend();
-    if (!resend) return { success: false, error: 'Email service not configured' };
+    const transporter = getTransporter();
+    if (!transporter) return { success: false, error: 'Email service not configured' };
 
     try {
-        const { data, error } = await resend.emails.send({
+        const info = await transporter.sendMail({
             from: FROM_EMAIL,
             to: ADMIN_EMAIL,
             subject: `🛒 New Order: ${order.orderNumber} - $${order.total}`,
@@ -282,10 +283,8 @@ export async function notifyAdminNewOrder(order: OrderDetails) {
             `,
         });
 
-        if (error) return { success: false, error: error.message };
-        return { success: true, emailId: data?.id };
+        return { success: true, emailId: info.messageId };
     } catch (error: any) {
         return { success: false, error: error.message };
     }
 }
-
