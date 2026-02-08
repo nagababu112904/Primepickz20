@@ -17,12 +17,18 @@ async function sendOrderConfirmationEmail(order: {
     items: Array<{ name: string; quantity: number; price: string }>;
     total: string;
 }) {
+    console.log('=== EMAIL FUNCTION CALLED ===');
+    console.log('Order data received:', JSON.stringify(order, null, 2));
+    console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+    console.log('RESEND_API_KEY length:', process.env.RESEND_API_KEY?.length || 0);
+
     if (!process.env.RESEND_API_KEY) {
-        console.error('RESEND_API_KEY not configured');
+        console.error('RESEND_API_KEY not configured - CANNOT SEND EMAIL');
         return { success: false, error: 'Email service not configured' };
     }
 
     const resend = new Resend(process.env.RESEND_API_KEY);
+    console.log('Resend client created');
 
     const itemsHtml = order.items.map(item => `
         <tr>
@@ -32,7 +38,11 @@ async function sendOrderConfirmationEmail(order: {
     `).join('');
 
     try {
-        console.log('Sending email via Resend to:', order.customerEmail);
+        console.log('About to call resend.emails.send()');
+        console.log('From:', 'PrimePickz <sales@primepickz.org>');
+        console.log('To:', order.customerEmail);
+        console.log('Subject:', `Order Confirmed - ${order.orderNumber}`);
+
         const { data, error } = await resend.emails.send({
             from: 'PrimePickz <sales@primepickz.org>',
             to: order.customerEmail,
