@@ -174,11 +174,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     }
 
                     // Send order confirmation and admin notification emails
+                    console.log('Customer email from Stripe:', session.customer_email);
+                    console.log('Order ID:', orderId);
+
                     if (session.customer_email) {
+                        console.log('Fetching order data for email...');
                         const orderData = await db.select()
                             .from(schema.orders)
                             .where(eq(schema.orders.id, orderId))
                             .limit(1);
+
+                        console.log('Order data found:', orderData.length > 0 ? 'YES' : 'NO');
+                        console.log('Order items count:', orderItems.length);
 
                         if (orderData[0]) {
                             const items = orderItems.map(item => ({
@@ -197,7 +204,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                                 total: ((session.amount_total || 0) / 100).toFixed(2),
                             };
 
-                            console.log('Attempting to send order confirmation email to:', emailOrder.customerEmail);
+                            console.log('Email order prepared:', JSON.stringify(emailOrder));
+                            console.log('Calling sendOrderConfirmationEmail...');
 
                             // Send order confirmation to customer
                             const emailResult = await sendOrderConfirmationEmail(emailOrder);
@@ -210,7 +218,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             // Log order notification for admin dashboard (instead of emailing admin)
                             const logResult = await logOrderNotification(emailOrder);
                             console.log('Admin notification log result:', JSON.stringify(logResult));
+                        } else {
+                            console.error('Order data not found for orderId:', orderId);
                         }
+                    } else {
+                        console.error('No customer email in Stripe session');
                     }
 
                     console.log(`Order ${orderNumber} payment completed successfully`);
