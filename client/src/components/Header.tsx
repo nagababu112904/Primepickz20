@@ -47,8 +47,8 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
 
   const searchSuggestions = searchQuery.trim().length > 1
     ? products.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 6)
+      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 6)
     : [];
 
   useEffect(() => {
@@ -80,7 +80,7 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
 
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
     const recognition = new SpeechRecognition();
-    
+
     recognition.lang = language === "hi" ? "hi-IN" : "en-US";
     recognition.continuous = false;
     recognition.interimResults = false;
@@ -286,8 +286,8 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
                     <DropdownMenuLabel>
                       <div className="flex flex-col">
                         <span className="font-semibold">
-                          {user.firstName && user.lastName 
-                            ? `${user.firstName} ${user.lastName}` 
+                          {user.firstName && user.lastName
+                            ? `${user.firstName} ${user.lastName}`
                             : user.firstName || "User"}
                         </span>
                         {user.email && <span className="text-xs text-muted-foreground font-normal">{user.email}</span>}
@@ -303,8 +303,8 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   onClick={() => window.location.href = '/api/login'}
                   data-testid="button-login"
@@ -313,23 +313,6 @@ export function Header({ cartCount, wishlistCount, onCartClick, language, onLang
                 </Button>
               )}
 
-              {/* Cart */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative"
-                onClick={onCartClick}
-                data-testid="button-cart"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <Badge
-                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                  >
-                    {cartCount}
-                  </Badge>
-                )}
-              </Button>
             </div>
           </div>
 
