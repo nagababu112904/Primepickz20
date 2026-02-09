@@ -119,8 +119,43 @@ async function getRawBody(req: VercelRequest): Promise<Buffer> {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+    // TEST MODE: GET request to test email directly
+    if (req.method === 'GET' && req.query.test === 'email') {
+        console.log('=== TEST MODE: Direct email test ===');
+        console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+        console.log('API Key first 15 chars:', process.env.RESEND_API_KEY?.substring(0, 15));
+
+        if (!process.env.RESEND_API_KEY) {
+            return res.status(500).json({ error: 'RESEND_API_KEY not configured' });
+        }
+
+        try {
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            const testEmail = (req.query.to as string) || 'sales@primepickz.org';
+
+            console.log('Sending test email to:', testEmail);
+            const { data, error } = await resend.emails.send({
+                from: 'PrimePickz <sales@primepickz.org>',
+                to: testEmail,
+                subject: 'Test Email - ' + new Date().toISOString(),
+                html: '<h1>Test Email Works!</h1><p>Sent at: ' + new Date().toISOString() + '</p>',
+            });
+
+            if (error) {
+                console.error('Resend error:', error);
+                return res.status(400).json({ success: false, error });
+            }
+
+            console.log('Email sent:', data);
+            return res.status(200).json({ success: true, emailId: data?.id, sentTo: testEmail });
+        } catch (err: any) {
+            console.error('Exception:', err);
+            return res.status(500).json({ success: false, error: err.message });
+        }
+    }
+
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+        return res.status(405).json({ error: 'Method not allowed. Use POST for webhook or GET with ?test=email to test' });
     }
 
     // Check for Stripe configuration
