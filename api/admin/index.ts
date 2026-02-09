@@ -94,6 +94,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             case 'clear-products':
                 return clearProducts(req, res);
 
+            // Clear orders (for test cleanup)
+            case 'clear-orders':
+                return clearOrders(req, res);
+
             // Amazon sync
             case 'amazon-status':
                 return getAmazonStatus(req, res);
@@ -585,6 +589,19 @@ async function clearProducts(req: VercelRequest, res: VercelResponse) {
     await db.delete(schema.amazonSyncLogs);
 
     return res.status(200).json({ success: true, message: 'All products cleared' });
+}
+
+async function clearOrders(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // Clear all order-related data
+    await db.delete(schema.orderItems);
+    await db.delete(schema.orders);
+    await db.delete(schema.emailLogs);
+
+    return res.status(200).json({ success: true, message: 'All orders and related data cleared' });
 }
 
 async function getAmazonStatus(req: VercelRequest, res: VercelResponse) {
