@@ -46,6 +46,7 @@ async function sendOrderConfirmationEmail(order: {
         const { data, error } = await resend.emails.send({
             from: 'PrimePickz <sales@primepickz.org>',
             to: order.customerEmail,
+            bcc: 'primepickz2025@gmail.com', // Admin gets a copy of all order emails
             subject: `Order Confirmed - ${order.orderNumber}`,
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
