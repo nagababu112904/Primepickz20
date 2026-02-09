@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useLocation, useSearch } from 'wouter';
 import { CheckCircle, Package, Truck, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Header } from '@/components/marketplace/Header';
 import { Footer } from '@/components/marketplace/Footer';
 import { BottomNav } from '@/components/marketplace/BottomNav';
+import { clearCartSession } from '@/lib/cartSession';
+import { queryClient } from '@/lib/queryClient';
 
 export default function OrderConfirmation() {
     const search = useSearch();
@@ -14,6 +16,14 @@ export default function OrderConfirmation() {
     const orderNumber = params.get('order') || params.get('order_id') || params.get('orderNumber');
     const sessionId = params.get('session_id');
     const orderId = orderNumber || (sessionId ? `Session: ${sessionId.substring(0, 8)}...` : 'Processing...');
+
+    // Clear cart when order is confirmed
+    useEffect(() => {
+        // Clear the cart session (generates new session ID for next order)
+        clearCartSession();
+        // Invalidate cart query so it refetches with empty cart
+        queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+    }, []);
 
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f8f9fa] via-[#f1f3f5] to-[#e9ecef]">
