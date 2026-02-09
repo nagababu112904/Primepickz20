@@ -101,7 +101,7 @@ export default function SearchResults() {
 
   const updateQuantityMutation = useMutation({
     mutationFn: async ({ itemId, quantity }: { itemId: string; quantity: number }) => {
-      return await apiRequest("PATCH", `/api/cart/${itemId}`, { quantity });
+      return await apiRequest("PATCH", `/api/cart?id=${itemId}`, { quantity });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
@@ -110,7 +110,7 @@ export default function SearchResults() {
 
   const removeItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      return await apiRequest("DELETE", `/api/cart/${itemId}`, {});
+      return await apiRequest("DELETE", `/api/cart?id=${itemId}`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
