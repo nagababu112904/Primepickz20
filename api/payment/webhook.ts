@@ -219,10 +219,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     }
 
                     // Send order confirmation and admin notification emails
-                    console.log('Customer email from Stripe:', session.customer_email);
+                    // Use customer_email or fallback to customer_details.email (collected during billing)
+                    const customerEmail = session.customer_email || session.customer_details?.email;
+                    console.log('Customer email from Stripe:', customerEmail);
+                    console.log('session.customer_email:', session.customer_email);
+                    console.log('session.customer_details?.email:', session.customer_details?.email);
                     console.log('Order ID:', orderId);
 
-                    if (session.customer_email) {
+                    if (customerEmail) {
                         console.log('Fetching order data for email...');
                         const orderData = await db.select()
                             .from(schema.orders)
@@ -241,7 +245,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
                             const emailOrder = {
                                 orderNumber: orderNumber || orderData[0].orderNumber,
-                                customerEmail: session.customer_email,
+                                customerEmail: customerEmail,
                                 customerName: session.customer_details?.name || 'Valued Customer',
                                 items,
                                 subtotal: ((session.amount_total || 0) / 100).toFixed(2),
@@ -267,7 +271,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             console.error('Order data not found for orderId:', orderId);
                         }
                     } else {
-                        console.error('No customer email in Stripe session');
+                        console.error('No customer email in Stripe session (checked both customer_email and customer_details.email)');
                     }
 
                     console.log(`Order ${orderNumber} payment completed successfully`);
