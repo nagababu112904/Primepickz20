@@ -202,8 +202,58 @@ export default function AdminDashboard() {
             case 'settings': return (
                 <Card>
                     <CardHeader><CardTitle>Settings</CardTitle></CardHeader>
-                    <CardContent>
-                        <p className="text-gray-500">Settings panel coming soon...</p>
+                    <CardContent className="space-y-6">
+                        {/* Clear Test Data Section */}
+                        <div className="border border-red-200 rounded-lg p-4 bg-red-50">
+                            <h3 className="text-lg font-semibold text-red-800 mb-2">⚠️ Danger Zone</h3>
+                            <p className="text-sm text-red-600 mb-4">
+                                Use these buttons to clear test data. This action cannot be undone!
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                                <Button
+                                    variant="destructive"
+                                    onClick={async () => {
+                                        if (!confirm('Are you sure you want to delete ALL orders? This cannot be undone!')) return;
+                                        try {
+                                            const res = await adminFetch('clear-orders', { method: 'POST' });
+                                            const data = await res.json();
+                                            if (res.ok) {
+                                                toast({ title: '✅ Orders Cleared', description: data.message });
+                                                queryClient.invalidateQueries();
+                                            } else {
+                                                toast({ title: 'Error', description: data.error, variant: 'destructive' });
+                                            }
+                                        } catch (e) {
+                                            toast({ title: 'Error', description: 'Failed to clear orders', variant: 'destructive' });
+                                        }
+                                    }}
+                                >
+                                    Clear All Orders
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    onClick={async () => {
+                                        if (!confirm('Are you sure you want to delete ALL products? This cannot be undone!')) return;
+                                        try {
+                                            const res = await adminFetch('clear-products', { method: 'POST' });
+                                            const data = await res.json();
+                                            if (res.ok) {
+                                                toast({ title: '✅ Products Cleared', description: data.message });
+                                                queryClient.invalidateQueries();
+                                            } else {
+                                                toast({ title: 'Error', description: data.error, variant: 'destructive' });
+                                            }
+                                        } catch (e) {
+                                            toast({ title: 'Error', description: 'Failed to clear products', variant: 'destructive' });
+                                        }
+                                    }}
+                                >
+                                    Clear All Products
+                                </Button>
+                            </div>
+                        </div>
+
+                        <p className="text-gray-500">More settings coming soon...</p>
                     </CardContent>
                 </Card>
             );
