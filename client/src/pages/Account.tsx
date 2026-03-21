@@ -421,60 +421,102 @@ export default function Account() {
                                                         <p className="font-semibold">Order #{order.id}</p>
                                                         <p className="text-sm text-gray-600">{order.date}</p>
                                                     </div>
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Delivered'
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-blue-100 text-blue-700'
-                                                        }`}>
-                                                        {order.status}
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                                        order.status === 'delivered' || order.status === 'Delivered'
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : order.status === 'cancelled'
+                                                            ? 'bg-red-100 text-red-700'
+                                                            : order.status === 'shipped'
+                                                            ? 'bg-purple-100 text-purple-700'
+                                                            : order.status === 'confirmed'
+                                                            ? 'bg-blue-100 text-blue-700'
+                                                            : 'bg-yellow-100 text-yellow-700'
+                                                    }`}>
+                                                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between items-center mt-3">
                                                     <p className="text-sm text-gray-600">{order.items} item(s)</p>
                                                     <p className="font-bold text-[#1a2332]">${order.total}</p>
                                                 </div>
-                                                <Dialog>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => setViewingOrder(order)}>
-                                                            <Eye className="w-4 h-4 mr-2" />
-                                                            View Details
+                                                <div className="flex gap-2 mt-3">
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <Button variant="outline" size="sm" className="flex-1" onClick={() => setViewingOrder(order)}>
+                                                                <Eye className="w-4 h-4 mr-2" />
+                                                                View Details
+                                                            </Button>
+                                                        </DialogTrigger>
+                                                        <DialogContent>
+                                                            <DialogHeader>
+                                                                <DialogTitle>Order #{order.id} Details</DialogTitle>
+                                                            </DialogHeader>
+                                                            <div className="space-y-4">
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-gray-500">Status:</span>
+                                                                    <span className={`font-medium ${
+                                                                        order.status === 'delivered' || order.status === 'Delivered' ? 'text-green-600'
+                                                                        : order.status === 'cancelled' ? 'text-red-600'
+                                                                        : 'text-blue-600'
+                                                                    }`}>
+                                                                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-gray-500">Date:</span>
+                                                                    <span>{order.date}</span>
+                                                                </div>
+                                                                <div className="border-t pt-4">
+                                                                    <p className="font-medium mb-2">Items:</p>
+                                                                    {order.products?.map((item, i) => (
+                                                                        <div key={i} className="flex justify-between py-2 border-b last:border-0">
+                                                                            <span>{item.name} x{item.quantity}</span>
+                                                                            <span>${item.price}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                <div className="flex justify-between font-bold text-lg pt-2">
+                                                                    <span>Total:</span>
+                                                                    <span>${order.total}</span>
+                                                                </div>
+                                                                <Link href="/track-order">
+                                                                    <Button className="w-full bg-[#1a2332] hover:bg-[#0f1419]">
+                                                                        Track Order
+                                                                    </Button>
+                                                                </Link>
+                                                            </div>
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                    {(order.status === 'pending' || order.status === 'confirmed') && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-red-600 border-red-200 hover:bg-red-50"
+                                                            onClick={async () => {
+                                                                if (!confirm('Are you sure you want to cancel this order?')) return;
+                                                                try {
+                                                                    const res = await fetch('/api/orders', {
+                                                                        method: 'PATCH',
+                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        body: JSON.stringify({ orderId: order.id, action: 'cancel' }),
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        toast({ title: 'Order Cancelled', description: `Order #${order.id} has been cancelled.` });
+                                                                        queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+                                                                    } else {
+                                                                        const data = await res.json();
+                                                                        toast({ title: 'Error', description: data.error || 'Failed to cancel order', variant: 'destructive' });
+                                                                    }
+                                                                } catch {
+                                                                    toast({ title: 'Error', description: 'Failed to cancel order', variant: 'destructive' });
+                                                                }
+                                                            }}
+                                                        >
+                                                            <X className="w-4 h-4 mr-1" />
+                                                            Cancel
                                                         </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent>
-                                                        <DialogHeader>
-                                                            <DialogTitle>Order #{order.id} Details</DialogTitle>
-                                                        </DialogHeader>
-                                                        <div className="space-y-4">
-                                                            <div className="flex justify-between">
-                                                                <span className="text-gray-500">Status:</span>
-                                                                <span className={`font-medium ${order.status === 'Delivered' ? 'text-green-600' : 'text-blue-600'}`}>
-                                                                    {order.status}
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex justify-between">
-                                                                <span className="text-gray-500">Date:</span>
-                                                                <span>{order.date}</span>
-                                                            </div>
-                                                            <div className="border-t pt-4">
-                                                                <p className="font-medium mb-2">Items:</p>
-                                                                {order.products?.map((item, i) => (
-                                                                    <div key={i} className="flex justify-between py-2 border-b last:border-0">
-                                                                        <span>{item.name} x{item.quantity}</span>
-                                                                        <span>${item.price}</span>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                            <div className="flex justify-between font-bold text-lg pt-2">
-                                                                <span>Total:</span>
-                                                                <span>${order.total}</span>
-                                                            </div>
-                                                            <Link href="/track-order">
-                                                                <Button className="w-full bg-[#1a2332] hover:bg-[#0f1419]">
-                                                                    Track Order
-                                                                </Button>
-                                                            </Link>
-                                                        </div>
-                                                    </DialogContent>
-                                                </Dialog>
+                                                    )}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>

@@ -96,18 +96,6 @@ export function Header() {
                     </div>
                 </div>
 
-                {/* Mobile Search Bar */}
-                <div className="md:hidden px-4 pb-3">
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <Input
-                            type="text"
-                            placeholder="Search"
-                            className="w-full pl-12 pr-4 py-2 bg-gray-50 border-gray-200 rounded-full"
-                        />
-                    </div>
-                </div>
-
                 {/* Mobile Menu Dropdown */}
                 {mobileMenuOpen && (
                     <div className="md:hidden border-t border-gray-100 bg-white">

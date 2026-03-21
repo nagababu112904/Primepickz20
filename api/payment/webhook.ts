@@ -17,18 +17,11 @@ async function sendOrderConfirmationEmail(order: {
     items: Array<{ name: string; quantity: number; price: string }>;
     total: string;
 }) {
-    console.log('=== EMAIL FUNCTION CALLED ===');
-    console.log('Order data received:', JSON.stringify(order, null, 2));
-    console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
-    console.log('RESEND_API_KEY length:', process.env.RESEND_API_KEY?.length || 0);
-
     if (!process.env.RESEND_API_KEY) {
-        console.error('RESEND_API_KEY not configured - CANNOT SEND EMAIL');
         return { success: false, error: 'Email service not configured' };
     }
 
     const resend = new Resend(process.env.RESEND_API_KEY);
-    console.log('Resend client created');
 
     const itemsHtml = order.items.map(item => `
         <tr>
@@ -38,10 +31,6 @@ async function sendOrderConfirmationEmail(order: {
     `).join('');
 
     try {
-        console.log('About to call resend.emails.send()');
-        console.log('From:', 'PrimePickz <sales@primepickz.org>');
-        console.log('To:', order.customerEmail);
-        console.log('Subject:', `Order Confirmed - ${order.orderNumber}`);
 
         const { data, error } = await resend.emails.send({
             from: 'PrimePickz <sales@primepickz.org>',
@@ -72,7 +61,6 @@ async function sendOrderConfirmationEmail(order: {
             return { success: false, error: error.message };
         }
 
-        console.log('Email sent successfully via Resend:', data?.id);
         return { success: true, emailId: data?.id };
     } catch (error: any) {
         console.error('Resend Error:', error.message);
@@ -120,43 +108,8 @@ async function getRawBody(req: VercelRequest): Promise<Buffer> {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // TEST MODE: GET request to test email directly
-    if (req.method === 'GET' && req.query.test === 'email') {
-        console.log('=== TEST MODE: Direct email test ===');
-        console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
-        console.log('API Key first 15 chars:', process.env.RESEND_API_KEY?.substring(0, 15));
-
-        if (!process.env.RESEND_API_KEY) {
-            return res.status(500).json({ error: 'RESEND_API_KEY not configured' });
-        }
-
-        try {
-            const resend = new Resend(process.env.RESEND_API_KEY);
-            const testEmail = (req.query.to as string) || 'sales@primepickz.org';
-
-            console.log('Sending test email to:', testEmail);
-            const { data, error } = await resend.emails.send({
-                from: 'PrimePickz <sales@primepickz.org>',
-                to: testEmail,
-                subject: 'Test Email - ' + new Date().toISOString(),
-                html: '<h1>Test Email Works!</h1><p>Sent at: ' + new Date().toISOString() + '</p>',
-            });
-
-            if (error) {
-                console.error('Resend error:', error);
-                return res.status(400).json({ success: false, error });
-            }
-
-            console.log('Email sent:', data);
-            return res.status(200).json({ success: true, emailId: data?.id, sentTo: testEmail });
-        } catch (err: any) {
-            console.error('Exception:', err);
-            return res.status(500).json({ success: false, error: err.message });
-        }
-    }
-
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed. Use POST for webhook or GET with ?test=email to test' });
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 
     // Check for Stripe configuration
@@ -219,23 +172,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             .where(eq(schema.products.id, item.productId));
                     }
 
-                    // Send order confirmation and admin notification emails
-                    // Use customer_email or fallback to customer_details.email (collected during billing)
                     const customerEmail = session.customer_email || session.customer_details?.email;
-                    console.log('Customer email from Stripe:', customerEmail);
-                    console.log('session.customer_email:', session.customer_email);
-                    console.log('session.customer_details?.email:', session.customer_details?.email);
-                    console.log('Order ID:', orderId);
 
                     if (customerEmail) {
-                        console.log('Fetching order data for email...');
                         const orderData = await db.select()
                             .from(schema.orders)
                             .where(eq(schema.orders.id, orderId))
                             .limit(1);
-
-                        console.log('Order data found:', orderData.length > 0 ? 'YES' : 'NO');
-                        console.log('Order items count:', orderItems.length);
 
                         if (orderData[0]) {
                             const items = orderItems.map(item => ({
@@ -254,28 +197,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                                 total: ((session.amount_total || 0) / 100).toFixed(2),
                             };
 
-                            console.log('Email order prepared:', JSON.stringify(emailOrder));
-                            console.log('Calling sendOrderConfirmationEmail...');
-
-                            // Send order confirmation to customer
                             const emailResult = await sendOrderConfirmationEmail(emailOrder);
-                            console.log('Email send result:', JSON.stringify(emailResult));
-
                             if (!emailResult.success) {
                                 console.error('Failed to send confirmation email:', emailResult.error);
                             }
 
-                            // Log order notification for admin dashboard (instead of emailing admin)
-                            const logResult = await logOrderNotification(emailOrder);
-                            console.log('Admin notification log result:', JSON.stringify(logResult));
-                        } else {
-                            console.error('Order data not found for orderId:', orderId);
+                            await logOrderNotification(emailOrder);
                         }
-                    } else {
-                        console.error('No customer email in Stripe session (checked both customer_email and customer_details.email)');
                     }
-
-                    console.log(`Order ${orderNumber} payment completed successfully`);
                 }
                 break;
             }
@@ -292,28 +221,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             updatedAt: new Date(),
                         })
                         .where(eq(schema.orders.id, orderId));
-
-                    console.log(`Order ${session.metadata?.orderNumber} payment expired`);
                 }
                 break;
             }
 
             case 'payment_intent.payment_failed': {
-                const paymentIntent = event.data.object as Stripe.PaymentIntent;
-                console.log(`Payment failed: ${paymentIntent.id}`);
-                // Could update order status here if needed
                 break;
             }
 
             case 'charge.refunded': {
-                const charge = event.data.object as Stripe.Charge;
-                console.log(`Charge refunded: ${charge.id}`);
-                // TODO: Update order status and process refund
                 break;
             }
 
             default:
-                console.log(`Unhandled event type: ${event.type}`);
+                break;
         }
 
         return res.status(200).json({ received: true });

@@ -10,9 +10,14 @@ const db = drizzle(sqlClient, { schema });
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://primepickz.org';
 
+const ALLOWED_ORIGINS = ['https://primepickz.org', 'https://www.primepickz.org'];
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Enable CORS - locked to production domain
+    const origin = req.headers.origin || '';
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 

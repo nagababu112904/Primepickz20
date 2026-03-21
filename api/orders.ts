@@ -7,14 +7,47 @@ import * as schema from '../shared/schema.js';
 const sqlClient = neon(process.env.DATABASE_URL!);
 const db = drizzle(sqlClient, { schema });
 
+const ALLOWED_ORIGINS = ['https://primepickz.org', 'https://www.primepickz.org'];
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    // Enable CORS - locked to production domain
+    const origin = req.headers.origin || '';
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    // PATCH: Cancel an order
+    if (req.method === 'PATCH') {
+        const { orderId, action } = req.body;
+        if (action !== 'cancel' || !orderId) {
+            return res.status(400).json({ error: 'Invalid request. Provide orderId and action=cancel.' });
+        }
+        try {
+            const orders = await db.select()
+                .from(schema.orders)
+                .where(eq(schema.orders.id, orderId))
+                .limit(1);
+            if (orders.length === 0) {
+                return res.status(404).json({ error: 'Order not found' });
+            }
+            const order = orders[0];
+            if (!['pending', 'confirmed'].includes(order.status)) {
+                return res.status(400).json({ error: `Cannot cancel order with status: ${order.status}` });
+            }
+            await db.update(schema.orders)
+                .set({ status: 'cancelled', updatedAt: new Date() })
+                .where(eq(schema.orders.id, orderId));
+            return res.status(200).json({ success: true, message: 'Order cancelled' });
+        } catch (error) {
+            console.error('Error cancelling order:', error);
+            return res.status(500).json({ error: 'Failed to cancel order' });
+        }
     }
 
     if (req.method !== 'GET') {

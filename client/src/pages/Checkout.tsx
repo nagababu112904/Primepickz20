@@ -293,7 +293,54 @@ export default function Checkout() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm line-clamp-2">{item.product?.name}</h4>
-                        <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={async () => {
+                              if (item.quantity <= 1) {
+                                await fetch(`/api/cart?id=${item.id}`, { method: 'DELETE' });
+                              } else {
+                                await fetch(`/api/cart?id=${item.id}`, {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ quantity: item.quantity - 1 }),
+                                });
+                              }
+                              refetch();
+                            }}
+                          >
+                            <Minus className="w-3 h-3" />
+                          </Button>
+                          <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={async () => {
+                              await fetch(`/api/cart?id=${item.id}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ quantity: item.quantity + 1 }),
+                              });
+                              refetch();
+                            }}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-red-500 hover:text-red-700 ml-auto"
+                            onClick={async () => {
+                              await fetch(`/api/cart?id=${item.id}`, { method: 'DELETE' });
+                              refetch();
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="text-right">
                         <span className="font-bold">
