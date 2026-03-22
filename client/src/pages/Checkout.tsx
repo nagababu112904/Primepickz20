@@ -55,10 +55,35 @@ export default function Checkout() {
     address: "",
     apartment: "",
     city: "",
-    state: "New York",
+    state: "",
     zipCode: "",
     phone: "",
   });
+
+  // Track which fields user has interacted with (for showing errors)
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
+  // Validation helpers
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidPhone = (phone: string) => phone.replace(/\D/g, '').length >= 10;
+  const isValidZip = (zip: string) => /^\d{5}(-\d{4})?$/.test(zip.trim());
+
+  const fieldErrors: Record<string, string> = {};
+  if (!formData.email.trim()) fieldErrors.email = 'Email is required';
+  else if (!isValidEmail(formData.email)) fieldErrors.email = 'Enter a valid email';
+  if (!formData.phone.trim()) fieldErrors.phone = 'Phone is required';
+  else if (!isValidPhone(formData.phone)) fieldErrors.phone = 'Enter a valid phone number';
+  if (!formData.firstName.trim()) fieldErrors.firstName = 'First name is required';
+  if (!formData.lastName.trim()) fieldErrors.lastName = 'Last name is required';
+  if (!formData.address.trim()) fieldErrors.address = 'Address is required';
+  if (!formData.city.trim()) fieldErrors.city = 'City is required';
+  if (!formData.state) fieldErrors.state = 'Select a state';
+  if (!formData.zipCode.trim()) fieldErrors.zipCode = 'ZIP code is required';
+  else if (!isValidZip(formData.zipCode)) fieldErrors.zipCode = 'Enter a valid ZIP code';
+
+  const isFormValid = Object.keys(fieldErrors).length === 0;
+  const showError = (field: string) => (touched[field] || submitAttempted) && fieldErrors[field];
 
   const subtotal = cartItems.reduce((sum, item) => {
     const price = parseFloat(item.product?.price || "0");
@@ -74,7 +99,16 @@ export default function Checkout() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+
   const handleCheckout = async () => {
+    setSubmitAttempted(true);
+    if (!isFormValid) {
+      setError('Please fill in all required fields correctly.');
+      return;
+    }
     setIsProcessing(true);
     setError(null);
 
@@ -153,7 +187,7 @@ export default function Checkout() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
                     <Input
                       id="email"
                       name="email"
@@ -161,11 +195,13 @@ export default function Checkout() {
                       placeholder="you@example.com"
                       value={formData.email}
                       onChange={handleInputChange}
-                      required
+                      onBlur={() => handleBlur('email')}
+                      className={showError('email') ? 'border-red-500 focus:ring-red-500' : ''}
                     />
+                    {showError('email') && <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>}
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="phone">Phone <span className="text-red-500">*</span></Label>
                     <Input
                       id="phone"
                       name="phone"
@@ -173,7 +209,10 @@ export default function Checkout() {
                       placeholder="(555) 123-4567"
                       value={formData.phone}
                       onChange={handleInputChange}
+                      onBlur={() => handleBlur('phone')}
+                      className={showError('phone') ? 'border-red-500 focus:ring-red-500' : ''}
                     />
+                    {showError('phone') && <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>}
                   </div>
                 </CardContent>
               </Card>
@@ -188,38 +227,44 @@ export default function Checkout() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="firstName">First Name</Label>
+                      <Label htmlFor="firstName">First Name <span className="text-red-500">*</span></Label>
                       <Input
                         id="firstName"
                         name="firstName"
                         placeholder="John"
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        required
+                        onBlur={() => handleBlur('firstName')}
+                        className={showError('firstName') ? 'border-red-500 focus:ring-red-500' : ''}
                       />
+                      {showError('firstName') && <p className="text-red-500 text-xs mt-1">{fieldErrors.firstName}</p>}
                     </div>
                     <div>
-                      <Label htmlFor="lastName">Last Name</Label>
+                      <Label htmlFor="lastName">Last Name <span className="text-red-500">*</span></Label>
                       <Input
                         id="lastName"
                         name="lastName"
                         placeholder="Doe"
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        required
+                        onBlur={() => handleBlur('lastName')}
+                        className={showError('lastName') ? 'border-red-500 focus:ring-red-500' : ''}
                       />
+                      {showError('lastName') && <p className="text-red-500 text-xs mt-1">{fieldErrors.lastName}</p>}
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="address">Address</Label>
+                    <Label htmlFor="address">Address <span className="text-red-500">*</span></Label>
                     <Input
                       id="address"
                       name="address"
                       placeholder="123 Main St"
                       value={formData.address}
                       onChange={handleInputChange}
-                      required
+                      onBlur={() => handleBlur('address')}
+                      className={showError('address') ? 'border-red-500 focus:ring-red-500' : ''}
                     />
+                    {showError('address') && <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>}
                   </div>
                   <div>
                     <Label htmlFor="apartment">Apartment, suite, etc. (optional)</Label>
@@ -233,24 +278,29 @@ export default function Checkout() {
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <Label htmlFor="city">City</Label>
+                      <Label htmlFor="city">City <span className="text-red-500">*</span></Label>
                       <Input
                         id="city"
                         name="city"
                         placeholder="New York"
                         value={formData.city}
                         onChange={handleInputChange}
-                        required
+                        onBlur={() => handleBlur('city')}
+                        className={showError('city') ? 'border-red-500 focus:ring-red-500' : ''}
                       />
+                      {showError('city') && <p className="text-red-500 text-xs mt-1">{fieldErrors.city}</p>}
                     </div>
                     <div>
-                      <Label htmlFor="state">State</Label>
+                      <Label htmlFor="state">State <span className="text-red-500">*</span></Label>
                       <Select
                         value={formData.state}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, state: value }))}
+                        onValueChange={(value) => {
+                          setFormData(prev => ({ ...prev, state: value }));
+                          setTouched(prev => ({ ...prev, state: true }));
+                        }}
                       >
-                        <SelectTrigger>
-                          <SelectValue />
+                        <SelectTrigger className={showError('state') ? 'border-red-500' : ''}>
+                          <SelectValue placeholder="Select state" />
                         </SelectTrigger>
                         <SelectContent>
                           {US_STATES.map((state) => (
@@ -258,17 +308,20 @@ export default function Checkout() {
                           ))}
                         </SelectContent>
                       </Select>
+                      {showError('state') && <p className="text-red-500 text-xs mt-1">{fieldErrors.state}</p>}
                     </div>
                     <div>
-                      <Label htmlFor="zipCode">ZIP Code</Label>
+                      <Label htmlFor="zipCode">ZIP Code <span className="text-red-500">*</span></Label>
                       <Input
                         id="zipCode"
                         name="zipCode"
                         placeholder="10001"
                         value={formData.zipCode}
                         onChange={handleInputChange}
-                        required
+                        onBlur={() => handleBlur('zipCode')}
+                        className={showError('zipCode') ? 'border-red-500 focus:ring-red-500' : ''}
                       />
+                      {showError('zipCode') && <p className="text-red-500 text-xs mt-1">{fieldErrors.zipCode}</p>}
                     </div>
                   </div>
                 </CardContent>
@@ -379,15 +432,20 @@ export default function Checkout() {
                   )}
 
                   <Button
-                    className="w-full bg-[#1a2332] hover:bg-[#0f1419]"
+                    className={`w-full ${isFormValid ? 'bg-[#1a2332] hover:bg-[#0f1419]' : 'bg-gray-400 cursor-not-allowed'}`}
                     size="lg"
                     onClick={handleCheckout}
-                    disabled={isProcessing}
+                    disabled={isProcessing || !isFormValid}
                   >
                     {isProcessing ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Processing...
+                      </>
+                    ) : !isFormValid ? (
+                      <>
+                        <Lock className="w-4 h-4 mr-2" />
+                        Fill all fields to pay
                       </>
                     ) : (
                       <>
