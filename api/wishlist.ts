@@ -22,22 +22,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).end();
     }
 
-    // Extract userId from Firebase auth or session
-    const authHeader = req.headers.authorization;
-    let userId = '';
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        // For Firebase JWT - extract uid from token payload
-        try {
-            const token = authHeader.split(' ')[1];
-            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-            userId = payload.user_id || payload.sub || '';
-        } catch {
-            // fallback to query param
-        }
-    }
-    // Fallback: use sessionId or userId from query/body
+    // Get userId from query params (primary) or Authorization header (fallback)
+    let userId = (req.query.userId as string) || '';
     if (!userId) {
-        userId = (req.query.userId as string) || '';
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.split(' ')[1];
+                const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+                userId = payload.user_id || payload.sub || '';
+            } catch {
+                // fallback - userId stays empty
+            }
+        }
     }
 
     // GET: Fetch user's wishlist
@@ -111,9 +108,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!userId) {
             return res.status(401).json({ error: 'Authentication required' });
         }
-        const productId = req.query.id as string;
+        // Accept productId from query param ?id= or ?productId=
+        const productId = (req.query.id as string) || (req.query.productId as string) || '';
         if (!productId) {
-            return res.status(400).json({ error: 'Product ID is required in URL' });
+            return res.status(400).json({ error: 'Product ID is required (use ?id= or ?productId= query param)' });
         }
         try {
             await db.delete(schema.wishlistItems)

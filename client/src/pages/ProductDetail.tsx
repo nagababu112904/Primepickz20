@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/marketplace/Header";
 import { Footer } from "@/components/marketplace/Footer";
 import { BottomNav } from "@/components/marketplace/BottomNav";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProductVariant {
   id: string;
@@ -32,6 +33,7 @@ export default function ProductDetail() {
   const [language, setLanguage] = useState("en");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
 
   const { data: allProducts } = useQuery<Product[]>({
     queryKey: ["/api/products"],
@@ -126,8 +128,20 @@ export default function ProductDetail() {
   };
 
   const handleToggleWishlist = async () => {
+    if (!isAuthenticated || !user?.uid) {
+      toast({
+        title: "Login Required",
+        description: "Please sign in to add items to your wishlist",
+        variant: "destructive",
+      });
+      return;
+    }
     try {
-      await apiRequest("POST", "/api/wishlist", { productId: product!.id });
+      await fetch(`/api/wishlist?userId=${encodeURIComponent(user.uid)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product!.id }),
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
       toast({
         title: "Added to wishlist!",

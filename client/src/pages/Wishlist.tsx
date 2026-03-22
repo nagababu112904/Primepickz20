@@ -22,8 +22,14 @@ export default function Wishlist() {
   const { toast } = useToast();
 
   const { data: wishlistItems = [] } = useQuery<WishlistItem[]>({
-    queryKey: ["/api/wishlist"],
-    enabled: isAuthenticated,
+    queryKey: ["/api/wishlist", user?.uid],
+    queryFn: async () => {
+      if (!user?.uid) return [];
+      const res = await fetch(`/api/wishlist?userId=${encodeURIComponent(user.uid)}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: isAuthenticated && !!user?.uid,
   });
 
   const { data: allProducts = [] } = useQuery<Product[]>({
@@ -31,8 +37,13 @@ export default function Wishlist() {
   });
 
   const removeFromWishlistMutation = useMutation({
-    mutationFn: (productId: string) =>
-      apiRequest(`/api/wishlist/${productId}`, "DELETE"),
+    mutationFn: async (productId: string) => {
+      const res = await fetch(`/api/wishlist?userId=${encodeURIComponent(user?.uid || '')}&productId=${encodeURIComponent(productId)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to remove');
+      return res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
       toast({

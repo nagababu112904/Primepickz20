@@ -60,8 +60,13 @@ export default function Account() {
         }
     }, [user]);
 
-    // Address State
-    const [addresses, setAddresses] = useState<Address[]>([]);
+    // Address State - persist in localStorage
+    const [addresses, setAddresses] = useState<Address[]>(() => {
+        try {
+            const saved = localStorage.getItem(`pp_addresses_${user?.uid}`);
+            return saved ? JSON.parse(saved) : [];
+        } catch { return []; }
+    });
     const [isAddingAddress, setIsAddingAddress] = useState(false);
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
     const [newAddress, setNewAddress] = useState<Omit<Address, 'id' | 'isDefault'>>({
@@ -72,6 +77,13 @@ export default function Account() {
         zip: '',
         phone: '',
     });
+
+    // Save addresses to localStorage when they change
+    useEffect(() => {
+        if (user?.uid && addresses.length >= 0) {
+            localStorage.setItem(`pp_addresses_${user.uid}`, JSON.stringify(addresses));
+        }
+    }, [addresses, user?.uid]);
 
     // Order Details State
     const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
@@ -96,9 +108,7 @@ export default function Account() {
         queryKey: ['/api/wishlist', user?.uid],
         queryFn: async () => {
             if (!user?.uid) return [];
-            const res = await fetch('/api/wishlist', {
-                credentials: 'include',
-            });
+            const res = await fetch(`/api/wishlist?userId=${encodeURIComponent(user.uid)}`);
             if (!res.ok) return [];
             return res.json();
         },
@@ -112,8 +122,13 @@ export default function Account() {
 
     // Remove from wishlist mutation
     const removeFromWishlistMutation = useMutation({
-        mutationFn: (productId: string) =>
-            apiRequest("DELETE", `/api/wishlist/${productId}`, undefined),
+        mutationFn: async (productId: string) => {
+            const res = await fetch(`/api/wishlist?userId=${encodeURIComponent(user?.uid || '')}&productId=${encodeURIComponent(productId)}`, {
+                method: 'DELETE',
+            });
+            if (!res.ok) throw new Error('Failed to remove from wishlist');
+            return res.json();
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['/api/wishlist'] });
             toast({

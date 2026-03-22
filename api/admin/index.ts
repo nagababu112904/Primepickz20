@@ -54,8 +54,12 @@ function checkAdminAuth(req: VercelRequest): { authorized: boolean; userId?: str
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Enable CORS - locked to production domain
+    const ALLOWED_ORIGINS = ['https://primepickz.org', 'https://www.primepickz.org'];
+    const origin = req.headers.origin || '';
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 

@@ -24,17 +24,28 @@ const RETURN_REASONS = [
 export default function ReturnRequest() {
     const { toast } = useToast();
     const [submitted, setSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
-        orderNumber: '',
-        email: '',
+        orderId: '',
+        contactEmail: '',
         reason: '',
         description: '',
-        phone: '',
+        contactPhone: '',
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (!formData.orderId || !formData.reason || !formData.contactEmail) {
+            toast({
+                title: 'Missing Fields',
+                description: 'Please fill in order number, email, and reason.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
             const res = await fetch('/api/admin?action=returns', {
                 method: 'POST',
@@ -45,9 +56,10 @@ export default function ReturnRequest() {
             if (res.ok) {
                 setSubmitted(true);
             } else {
+                const data = await res.json();
                 toast({
                     title: 'Error',
-                    description: 'Failed to submit return request. Please try again.',
+                    description: data.error || 'Failed to submit return request. Please try again.',
                     variant: 'destructive',
                 });
             }
@@ -57,6 +69,8 @@ export default function ReturnRequest() {
                 description: 'Something went wrong. Please try again.',
                 variant: 'destructive',
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -107,33 +121,33 @@ export default function ReturnRequest() {
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <Label htmlFor="orderNumber">Order Number *</Label>
+                                <Label htmlFor="orderId">Order Number *</Label>
                                 <Input
-                                    id="orderNumber"
-                                    value={formData.orderNumber}
-                                    onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-                                    placeholder="e.g., ORD-123456"
+                                    id="orderId"
+                                    value={formData.orderId}
+                                    onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
+                                    placeholder="e.g., 123"
                                     required
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="email">Email Address *</Label>
+                                <Label htmlFor="contactEmail">Email Address *</Label>
                                 <Input
-                                    id="email"
+                                    id="contactEmail"
                                     type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    value={formData.contactEmail}
+                                    onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
                                     placeholder="you@example.com"
                                     required
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="phone">Phone Number</Label>
+                                <Label htmlFor="contactPhone">Phone Number</Label>
                                 <Input
-                                    id="phone"
+                                    id="contactPhone"
                                     type="tel"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    value={formData.contactPhone}
+                                    onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
                                     placeholder="(555) 123-4567"
                                 />
                             </div>
@@ -164,8 +178,8 @@ export default function ReturnRequest() {
                                     rows={4}
                                 />
                             </div>
-                            <Button type="submit" className="w-full bg-[#1a2332] hover:bg-[#0f1419]">
-                                Submit Return Request
+                            <Button type="submit" className="w-full bg-[#1a2332] hover:bg-[#0f1419]" disabled={isSubmitting}>
+                                {isSubmitting ? 'Submitting...' : 'Submit Return Request'}
                             </Button>
                         </form>
                     </CardContent>
