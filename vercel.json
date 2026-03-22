@@ -4,7 +4,7 @@
   "framework": "vite",
   "crons": [
     {
-      "path": "/api/cron/sync-amazon",
+      "path": "/api/admin?action=cron-sync",
       "schedule": "0 6 * * *"
     }
   ],

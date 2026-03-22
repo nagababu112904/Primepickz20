@@ -69,6 +69,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { action } = req.query;
 
+    // Cron job endpoint (secured with CRON_SECRET, no admin JWT needed)
+    if (action === 'cron-sync') {
+        const authHeader = req.headers.authorization;
+        const cronSecret = process.env.CRON_SECRET;
+        if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+            return res.status(401).json({ error: 'Unauthorized cron request' });
+        }
+        // Vercel cron sends GET, but syncInventory expects POST — override it
+        (req as any).method = 'POST';
+        return syncInventory(req as any, res);
+    }
+
     // Login endpoint (no auth required)
     if (action === 'login') {
         return handleAdminLogin(req, res);
