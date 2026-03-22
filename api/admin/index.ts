@@ -1172,23 +1172,93 @@ async function syncInventory(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const syncedProducts = await db.select()
-        .from(schema.products)
-        .where(drizzleSql`amazon_sync_status = 'synced'`);
+    try {
+        // Import the real Amazon SP-API client
+        const { getAmazonListings, isSpApiConfigured } = await import('../../server/lib/amazonSpApi.js');
 
-    for (const product of syncedProducts) {
-        const success = Math.random() > 0.1;
+        if (!isSpApiConfigured()) {
+            return res.status(400).json({
+                error: 'Amazon SP-API not configured',
+                message: 'Please set AMAZON_REFRESH_TOKEN, AMAZON_CLIENT_ID, AMAZON_CLIENT_SECRET, AMAZON_SELLER_ID in Vercel environment variables.'
+            });
+        }
 
+        // Fetch real inventory from Amazon
+        const amazonListings = await getAmazonListings();
+
+        if (amazonListings.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: 'No inventory data returned from Amazon. Check your SP-API credentials.',
+                synced: 0
+            });
+        }
+
+        // Get all products that have Amazon ASINs
+        const allProducts = await db.select()
+            .from(schema.products)
+            .where(drizzleSql`amazon_asin IS NOT NULL AND amazon_asin != ''`);
+
+        let syncedCount = 0;
+        let failedCount = 0;
+
+        for (const amazonItem of amazonListings) {
+            // Match by ASIN or SKU
+            const matchedProduct = allProducts.find(p =>
+                (p.amazonAsin && p.amazonAsin === amazonItem.asin) ||
+                (p.amazonSku && p.amazonSku === amazonItem.sku)
+            );
+
+            if (matchedProduct) {
+                const oldStock = matchedProduct.stockCount || 0;
+                const newStock = amazonItem.stockCount || 0;
+
+                // Update stock in DB
+                await db.update(schema.products)
+                    .set({
+                        stockCount: newStock,
+                        inStock: newStock > 0,
+                        amazonSyncStatus: 'synced',
+                        lastSyncedAt: new Date(),
+                        updatedAt: new Date(),
+                    })
+                    .where(eq(schema.products.id, matchedProduct.id));
+
+                // Log the sync
+                await db.insert(schema.amazonSyncLogs).values({
+                    productId: matchedProduct.id,
+                    syncType: 'inventory',
+                    status: 'success',
+                    message: `INVENTORY SYNC - ${matchedProduct.name}: ${oldStock} → ${newStock} units`,
+                });
+
+                syncedCount++;
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: `Inventory sync completed: ${syncedCount} products updated, ${amazonListings.length} Amazon items found`,
+            synced: syncedCount,
+            amazonItems: amazonListings.length,
+        });
+
+    } catch (error: any) {
+        console.error('Inventory sync error:', error);
+
+        // Log the failure
         await db.insert(schema.amazonSyncLogs).values({
-            productId: product.id,
             syncType: 'inventory',
-            status: success ? 'success' : 'failed',
-            message: `INVENTORY SYNC - ${product.name} (${product.stockCount} units)`,
-            errorDetails: success ? null : 'Amazon API rate limit exceeded',
+            status: 'failed',
+            message: 'INVENTORY SYNC FAILED',
+            errorDetails: error.message || 'Unknown error',
+        });
+
+        return res.status(500).json({
+            error: 'Inventory sync failed',
+            message: error.message || 'Check Amazon SP-API credentials and try again',
         });
     }
-
-    return res.status(200).json({ success: true, message: `Inventory sync completed for ${syncedProducts.length} products` });
 }
 
 async function syncOrders(req: VercelRequest, res: VercelResponse) {
