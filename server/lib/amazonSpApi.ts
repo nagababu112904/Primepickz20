@@ -120,6 +120,46 @@ export async function getAmazonListings(): Promise<AmazonProduct[]> {
 }
 
 /**
+ * Get pricing for products by ASIN from Amazon Pricing API
+ */
+export async function getAmazonPrices(asins: string[]): Promise<Map<string, number>> {
+    const priceMap = new Map<string, number>();
+    if (asins.length === 0) return priceMap;
+
+    try {
+        // Amazon Pricing API allows up to 20 ASINs per request
+        const chunks = [];
+        for (let i = 0; i < asins.length; i += 20) {
+            chunks.push(asins.slice(i, i + 20));
+        }
+
+        for (const chunk of chunks) {
+            const asinParams = chunk.map(a => `Asins=${a}`).join('&');
+            const response = await spApiRequest(
+                `/products/pricing/v0/price?MarketplaceId=${AMAZON_MARKETPLACE_ID}&${asinParams}&ItemType=Asin`,
+                { method: 'GET' }
+            );
+
+            const prices = response.payload || [];
+            for (const item of prices) {
+                if (item.status === 'Success' && item.Product?.Offers?.length > 0) {
+                    const offer = item.Product.Offers[0];
+                    const listingPrice = offer.BuyingPrice?.ListingPrice?.Amount ||
+                        offer.ListingPrice?.Amount;
+                    if (listingPrice) {
+                        priceMap.set(item.ASIN, parseFloat(listingPrice));
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching Amazon prices:', error);
+    }
+
+    return priceMap;
+}
+
+/**
  * Get product details by ASIN
  */
 export async function getProductByAsin(asin: string): Promise<AmazonProduct | null> {

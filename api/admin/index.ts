@@ -1174,7 +1174,7 @@ async function syncInventory(req: VercelRequest, res: VercelResponse) {
 
     try {
         // Import the real Amazon SP-API client
-        const { getAmazonListings, isSpApiConfigured } = await import('../../server/lib/amazonSpApi.js');
+        const { getAmazonListings, getAmazonPrices, isSpApiConfigured } = await import('../../server/lib/amazonSpApi.js');
 
         if (!isSpApiConfigured()) {
             return res.status(400).json({
@@ -1194,6 +1194,10 @@ async function syncInventory(req: VercelRequest, res: VercelResponse) {
             });
         }
 
+        // Also fetch prices from Amazon Pricing API
+        const asins = amazonListings.map(item => item.asin).filter(Boolean);
+        const amazonPrices = await getAmazonPrices(asins);
+
         // Get all products that have Amazon ASINs
         const allProducts = await db.select()
             .from(schema.products)
@@ -1212,24 +1216,37 @@ async function syncInventory(req: VercelRequest, res: VercelResponse) {
             if (matchedProduct) {
                 const oldStock = matchedProduct.stockCount || 0;
                 const newStock = amazonItem.stockCount || 0;
+                const amazonPrice = amazonPrices.get(amazonItem.asin);
+                const oldPrice = parseFloat(matchedProduct.price);
 
-                // Update stock in DB
+                // Build update fields
+                const updateData: any = {
+                    stockCount: newStock,
+                    inStock: newStock > 0,
+                    amazonSyncStatus: 'synced',
+                    lastSyncedAt: new Date(),
+                    updatedAt: new Date(),
+                };
+
+                // Update price if Amazon returned one
+                if (amazonPrice && amazonPrice > 0) {
+                    updateData.price = amazonPrice.toFixed(2);
+                }
+
+                // Update in DB
                 await db.update(schema.products)
-                    .set({
-                        stockCount: newStock,
-                        inStock: newStock > 0,
-                        amazonSyncStatus: 'synced',
-                        lastSyncedAt: new Date(),
-                        updatedAt: new Date(),
-                    })
+                    .set(updateData)
                     .where(eq(schema.products.id, matchedProduct.id));
 
-                // Log the sync
+                // Log the sync with price info
+                const priceMsg = amazonPrice && amazonPrice > 0
+                    ? `, Price: $${oldPrice} → $${amazonPrice.toFixed(2)}`
+                    : '';
                 await db.insert(schema.amazonSyncLogs).values({
                     productId: matchedProduct.id,
                     syncType: 'inventory',
                     status: 'success',
-                    message: `INVENTORY SYNC - ${matchedProduct.name}: ${oldStock} → ${newStock} units`,
+                    message: `INVENTORY SYNC - ${matchedProduct.name}: ${oldStock} → ${newStock} units${priceMsg}`,
                 });
 
                 syncedCount++;
