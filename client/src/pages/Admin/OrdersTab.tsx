@@ -25,6 +25,15 @@ interface Order {
         quantity: number;
         price: string;
     }>;
+    shippingAddress?: {
+        fullName: string;
+        phone: string;
+        addressLine1: string;
+        addressLine2?: string;
+        city: string;
+        state: string;
+        pincode: string;
+    } | null;
 }
 
 const STATUS_OPTIONS = [
@@ -248,6 +257,32 @@ export function OrdersTab() {
                                     </Badge>
                                 </div>
                             </div>
+
+                            {/* Shipping Address */}
+                            {selectedOrder.shippingAddress && (
+                                <div className="bg-blue-50 p-4 rounded-lg space-y-2">
+                                    <p className="font-medium text-blue-900 mb-2">📦 Shipping Address</p>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Name:</span>
+                                        <span className="font-medium">{selectedOrder.shippingAddress.fullName}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Phone:</span>
+                                        <span>{selectedOrder.shippingAddress.phone || '—'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Address:</span>
+                                        <span className="text-right max-w-[60%]">
+                                            {selectedOrder.shippingAddress.addressLine1}
+                                            {selectedOrder.shippingAddress.addressLine2 && `, ${selectedOrder.shippingAddress.addressLine2}`}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">City/State:</span>
+                                        <span>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} {selectedOrder.shippingAddress.pincode}</span>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Items */}
                             {selectedOrder.items && selectedOrder.items.length > 0 && (

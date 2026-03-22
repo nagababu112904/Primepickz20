@@ -589,16 +589,27 @@ async function getOrders(req: VercelRequest, res: VercelResponse) {
         .from(schema.orders)
         .orderBy(drizzleSql`created_at DESC`);
 
-    const ordersWithItems = await Promise.all(
+    const ordersWithDetails = await Promise.all(
         orders.map(async (order) => {
             const items = await db.select()
                 .from(schema.orderItems)
                 .where(drizzleSql`order_id = ${order.id}`);
-            return { ...order, items };
+
+            // Fetch shipping address
+            let shippingAddress = null;
+            if (order.shippingAddressId) {
+                const addresses = await db.select()
+                    .from(schema.addresses)
+                    .where(eq(schema.addresses.id, order.shippingAddressId))
+                    .limit(1);
+                shippingAddress = addresses[0] || null;
+            }
+
+            return { ...order, items, shippingAddress };
         })
     );
 
-    return res.status(200).json(ordersWithItems);
+    return res.status(200).json(ordersWithDetails);
 }
 
 async function handleOrderStatus(req: VercelRequest, res: VercelResponse) {
