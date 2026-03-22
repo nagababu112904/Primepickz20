@@ -11,7 +11,7 @@ import { Footer } from '@/components/marketplace/Footer';
 import { BottomNav } from '@/components/marketplace/BottomNav';
 import { Logo } from '@/components/marketplace/Logo';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithGoogle, signInWithFacebook, signInWithEmail, signUpWithEmail } from '@/lib/firebase';
+import { signInWithGoogle, signInWithFacebook, signInWithEmail, signUpWithEmail, resetPassword } from '@/lib/firebase';
 
 export default function Login() {
     const { toast } = useToast();
@@ -277,7 +277,29 @@ export default function Login() {
 
                             {isLogin && (
                                 <div className="flex justify-end">
-                                    <button type="button" className="text-sm text-[#1a2332] hover:underline">
+                                    <button
+                                        type="button"
+                                        className="text-sm text-[#1a2332] hover:underline"
+                                        onClick={async () => {
+                                            if (!formData.email) {
+                                                toast({
+                                                    title: 'Enter your email',
+                                                    description: 'Please enter your email address first, then click Forgot Password.',
+                                                    variant: 'destructive',
+                                                });
+                                                return;
+                                            }
+                                            const result = await resetPassword(formData.email);
+                                            if (result.error) {
+                                                toast({ title: 'Error', description: result.error, variant: 'destructive' });
+                                            } else {
+                                                toast({
+                                                    title: 'Reset email sent!',
+                                                    description: `Check ${formData.email} for a password reset link.`,
+                                                });
+                                            }
+                                        }}
+                                    >
                                         Forgot Password?
                                     </button>
                                 </div>

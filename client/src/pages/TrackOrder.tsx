@@ -15,28 +15,51 @@ export default function TrackOrder() {
   const [tracking, setTracking] = useState<any>(null);
   const [error, setError] = useState('');
 
-  const handleTrack = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock tracking data
-    if (orderNumber && email) {
-      setTracking({
-        orderNumber,
-        status: 'In Transit',
-        estimatedDelivery: 'December 28, 2024',
-        carrier: 'USPS',
-        trackingNumber: 'USPS123456789',
-        steps: [
-          { status: 'Order Placed', date: 'Dec 24, 2024', completed: true },
-          { status: 'Processing', date: 'Dec 25, 2024', completed: true },
-          { status: 'Shipped', date: 'Dec 26, 2024', completed: true },
-          { status: 'In Transit', date: 'Dec 26, 2024', completed: true, current: true },
-          { status: 'Out for Delivery', date: '', completed: false },
-          { status: 'Delivered', date: '', completed: false },
-        ],
-      });
-      setError('');
-    } else {
+    if (!orderNumber || !email) {
       setError('Please enter both order number and email');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/orders?email=${encodeURIComponent(email)}`);
+      if (!res.ok) throw new Error('Failed to fetch orders');
+      const orders = await res.json();
+      const found = orders.find((o: any) =>
+        o.orderNumber?.toLowerCase() === orderNumber.trim().toLowerCase()
+      );
+      if (!found) {
+        setError('No order found with that order number and email. Please check and try again.');
+        setTracking(null);
+      } else {
+        // Build tracking steps from real status
+        const statusOrder = ['pending', 'confirmed', 'shipped', 'delivered'];
+        const statusIdx = statusOrder.indexOf(found.status);
+        const steps = [
+          { status: 'Order Placed', date: new Date(found.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), completed: statusIdx >= 0, current: statusIdx === 0 },
+          { status: 'Confirmed', date: statusIdx >= 1 ? 'Confirmed' : '', completed: statusIdx >= 1, current: statusIdx === 1 },
+          { status: 'Shipped', date: statusIdx >= 2 ? 'Shipped' : '', completed: statusIdx >= 2, current: statusIdx === 2 },
+          { status: 'Delivered', date: statusIdx >= 3 ? 'Delivered' : '', completed: statusIdx >= 3, current: statusIdx === 3 },
+        ];
+        if (found.status === 'cancelled') {
+          steps.push({ status: 'Cancelled', date: 'Order was cancelled', completed: true, current: true });
+        }
+        setTracking({
+          orderNumber: found.orderNumber,
+          status: found.status.charAt(0).toUpperCase() + found.status.slice(1),
+          total: found.total,
+          items: found.items,
+          steps,
+        });
+      }
+    } catch (err) {
+      setError('Failed to fetch order. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

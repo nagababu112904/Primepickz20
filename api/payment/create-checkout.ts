@@ -85,6 +85,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             totalAmount += price * quantity;
         }
 
+        // Calculate shipping (same logic as frontend: free over $99)
+        const shipping = totalAmount >= 99 ? 0 : 9.99;
+        if (shipping > 0) {
+            lineItems.push({
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: 'Shipping',
+                        description: 'Standard shipping (5-7 business days)',
+                    },
+                    unit_amount: Math.round(shipping * 100),
+                },
+                quantity: 1,
+            });
+        }
+
+        // Calculate tax (same logic as frontend: 8%)
+        const tax = totalAmount * 0.08;
+        if (tax > 0) {
+            lineItems.push({
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: 'Sales Tax (8%)',
+                    },
+                    unit_amount: Math.round(tax * 100),
+                },
+                quantity: 1,
+            });
+        }
+
+        // Include shipping + tax in total for DB
+        totalAmount += shipping + tax;
+
         // Create order in database (pending payment)
         const orderNumber = `PP-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 

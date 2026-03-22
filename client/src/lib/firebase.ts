@@ -6,6 +6,7 @@ import {
     signInWithPopup,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
     signOut,
     onAuthStateChanged,
     updateProfile,
@@ -127,6 +128,21 @@ export const logOut = async () => {
         return { error: null };
     } catch (error: any) {
         return { error: error.message };
+    }
+};
+
+export const resetPassword = async (email: string) => {
+    if (!isFirebaseConfigured) {
+        return { error: 'Firebase is not configured. Please check environment variables.' };
+    }
+    try {
+        await sendPasswordResetEmail(auth, email);
+        return { error: null };
+    } catch (error: any) {
+        let message = error.message;
+        if (error.code === 'auth/user-not-found') message = 'No account found with this email.';
+        if (error.code === 'auth/invalid-email') message = 'Invalid email address.';
+        return { error: message };
     }
 };
 
