@@ -22,8 +22,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).end();
     }
 
-    // Get userId from query params (primary) or Authorization header (fallback)
+    // Get userId from query params (primary), request body (for POST), or Authorization header (fallback)
     let userId = (req.query.userId as string) || '';
+    if (!userId && req.body?.userId) {
+        userId = req.body.userId;
+    }
     if (!userId) {
         const authHeader = req.headers.authorization;
         if (authHeader && authHeader.startsWith('Bearer ')) {

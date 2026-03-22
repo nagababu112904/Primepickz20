@@ -115,9 +115,14 @@ export const signUpWithEmail = async (email: string, password: string, displayNa
         }
         return { user: result.user, error: null };
     } catch (error: any) {
-        let message = error.message;
-        if (error.code === 'auth/email-already-in-use') message = 'An account with this email already exists.';
-        if (error.code === 'auth/weak-password') message = 'Password should be at least 6 characters.';
+        let message = 'Sign up failed. Please try again.';
+        if (error.code === 'auth/email-already-in-use') message = 'An account with this email already exists. Please sign in instead.';
+        else if (error.code === 'auth/weak-password') message = 'Password should be at least 6 characters.';
+        else if (error.code === 'auth/invalid-email') message = 'Please enter a valid email address.';
+        else if (error.code === 'auth/operation-not-allowed') message = 'Email/Password sign up is not enabled. Please contact support.';
+        else if (error.code === 'auth/too-many-requests') message = 'Too many attempts. Please try again later.';
+        else if (error.code === 'auth/network-request-failed') message = 'Network error. Please check your internet connection.';
+        console.error('Sign up error:', error.code, error.message);
         return { user: null, error: message };
     }
 };

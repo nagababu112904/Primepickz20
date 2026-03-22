@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Lock, MapPin, User, Loader2, ShieldCheck, ArrowLeft, Trash2, Plus, Minus } from "lucide-react";
+import { CreditCard, Lock, MapPin, User, Loader2, ShieldCheck, ArrowLeft, Trash2, Plus, Minus, LogIn } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import type { CartItemWithProduct } from "@shared/schema";
 
 const US_STATES = [
@@ -27,6 +28,7 @@ export default function Checkout() {
   const [, setLocation] = useLocation();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated, user } = useAuth();
 
   // Get sessionId from localStorage for cart persistence
   const getSessionId = () => {
@@ -117,6 +119,10 @@ export default function Checkout() {
   };
 
   const handleCheckout = async () => {
+    if (!isAuthenticated) {
+      setError('Please sign in before proceeding to payment.');
+      return;
+    }
     setSubmitAttempted(true);
     if (!isFormValid) {
       setError('Please fill in all required fields correctly.');
@@ -177,6 +183,25 @@ export default function Checkout() {
         </Link>
 
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+
+        {/* Login Gate */}
+        {!isAuthenticated && (
+          <Card className="mb-8 border-2 border-orange-200 bg-orange-50">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+              <LogIn className="w-10 h-10 text-orange-500" />
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Login Required</h2>
+                <p className="text-gray-600 mt-1">Please sign in or create an account before proceeding to payment.</p>
+              </div>
+              <Link href="/login">
+                <Button className="bg-[#1a2332] hover:bg-[#0f1419] text-white px-8">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In / Create Account
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         {cartItems.length === 0 ? (
           <Card className="text-center py-16">
