@@ -142,8 +142,12 @@ export function DashboardTab() {
                                         </div>
                                     </div>
                                     <button
-                                        className="text-sm text-blue-600 hover:underline"
-                                        onClick={() => {/* TODO: Navigate to edit */ }}
+                                        className="text-sm text-blue-600 hover:underline font-medium"
+                                        onClick={() => {
+                                            // Programmatically click the Inventory tab
+                                            const inventoryTab = document.querySelector('[value="inventory"]') as HTMLElement;
+                                            if (inventoryTab) inventoryTab.click();
+                                        }}
                                     >
                                         Restock →
                                     </button>

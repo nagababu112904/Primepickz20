@@ -7,23 +7,23 @@ import { verifyToken, extractToken, checkRateLimit, hashPassword, verifyPassword
 
 // Placeholder for Meta catalog sync (feature removed)
 const syncProduct = async (productId: string, action: string) => {
-    console.log(`[Meta Sync Disabled] Would sync product ${productId} with action ${action}`);
+    // console.log(`[Meta Sync Disabled] Would sync product ${productId} with action ${action}`);
 };
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql, { schema });
 
-// Admin credentials from environment (fallback for initial setup)
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@primepickz.com';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'primepickz2024';
+// Admin credentials from environment (NO fallback — must be set in Vercel env)
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // Check JWT token for admin access
 function checkAdminAuth(req: VercelRequest): { authorized: boolean; userId?: string; error?: string } {
     const authHeader = req.headers.authorization;
-    console.log('Admin Auth Check - Authorization header present:', !!authHeader);
+    // console.log('Admin Auth Check - Authorization header present:', !!authHeader);
 
     const token = extractToken(authHeader);
-    console.log('Admin Auth Check - Token extracted:', !!token);
+    // console.log('Admin Auth Check - Token extracted:', !!token);
 
     if (!token) {
         // Fallback to Basic Auth for backwards compatibility
@@ -35,12 +35,12 @@ function checkAdminAuth(req: VercelRequest): { authorized: boolean; userId?: str
                 return { authorized: true, userId: 'admin' };
             }
         }
-        console.log('Admin Auth Check - No token, returning unauthorized');
+        // console.log('Admin Auth Check - No token, returning unauthorized');
         return { authorized: false, error: 'No token provided' };
     }
 
     const payload = verifyToken(token);
-    console.log('Admin Auth Check - Token verification result:', !!payload, payload?.role);
+    // console.log('Admin Auth Check - Token verification result:', !!payload, payload?.role);
 
     if (!payload) {
         return { authorized: false, error: 'Invalid or expired token' };
@@ -94,6 +94,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             case 'orders':
                 return getOrders(req, res);
 
+            // Update order status
+            case 'order-status':
+                return handleOrderStatus(req, res);
+
             // Clear products
             case 'clear-products':
                 return clearProducts(req, res);
@@ -101,6 +105,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             // Clear orders (for test cleanup)
             case 'clear-orders':
                 return clearOrders(req, res);
+
+            // Clear ALL test data (orders, cart, wishlist, reviews, returns, email logs)
+            case 'clear-all-test-data':
+                return clearAllTestData(req, res);
 
             // Amazon sync
             case 'amazon-status':
@@ -581,6 +589,31 @@ async function getOrders(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(ordersWithItems);
 }
 
+async function handleOrderStatus(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'PUT') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const url = new URL(req.url || '', `https://${req.headers.host}`);
+    const id = url.searchParams.get('id');
+    const { status } = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
+    if (!id || !status) {
+        return res.status(400).json({ error: 'Missing order ID or status' });
+    }
+
+    const validStatuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    await db.update(schema.orders)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(schema.orders.id, id));
+
+    return res.status(200).json({ success: true, message: `Order status updated to ${status}` });
+}
+
 async function clearProducts(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -608,6 +641,61 @@ async function clearOrders(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ success: true, message: 'All orders and related data cleared' });
 }
 
+async function clearAllTestData(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // Clear everything EXCEPT products and categories
+    const cleared: string[] = [];
+
+    try {
+        await db.delete(schema.orderItems);
+        cleared.push('order_items');
+    } catch (e) { /* table may not exist */ }
+
+    try {
+        await db.delete(schema.orders);
+        cleared.push('orders');
+    } catch (e) {}
+
+    try {
+        await db.delete(schema.cartItems);
+        cleared.push('cart_items');
+    } catch (e) {}
+
+    try {
+        await db.delete(schema.wishlistItems);
+        cleared.push('wishlist_items');
+    } catch (e) {}
+
+    try {
+        await db.delete(schema.reviews);
+        cleared.push('reviews');
+    } catch (e) {}
+
+    try {
+        await db.delete(schema.returnRequests);
+        cleared.push('return_requests');
+    } catch (e) {}
+
+    try {
+        await db.delete(schema.emailLogs);
+        cleared.push('email_logs');
+    } catch (e) {}
+
+    try {
+        await db.delete(schema.addresses);
+        cleared.push('addresses');
+    } catch (e) {}
+
+    return res.status(200).json({
+        success: true,
+        message: `Cleared test data from: ${cleared.join(', ')}`,
+        cleared,
+    });
+}
+
 async function getAmazonStatus(req: VercelRequest, res: VercelResponse) {
     // Check all required Amazon SP-API environment variables
     const sellerId = process.env.AMAZON_SELLER_ID;
@@ -616,14 +704,14 @@ async function getAmazonStatus(req: VercelRequest, res: VercelResponse) {
     const refreshToken = process.env.AMAZON_REFRESH_TOKEN;
     const marketplaceId = process.env.AMAZON_MARKETPLACE_ID;
 
-    // Debug logging for Vercel logs
-    console.log('Amazon SP-API Status Check:', {
+    // Debug logging disabled for production
+    /* console.log('Amazon SP-API Status Check:', {
         hasSellerId: !!sellerId,
         hasClientId: !!clientId,
         hasClientSecret: !!clientSecret,
         hasRefreshToken: !!refreshToken,
         hasMarketplaceId: !!marketplaceId
-    });
+    }); */
 
     const isConfigured = !!(sellerId && clientId && clientSecret && refreshToken);
 
@@ -748,7 +836,7 @@ async function getSpApiAccessToken(): Promise<string> {
         return cachedAccessToken;
     }
 
-    console.log('Exchanging refresh token for access token...');
+    // console.log('Exchanging refresh token for access token...');
 
     const response = await fetch('https://api.amazon.com/auth/o2/token', {
         method: 'POST',
@@ -771,7 +859,7 @@ async function getSpApiAccessToken(): Promise<string> {
     cachedAccessToken = data.access_token;
     tokenExpiresAt = Date.now() + (data.expires_in * 1000);
 
-    console.log('Access token obtained successfully');
+    // console.log('Access token obtained successfully');
     return data.access_token;
 }
 
@@ -784,7 +872,7 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
         // Try to get inventory summaries first (FBA inventory)
         const inventoryUrl = `https://sellingpartnerapi-na.amazon.com/fba/inventory/v1/summaries?details=true&granularityType=Marketplace&granularityId=${AMAZON_MARKETPLACE_ID}&marketplaceIds=${AMAZON_MARKETPLACE_ID}`;
 
-        console.log('Fetching inventory from SP-API...');
+        // console.log('Fetching inventory from SP-API...');
 
         const inventoryResponse = await fetch(inventoryUrl, {
             method: 'GET',
@@ -799,7 +887,7 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
 
         if (inventoryResponse.ok) {
             const inventoryData = await inventoryResponse.json();
-            console.log('Inventory API response:', JSON.stringify(inventoryData).substring(0, 500));
+            // console.log('Inventory API response:', JSON.stringify(inventoryData).substring(0, 500));
 
             const items = inventoryData.payload?.inventorySummaries || [];
 
@@ -822,7 +910,7 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
                         productDetails = await catalogResponse.json();
                     }
                 } catch (e) {
-                    console.log(`Could not fetch catalog details for ${item.asin}`);
+                    // console.log(`Could not fetch catalog details for ${item.asin}`);
                 }
 
                 // Get price from Pricing API
@@ -843,10 +931,10 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
                             priceInfo?.Product?.Offers?.[0]?.BuyingPrice?.LandedPrice?.Amount ||
                             priceInfo?.Product?.Offers?.[0]?.RegularPrice?.Amount ||
                             0;
-                        console.log(`Price for ${item.asin}: $${productPrice}`);
+                        // console.log(`Price for ${item.asin}: $${productPrice}`);
                     }
                 } catch (e) {
-                    console.log(`Could not fetch price for ${item.asin}`);
+                    // console.log(`Could not fetch price for ${item.asin}`);
                 }
 
                 const summary = productDetails.summaries?.[0] || {};
@@ -872,7 +960,7 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
             // ALSO try to fetch additional MFN products from Seller Listings Report
             // This catches products like "Migrated" status items not in FBA
             try {
-                console.log('Also fetching from Seller Listings for MFN products...');
+                // console.log('Also fetching from Seller Listings for MFN products...');
                 const getListingsUrl = `https://sellingpartnerapi-na.amazon.com/sellers/v1/marketplaceParticipations`;
                 const listingsReportUrl = `https://sellingpartnerapi-na.amazon.com/listings/2021-08-01/items/${AMAZON_SELLER_ID}?marketplaceIds=${AMAZON_MARKETPLACE_ID}&pageSize=100&includedData=summaries,attributes,issues`;
 
@@ -886,7 +974,7 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
 
                 if (listingsResponse.ok) {
                     const listingsData = await listingsResponse.json();
-                    console.log('Seller Listings response:', JSON.stringify(listingsData).substring(0, 500));
+                    // console.log('Seller Listings response:', JSON.stringify(listingsData).substring(0, 500));
 
                     // Get ASINs we already have from FBA
                     const existingAsins = new Set(products.map(p => p.asin));
@@ -913,7 +1001,7 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
                                     productPrice = priceInfo?.Product?.Offers?.[0]?.BuyingPrice?.ListingPrice?.Amount || 0;
                                 }
                             } catch (e) {
-                                console.log(`Could not fetch price for MFN ${asin}`);
+                                // console.log(`Could not fetch price for MFN ${asin}`);
                             }
 
                             products.push({
@@ -935,16 +1023,16 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
                     message = `Found ${products.length} products (FBA + MFN)`;
                 }
             } catch (e) {
-                console.log('Could not fetch additional MFN products:', e);
+                // console.log('Could not fetch additional MFN products:', e);
             }
         } else {
             const errorText = await inventoryResponse.text();
-            console.log('Inventory API returned:', inventoryResponse.status, errorText);
+            // console.log('Inventory API returned:', inventoryResponse.status, errorText);
 
             // Try Listings API instead
             const listingsUrl = `https://sellingpartnerapi-na.amazon.com/listings/2021-08-01/items/${AMAZON_SELLER_ID}?marketplaceIds=${AMAZON_MARKETPLACE_ID}&pageSize=50`;
 
-            console.log('Trying Listings API...');
+            // console.log('Trying Listings API...');
             const listingsResponse = await fetch(listingsUrl, {
                 method: 'GET',
                 headers: {
@@ -955,7 +1043,7 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
 
             if (listingsResponse.ok) {
                 const listingsData = await listingsResponse.json();
-                console.log('Listings API response:', JSON.stringify(listingsData).substring(0, 500));
+                // console.log('Listings API response:', JSON.stringify(listingsData).substring(0, 500));
 
                 // Handle listings response
                 products = (listingsData.listings || []).map((item: any) => ({
@@ -973,7 +1061,7 @@ async function getAmazonProducts(req: VercelRequest, res: VercelResponse) {
                 message = `Found ${products.length} listings from Amazon`;
             } else {
                 const listingsError = await listingsResponse.text();
-                console.log('Listings API returned:', listingsResponse.status, listingsError);
+                // console.log('Listings API returned:', listingsResponse.status, listingsError);
                 message = `API returned ${inventoryResponse.status}. Your sandbox app may not have access to real inventory. Complete identity verification in Amazon Developer Central to access production data.`;
             }
         }
@@ -1297,7 +1385,7 @@ async function fetchProductByAsin(req: VercelRequest, res: VercelResponse) {
         // Fetch product from Catalog Items API
         const catalogUrl = `https://sellingpartnerapi-na.amazon.com/catalog/2022-04-01/items/${asin}?marketplaceIds=${AMAZON_MARKETPLACE_ID}&includedData=summaries,images,productTypes,attributes`;
 
-        console.log(`Fetching product by ASIN: ${asin}`);
+        // console.log(`Fetching product by ASIN: ${asin}`);
 
         const catalogResponse = await fetch(catalogUrl, {
             method: 'GET',
@@ -1325,7 +1413,7 @@ async function fetchProductByAsin(req: VercelRequest, res: VercelResponse) {
         }
 
         const catalogData = await catalogResponse.json();
-        console.log('Catalog API response:', JSON.stringify(catalogData).substring(0, 500));
+        // console.log('Catalog API response:', JSON.stringify(catalogData).substring(0, 500));
 
         // Extract product details
         const summary = catalogData.summaries?.[0] || {};
@@ -1351,7 +1439,7 @@ async function fetchProductByAsin(req: VercelRequest, res: VercelResponse) {
                     priceInfo?.Product?.Offers?.[0]?.RegularPrice?.Amount || 0;
             }
         } catch (e) {
-            console.log(`Could not fetch price for ASIN ${asin}:`, e);
+            // console.log(`Could not fetch price for ASIN ${asin}:`, e);
         }
 
         // Prepare product data
@@ -1537,7 +1625,7 @@ async function syncAllToMetaCatalog(req: VercelRequest, res: VercelResponse) {
         );
 
         const result = await response.json();
-        console.log('Batch sync result:', JSON.stringify(result));
+        // console.log('Batch sync result:', JSON.stringify(result));
 
         if (response.ok && !result.error) {
             const handles = result.handles || [];
