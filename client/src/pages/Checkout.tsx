@@ -90,8 +90,21 @@ export default function Checkout() {
     return sum + price * item.quantity;
   }, 0);
 
-  const shipping = subtotal >= 99 ? 0 : 9.99;
-  const tax = subtotal * 0.08;
+  // Per-product shipping: sum of each product's shippingCost * quantity
+  const shipping = cartItems.reduce((sum, item) => {
+    const productShipping = parseFloat((item.product as any)?.shippingCost || "0");
+    const isFreeShipping = (item.product as any)?.freeShipping;
+    if (isFreeShipping || productShipping <= 0) return sum;
+    return sum + productShipping * item.quantity;
+  }, 0);
+
+  // Per-product tax: each product's taxRate (default 8%) applied to item subtotal
+  const tax = cartItems.reduce((sum, item) => {
+    const price = parseFloat(item.product?.price || "0");
+    const taxRate = parseFloat((item.product as any)?.taxRate || "8");
+    return sum + (price * item.quantity * taxRate / 100);
+  }, 0);
+
   const total = subtotal + shipping + tax;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

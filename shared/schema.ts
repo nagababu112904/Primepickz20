@@ -51,6 +51,8 @@ export const products = pgTable("products", {
   badge: text("badge"),
   videoUrl: text("video_url"), // Product video URL (YouTube, Vimeo, etc.)
   freeShipping: boolean("free_shipping").default(false),
+  shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }).default("0"),
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("8"), // percentage, e.g. 8 = 8%
   hasVariants: boolean("has_variants").default(false),
   // Amazon SP-API fields
   amazonAsin: text("amazon_asin"),

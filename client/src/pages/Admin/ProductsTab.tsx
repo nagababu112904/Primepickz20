@@ -509,6 +509,8 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
         description: initialData?.description || '',
         price: initialData?.price || '',
         originalPrice: initialData?.originalPrice || '',
+        shippingCost: (initialData as any)?.shippingCost || '0',
+        taxRate: (initialData as any)?.taxRate || '8',
         category: initialData?.category || '',
         imageUrl: initialData?.imageUrl || '',
         stockCount: initialData?.stockCount || 0,
@@ -722,6 +724,33 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                         value={formData.originalPrice}
                         onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
                     />
+                </div>
+
+                <div>
+                    <Label>Shipping Cost ($)</Label>
+                    <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.shippingCost}
+                        onChange={(e) => setFormData({ ...formData, shippingCost: e.target.value })}
+                        placeholder="0 = free shipping"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Set to 0 for free shipping</p>
+                </div>
+
+                <div>
+                    <Label>Tax Rate (%)</Label>
+                    <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        value={formData.taxRate}
+                        onChange={(e) => setFormData({ ...formData, taxRate: e.target.value })}
+                        placeholder="e.g. 8 for 8%"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Default 8%</p>
                 </div>
 
                 <div>

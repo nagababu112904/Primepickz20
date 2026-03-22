@@ -54,6 +54,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Fetch product details for each cart item
         const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
         let totalAmount = 0;
+        let totalShipping = 0;
+        let totalTax = 0;
 
         for (const item of items) {
             const products = await db.select()
@@ -68,6 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const product = products[0];
             const price = parseFloat(product.price);
             const quantity = item.quantity || 1;
+            const itemTotal = price * quantity;
 
             lineItems.push({
                 price_data: {
@@ -82,42 +85,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 quantity,
             });
 
-            totalAmount += price * quantity;
+            totalAmount += itemTotal;
+
+            // Per-product shipping (from DB, default 0 = free)
+            const productShipping = parseFloat(product.shippingCost || '0');
+            if (productShipping > 0 && !product.freeShipping) {
+                totalShipping += productShipping * quantity;
+            }
+
+            // Per-product tax (from DB, default 8%)
+            const productTaxRate = parseFloat(product.taxRate || '8');
+            totalTax += itemTotal * (productTaxRate / 100);
         }
 
-        // Calculate shipping (same logic as frontend: free over $99)
-        const shipping = totalAmount >= 99 ? 0 : 9.99;
-        if (shipping > 0) {
+        // Add shipping as line item if any
+        if (totalShipping > 0) {
             lineItems.push({
                 price_data: {
                     currency: 'usd',
                     product_data: {
                         name: 'Shipping',
-                        description: 'Standard shipping (5-7 business days)',
+                        description: 'Product-specific shipping costs',
                     },
-                    unit_amount: Math.round(shipping * 100),
+                    unit_amount: Math.round(totalShipping * 100),
                 },
                 quantity: 1,
             });
         }
 
-        // Calculate tax (same logic as frontend: 8%)
-        const tax = totalAmount * 0.08;
-        if (tax > 0) {
+        // Add tax as line item if any
+        if (totalTax > 0) {
             lineItems.push({
                 price_data: {
                     currency: 'usd',
                     product_data: {
-                        name: 'Sales Tax (8%)',
+                        name: 'Sales Tax',
                     },
-                    unit_amount: Math.round(tax * 100),
+                    unit_amount: Math.round(totalTax * 100),
                 },
                 quantity: 1,
             });
         }
 
         // Include shipping + tax in total for DB
-        totalAmount += shipping + tax;
+        totalAmount += totalShipping + totalTax;
 
         // Create order in database (pending payment)
         const orderNumber = `PP-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
