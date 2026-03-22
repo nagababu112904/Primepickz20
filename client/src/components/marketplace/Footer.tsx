@@ -7,7 +7,7 @@ const footerSections = [
         title: 'Quick Links',
         links: [
             { label: 'Home', href: '/' },
-            { label: 'Categories', href: '/categories' },
+            { label: 'Categories', href: '/' },
             { label: 'My Account', href: '/account' },
             { label: 'Shopping Cart', href: '/checkout' },
             { label: 'Wishlist', href: '/wishlist' },

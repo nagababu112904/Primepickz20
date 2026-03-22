@@ -511,7 +511,6 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
         originalPrice: initialData?.originalPrice || '',
         category: initialData?.category || '',
         imageUrl: initialData?.imageUrl || '',
-        videoUrl: (initialData as any)?.videoUrl || '',
         stockCount: initialData?.stockCount || 0,
         amazonAsin: initialData?.amazonAsin || '',
         amazonSku: initialData?.amazonSku || '',
@@ -521,82 +520,118 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
     const [variants, setVariants] = useState<Variant[]>([]);
     const [showVariants, setShowVariants] = useState(formData.hasVariants);
 
-    // Image upload state
-    const [imageUploadMode, setImageUploadMode] = useState<'url' | 'file'>('url');
-    const [imagePreview, setImagePreview] = useState<string>(formData.imageUrl || '');
+    // Multi-image state
+    const [images, setImages] = useState<string[]>(() => {
+        const existing: string[] = [];
+        if (initialData?.imageUrl) existing.push(initialData.imageUrl);
+        if ((initialData as any)?.images) {
+            const extraImages = (initialData as any).images;
+            if (Array.isArray(extraImages)) {
+                extraImages.forEach((img: string) => {
+                    if (!existing.includes(img)) existing.push(img);
+                });
+            }
+        }
+        return existing;
+    });
+    const [imageUrlInput, setImageUrlInput] = useState('');
     const [isUploading, setIsUploading] = useState(false);
 
-    // Handle image file upload
-    const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('Please select an image file');
-            return;
+    // Multi-video state
+    const [videos, setVideos] = useState<string[]>(() => {
+        const existing: string[] = [];
+        if ((initialData as any)?.videoUrl) existing.push((initialData as any).videoUrl);
+        if ((initialData as any)?.videos) {
+            const extraVideos = (initialData as any).videos;
+            if (Array.isArray(extraVideos)) {
+                extraVideos.forEach((vid: string) => {
+                    if (!existing.includes(vid)) existing.push(vid);
+                });
+            }
         }
-
-        // Max size 5MB
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Image size must be less than 5MB');
-            return;
-        }
-
-        setIsUploading(true);
-
-        // Convert to base64 data URL
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64 = reader.result as string;
-            setImagePreview(base64);
-            setFormData({ ...formData, imageUrl: base64 });
-            setIsUploading(false);
-        };
-        reader.onerror = () => {
-            alert('Failed to read image file');
-            setIsUploading(false);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    // Video upload state
-    const [videoUploadMode, setVideoUploadMode] = useState<'url' | 'file'>('url');
-    const [videoPreview, setVideoPreview] = useState<string>(formData.videoUrl || '');
+        return existing;
+    });
+    const [videoUrlInput, setVideoUrlInput] = useState('');
     const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
-    // Handle video file upload
+    // Add image by URL
+    const handleAddImageUrl = () => {
+        if (imageUrlInput.trim()) {
+            setImages([...images, imageUrlInput.trim()]);
+            setImageUrlInput('');
+        }
+    };
+
+    // Add image by file upload
+    const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        setIsUploading(true);
+        const newImages: string[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!file.type.startsWith('image/')) continue;
+            if (file.size > 5 * 1024 * 1024) continue;
+
+            const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            newImages.push(base64);
+        }
+
+        setImages([...images, ...newImages]);
+        setIsUploading(false);
+        e.target.value = '';
+    };
+
+    // Remove image
+    const handleRemoveImage = (index: number) => {
+        setImages(images.filter((_, i) => i !== index));
+    };
+
+    // Add video by URL
+    const handleAddVideoUrl = () => {
+        if (videoUrlInput.trim()) {
+            setVideos([...videos, videoUrlInput.trim()]);
+            setVideoUrlInput('');
+        }
+    };
+
+    // Add video by file upload
     const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Validate file type
-        if (!file.type.startsWith('video/')) {
-            alert('Please select a video file');
-            return;
-        }
-
-        // Max size 50MB
-        if (file.size > 50 * 1024 * 1024) {
-            alert('Video size must be less than 50MB');
-            return;
-        }
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
 
         setIsUploadingVideo(true);
+        const newVideos: string[] = [];
 
-        // Convert to base64 data URL
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64 = reader.result as string;
-            setVideoPreview(base64);
-            setFormData({ ...formData, videoUrl: base64 });
-            setIsUploadingVideo(false);
-        };
-        reader.onerror = () => {
-            alert('Failed to read video file');
-            setIsUploadingVideo(false);
-        };
-        reader.readAsDataURL(file);
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!file.type.startsWith('video/')) continue;
+            if (file.size > 50 * 1024 * 1024) continue;
+
+            const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            newVideos.push(base64);
+        }
+
+        setVideos([...videos, ...newVideos]);
+        setIsUploadingVideo(false);
+        e.target.value = '';
+    };
+
+    // Remove video
+    const handleRemoveVideo = (index: number) => {
+        setVideos(videos.filter((_, i) => i !== index));
     };
 
     const addVariant = () => {
@@ -631,8 +666,15 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        const primaryImage = images[0] || '';
+        const additionalImages = images.slice(1);
         onSubmit({
             ...formData,
+            imageUrl: primaryImage,
+            // @ts-ignore - images array will be stored in jsonb
+            images: additionalImages,
+            // @ts-ignore - videos will be stored alongside
+            videos: videos,
             hasVariants: showVariants && variants.length > 0,
             // @ts-ignore - variants will be handled by the parent
             variants: showVariants ? variants : [],
@@ -709,175 +751,130 @@ function ProductForm({ categories, initialData, onSubmit, isLoading }: ProductFo
                     />
                 </div>
 
-                {/* Image Upload Section */}
-                <div className="col-span-2 space-y-3">
+                {/* Multi-Image Upload Section */}
+                <div className="col-span-2 space-y-3 border rounded-lg p-4 bg-gray-50">
                     <div className="flex items-center justify-between">
-                        <Label>Product Image *</Label>
-                        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-                            <button
-                                type="button"
-                                className={`px-3 py-1 text-sm rounded-md transition-colors ${imageUploadMode === 'url'
-                                    ? 'bg-white shadow-sm text-gray-900'
-                                    : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                                onClick={() => setImageUploadMode('url')}
-                            >
-                                URL
-                            </button>
-                            <button
-                                type="button"
-                                className={`px-3 py-1 text-sm rounded-md transition-colors ${imageUploadMode === 'file'
-                                    ? 'bg-white shadow-sm text-gray-900'
-                                    : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                                onClick={() => setImageUploadMode('file')}
-                            >
-                                Upload File
-                            </button>
-                        </div>
+                        <Label className="text-base font-semibold">Product Images * <span className="text-xs font-normal text-gray-500">({images.length} added, first = primary)</span></Label>
                     </div>
 
-                    {imageUploadMode === 'url' ? (
+                    {/* Add by URL */}
+                    <div className="flex gap-2">
                         <Input
-                            value={formData.imageUrl.startsWith('data:') ? '' : formData.imageUrl}
-                            onChange={(e) => {
-                                setFormData({ ...formData, imageUrl: e.target.value });
-                                setImagePreview(e.target.value);
-                            }}
-                            placeholder="https://example.com/image.jpg"
-                            required={!formData.imageUrl}
+                            value={imageUrlInput}
+                            onChange={(e) => setImageUrlInput(e.target.value)}
+                            placeholder="Paste image URL and click Add"
+                            className="flex-1 bg-white"
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddImageUrl())}
                         />
-                    ) : (
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                                <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
-                                    <Upload className="w-5 h-5 text-gray-400" />
-                                    <span className="text-gray-600">
-                                        {isUploading ? 'Uploading...' : 'Click to upload image'}
-                                    </span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageFileChange}
-                                        className="hidden"
-                                        disabled={isUploading}
-                                    />
-                                </label>
-                            </div>
-                            <p className="text-xs text-gray-500">PNG, JPG, WEBP up to 5MB</p>
-                        </div>
-                    )}
+                        <Button type="button" variant="outline" size="sm" onClick={handleAddImageUrl} disabled={!imageUrlInput.trim()}>
+                            <Plus className="w-4 h-4 mr-1" /> Add URL
+                        </Button>
+                    </div>
 
-                    {/* Image Preview */}
-                    {imagePreview && (
-                        <div className="relative inline-block">
-                            <img
-                                src={imagePreview}
-                                alt="Preview"
-                                className="w-32 h-32 object-cover rounded-lg border"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setImagePreview('');
-                                    setFormData({ ...formData, imageUrl: '' });
-                                }}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-                            >
-                                ×
-                            </button>
+                    {/* Upload files */}
+                    <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-3 cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors bg-white">
+                        <Upload className="w-5 h-5 text-gray-400" />
+                        <span className="text-gray-600 text-sm">
+                            {isUploading ? 'Uploading...' : 'Click to upload images (multi-select supported)'}
+                        </span>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageFileChange}
+                            className="hidden"
+                            disabled={isUploading}
+                        />
+                    </label>
+                    <p className="text-xs text-gray-500">PNG, JPG, WEBP up to 5MB each</p>
+
+                    {/* Image Previews Grid */}
+                    {images.length > 0 && (
+                        <div className="flex flex-wrap gap-3">
+                            {images.map((img, index) => (
+                                <div key={index} className="relative group">
+                                    <img
+                                        src={img}
+                                        alt={`Image ${index + 1}`}
+                                        className={`w-24 h-24 object-cover rounded-lg border-2 ${
+                                            index === 0 ? 'border-orange-500 ring-2 ring-orange-200' : 'border-gray-200'
+                                        }`}
+                                        onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50" x="50" text-anchor="middle" font-size="14">Error</text></svg>'; }}
+                                    />
+                                    {index === 0 && (
+                                        <span className="absolute bottom-1 left-1 bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">Primary</span>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveImage(index)}
+                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
 
-                {/* Video Upload Section */}
-                <div className="col-span-2 space-y-3">
+                {/* Multi-Video Upload Section */}
+                <div className="col-span-2 space-y-3 border rounded-lg p-4 bg-gray-50">
                     <div className="flex items-center justify-between">
-                        <Label>Product Video (Optional)</Label>
-                        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-                            <button
-                                type="button"
-                                className={`px-3 py-1 text-sm rounded-md transition-colors ${videoUploadMode === 'url'
-                                    ? 'bg-white shadow-sm text-gray-900'
-                                    : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                                onClick={() => setVideoUploadMode('url')}
-                            >
-                                URL
-                            </button>
-                            <button
-                                type="button"
-                                className={`px-3 py-1 text-sm rounded-md transition-colors ${videoUploadMode === 'file'
-                                    ? 'bg-white shadow-sm text-gray-900'
-                                    : 'text-gray-600 hover:text-gray-900'
-                                    }`}
-                                onClick={() => setVideoUploadMode('file')}
-                            >
-                                Upload File
-                            </button>
-                        </div>
+                        <Label className="text-base font-semibold">Product Videos <span className="text-xs font-normal text-gray-500">(Optional, {videos.length} added)</span></Label>
                     </div>
 
-                    {videoUploadMode === 'url' ? (
-                        <div>
-                            <Input
-                                value={formData.videoUrl.startsWith('data:') ? '' : formData.videoUrl}
-                                onChange={(e) => {
-                                    setFormData({ ...formData, videoUrl: e.target.value });
-                                    setVideoPreview(e.target.value);
-                                }}
-                                placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
-                            />
-                            <p className="text-xs text-gray-500 mt-1">YouTube, Vimeo, or direct video URL</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                                <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
-                                    <Upload className="w-5 h-5 text-gray-400" />
-                                    <span className="text-gray-600">
-                                        {isUploadingVideo ? 'Uploading...' : 'Click to upload video'}
-                                    </span>
-                                    <input
-                                        type="file"
-                                        accept="video/*"
-                                        onChange={handleVideoFileChange}
-                                        className="hidden"
-                                        disabled={isUploadingVideo}
-                                    />
-                                </label>
-                            </div>
-                            <p className="text-xs text-gray-500">MP4, WEBM up to 50MB</p>
-                        </div>
-                    )}
+                    {/* Add by URL */}
+                    <div className="flex gap-2">
+                        <Input
+                            value={videoUrlInput}
+                            onChange={(e) => setVideoUrlInput(e.target.value)}
+                            placeholder="YouTube, Vimeo, or direct video URL"
+                            className="flex-1 bg-white"
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddVideoUrl())}
+                        />
+                        <Button type="button" variant="outline" size="sm" onClick={handleAddVideoUrl} disabled={!videoUrlInput.trim()}>
+                            <Plus className="w-4 h-4 mr-1" /> Add URL
+                        </Button>
+                    </div>
 
-                    {/* Video Preview */}
-                    {videoPreview && (
-                        <div className="relative inline-block">
-                            {videoPreview.startsWith('data:video') ? (
-                                <video
-                                    src={videoPreview}
-                                    controls
-                                    className="w-48 h-32 rounded-lg border object-cover"
-                                />
-                            ) : (
-                                <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-2">
-                                    <span className="text-sm text-gray-600 max-w-xs truncate">{videoPreview}</span>
+                    {/* Upload files */}
+                    <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-3 cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-colors bg-white">
+                        <Upload className="w-5 h-5 text-gray-400" />
+                        <span className="text-gray-600 text-sm">
+                            {isUploadingVideo ? 'Uploading...' : 'Click to upload videos (multi-select supported)'}
+                        </span>
+                        <input
+                            type="file"
+                            accept="video/*"
+                            multiple
+                            onChange={handleVideoFileChange}
+                            className="hidden"
+                            disabled={isUploadingVideo}
+                        />
+                    </label>
+                    <p className="text-xs text-gray-500">MP4, WEBM up to 50MB each</p>
+
+                    {/* Video Previews */}
+                    {videos.length > 0 && (
+                        <div className="space-y-2">
+                            {videos.map((vid, index) => (
+                                <div key={index} className="relative flex items-center gap-3 bg-white rounded-lg border p-2 group">
+                                    {vid.startsWith('data:video') ? (
+                                        <video src={vid} controls className="w-32 h-20 rounded object-cover" />
+                                    ) : (
+                                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                                            <span className="text-sm text-blue-600 truncate">{vid}</span>
+                                        </div>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveVideo(index)}
+                                        className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 flex-shrink-0"
+                                    >
+                                        ×
+                                    </button>
                                 </div>
-                            )}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setVideoPreview('');
-                                    setFormData({ ...formData, videoUrl: '' });
-                                }}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-                            >
-                                ×
-                            </button>
+                            ))}
                         </div>
                     )}
                 </div>

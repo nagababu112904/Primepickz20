@@ -64,8 +64,13 @@ export default function ProductDetail() {
   });
 
   const { data: reviews = [] } = useQuery<Review[]>({
-    queryKey: [`/api/reviews/product/${productId}`],
+    queryKey: [`/api/reviews`, productId],
     enabled: !!productId,
+    queryFn: async () => {
+      const res = await fetch(`/api/reviews?productId=${productId}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
   });
 
   const product = allProducts?.find(p => p.id === productId);

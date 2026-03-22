@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { updateProfile, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import type { Product } from '@shared/schema';
 
 interface Address {
@@ -207,9 +208,21 @@ export default function Account() {
     });
 
     // Profile handlers
-    const handleSaveProfile = () => {
-        toast({ title: 'Profile Updated', description: 'Your profile has been saved successfully.' });
-        setIsEditingProfile(false);
+    const handleSaveProfile = async () => {
+        if (!user) return;
+        try {
+            await updateProfile(user, {
+                displayName: profileData.name,
+            });
+            toast({ title: 'Profile Updated', description: 'Your profile has been saved successfully.' });
+            setIsEditingProfile(false);
+        } catch (error: any) {
+            toast({
+                title: 'Error',
+                description: error.message || 'Failed to update profile.',
+                variant: 'destructive',
+            });
+        }
     };
 
     // Address handlers
@@ -236,7 +249,7 @@ export default function Account() {
     };
 
     // Password handler
-    const handleChangePassword = () => {
+    const handleChangePassword = async () => {
         if (passwordData.new !== passwordData.confirm) {
             toast({ title: 'Error', description: 'Passwords do not match.', variant: 'destructive' });
             return;
@@ -245,9 +258,26 @@ export default function Account() {
             toast({ title: 'Error', description: 'Password must be at least 8 characters.', variant: 'destructive' });
             return;
         }
-        toast({ title: 'Password Changed', description: 'Your password has been updated successfully.' });
-        setPasswordData({ current: '', new: '', confirm: '' });
-        setIsChangingPassword(false);
+        if (!user || !user.email) {
+            toast({ title: 'Error', description: 'You must be signed in with email to change password.', variant: 'destructive' });
+            return;
+        }
+        try {
+            // Reauthenticate first
+            const credential = EmailAuthProvider.credential(user.email, passwordData.current);
+            await reauthenticateWithCredential(user, credential);
+            // Now update password
+            await updatePassword(user, passwordData.new);
+            toast({ title: 'Password Changed', description: 'Your password has been updated successfully.' });
+            setPasswordData({ current: '', new: '', confirm: '' });
+            setIsChangingPassword(false);
+        } catch (error: any) {
+            let message = 'Failed to change password.';
+            if (error.code === 'auth/wrong-password') message = 'Current password is incorrect.';
+            if (error.code === 'auth/weak-password') message = 'New password is too weak.';
+            if (error.code === 'auth/requires-recent-login') message = 'Please log out and log back in before changing your password.';
+            toast({ title: 'Error', description: message, variant: 'destructive' });
+        }
     };
 
     // Sign out handler
@@ -761,11 +791,29 @@ export default function Account() {
                                     </DialogContent>
                                 </Dialog>
 
-                                <Button variant="outline" className="w-full justify-start" onClick={() => toast({ title: 'Email Preferences', description: 'Email preferences updated.' })}>
+                                <Button variant="outline" className="w-full justify-start" onClick={() => {
+                                    const key = `pp_email_prefs_${user?.uid}`;
+                                    const current = JSON.parse(localStorage.getItem(key) || '{"marketing":true,"orders":true,"promotions":false}');
+                                    current.marketing = !current.marketing;
+                                    localStorage.setItem(key, JSON.stringify(current));
+                                    toast({
+                                        title: 'Email Preferences Updated',
+                                        description: `Marketing emails: ${current.marketing ? 'Enabled' : 'Disabled'}. Order updates: Always enabled.`,
+                                    });
+                                }}>
                                     Email Preferences
                                 </Button>
 
-                                <Button variant="outline" className="w-full justify-start" onClick={() => toast({ title: 'Privacy Settings', description: 'Privacy settings saved.' })}>
+                                <Button variant="outline" className="w-full justify-start" onClick={() => {
+                                    const key = `pp_privacy_${user?.uid}`;
+                                    const current = JSON.parse(localStorage.getItem(key) || '{"analytics":true,"personalization":true}');
+                                    current.analytics = !current.analytics;
+                                    localStorage.setItem(key, JSON.stringify(current));
+                                    toast({
+                                        title: 'Privacy Settings Updated',
+                                        description: `Analytics: ${current.analytics ? 'Enabled' : 'Disabled'}. Your data is always protected.`,
+                                    });
+                                }}>
                                     Privacy Settings
                                 </Button>
 
