@@ -88,7 +88,9 @@ export default function Wishlist() {
             <CardContent>
               <h2 className="text-2xl font-bold mb-2">Login Required</h2>
               <p className="text-gray-500 mb-6">Please log in to view your wishlist</p>
-              <Button className="bg-[#1a2332] hover:bg-[#0f1419]">Login</Button>
+              <Link href="/login">
+                <Button className="bg-[#1a2332] hover:bg-[#0f1419]">Login</Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

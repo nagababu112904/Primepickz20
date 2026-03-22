@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { Link } from 'wouter';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { queryClient, apiRequest } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 
 interface ProductCardProps {
     id: string;
@@ -27,10 +31,98 @@ export function ProductCard({
     inStock = true,
     stockCount,
 }: ProductCardProps) {
-    const [isWishlisted, setIsWishlisted] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const { user, isAuthenticated } = useAuth();
+    const { toast } = useToast();
 
     const hasDiscount = originalPrice && parseFloat(originalPrice) > parseFloat(price);
+
+    // Check if this product is in the user's wishlist
+    const { data: wishlistItems = [] } = useQuery<Array<{ productId: string }>>({
+        queryKey: ['/api/wishlist', user?.uid],
+        queryFn: async () => {
+            if (!user?.uid) return [];
+            const res = await fetch(`/api/wishlist?userId=${encodeURIComponent(user.uid)}`);
+            if (!res.ok) return [];
+            return res.json();
+        },
+        enabled: isAuthenticated && !!user?.uid,
+    });
+
+    const isWishlisted = wishlistItems.some(item => item.productId === id);
+
+    // Toggle wishlist
+    const handleToggleWishlist = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!isAuthenticated || !user?.uid) {
+            toast({
+                title: 'Login Required',
+                description: 'Please log in to add items to your wishlist',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        setIsToggling(true);
+        try {
+            if (isWishlisted) {
+                // Remove from wishlist
+                const res = await fetch(`/api/wishlist?userId=${encodeURIComponent(user.uid)}&productId=${encodeURIComponent(id)}`, {
+                    method: 'DELETE',
+                });
+                if (res.ok) {
+                    toast({ title: 'Removed from wishlist' });
+                }
+            } else {
+                // Add to wishlist
+                const res = await fetch('/api/wishlist', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: user.uid, productId: id }),
+                });
+                if (res.ok) {
+                    toast({ title: '❤️ Added to wishlist!' });
+                }
+            }
+            queryClient.invalidateQueries({ queryKey: ['/api/wishlist'] });
+        } catch (err) {
+            toast({ title: 'Error', description: 'Failed to update wishlist', variant: 'destructive' });
+        } finally {
+            setIsToggling(false);
+        }
+    };
+
+    // Add to cart
+    const handleAddToCart = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!inStock) return;
+
+        setIsAddingToCart(true);
+        try {
+            let sessionId = localStorage.getItem('cartSessionId');
+            if (!sessionId) {
+                sessionId = crypto.randomUUID();
+                localStorage.setItem('cartSessionId', sessionId);
+            }
+            await apiRequest('POST', '/api/cart', {
+                productId: id,
+                quantity: 1,
+                sessionId,
+            });
+            queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+            toast({ title: '🛒 Added to cart!' });
+        } catch (err) {
+            toast({ title: 'Error', description: 'Failed to add to cart', variant: 'destructive' });
+        } finally {
+            setIsAddingToCart(false);
+        }
+    };
 
     return (
         <div className="group relative bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
@@ -69,16 +161,14 @@ export function ProductCard({
                 </div>
             </Link>
 
-            {/* Wishlist Button - Top Right */}
+            {/* Wishlist Button - Top Right — calls real API */}
             <button
-                onClick={(e) => {
-                    e.preventDefault();
-                    setIsWishlisted(!isWishlisted);
-                }}
-                className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm ${isWishlisted
-                        ? 'bg-[#1a2332] text-white'
-                        : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:text-[#1a2332] hover:bg-white'
-                    }`}
+                onClick={handleToggleWishlist}
+                disabled={isToggling}
+                className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm z-10 ${isWishlisted
+                        ? 'bg-red-500 text-white'
+                        : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:text-red-500 hover:bg-white'
+                    } ${isToggling ? 'opacity-50' : ''}`}
             >
                 <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
             </button>
@@ -102,21 +192,35 @@ export function ProductCard({
                 </Link>
 
                 {/* Price Row */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        {hasDiscount && (
-                            <span className="text-sm text-gray-400 line-through">
-                                ${parseFloat(originalPrice!).toFixed(2)}
-                            </span>
-                        )}
-                        <div className="flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-full">
-                            <ShoppingCart className="w-4 h-4 text-[#1a2332]" />
-                            <span className={`font-bold ${hasDiscount ? 'text-[#1a2332]' : 'text-gray-900'}`}>
-                                ${parseFloat(price).toFixed(2)}
-                            </span>
-                        </div>
-                    </div>
+                <div className="flex items-center gap-2 mb-3">
+                    {hasDiscount && (
+                        <span className="text-sm text-gray-400 line-through">
+                            ${parseFloat(originalPrice!).toFixed(2)}
+                        </span>
+                    )}
+                    <span className={`text-lg font-bold ${hasDiscount ? 'text-[#1a2332]' : 'text-gray-900'}`}>
+                        ${parseFloat(price).toFixed(2)}
+                    </span>
                 </div>
+
+                {/* Add to Cart Button */}
+                {inStock ? (
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={isAddingToCart}
+                        className="w-full flex items-center justify-center gap-2 bg-[#1a2332] hover:bg-[#0f1419] text-white py-2.5 px-4 rounded-xl font-medium text-sm transition-colors disabled:opacity-50"
+                    >
+                        <ShoppingCart className="w-4 h-4" />
+                        {isAddingToCart ? 'Adding...' : 'Add to Cart'}
+                    </button>
+                ) : (
+                    <button
+                        disabled
+                        className="w-full flex items-center justify-center gap-2 bg-gray-200 text-gray-500 py-2.5 px-4 rounded-xl font-medium text-sm cursor-not-allowed"
+                    >
+                        Out of Stock
+                    </button>
+                )}
             </div>
         </div>
     );
